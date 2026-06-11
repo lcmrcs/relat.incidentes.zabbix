@@ -2,6 +2,7 @@ import os
 import requests
 import pandas as pd
 
+from collections import Counter
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from jinja2 import Environment, FileSystemLoader
@@ -286,6 +287,128 @@ def add_pdf_text(commands, x, y, text, size=8, font="F1"):
     )
 
 
+def build_report_summary(incidents):
+
+    severity_counter = Counter(
+        item["severity"]
+        for item in incidents
+    )
+    equipment_counter = Counter(
+        item["equipment"]
+        for item in incidents
+    )
+    host_counter = Counter(
+        item["host"]
+        for item in incidents
+        if item["host"] != "N/A"
+    )
+
+    total = len(incidents)
+
+    def format_counter(counter):
+        return [
+            {
+                "name": name,
+                "total": count,
+                "percent": round((count / total) * 100, 1) if total else 0
+            }
+            for name, count in counter.most_common()
+        ]
+
+    return {
+        "total": total,
+        "critical": severity_counter.get("Crítica", 0),
+        "high": severity_counter.get("Alta", 0),
+        "medium": severity_counter.get("Média", 0),
+        "warning": severity_counter.get("Aviso", 0),
+        "severity": format_counter(severity_counter),
+        "equipment": format_counter(equipment_counter),
+        "top_hosts": format_counter(host_counter)[:8],
+    }
+
+
+def build_summary_pdf_page(summary, generated, period_label, total_pages):
+
+    commands = []
+
+    add_pdf_text(
+        commands,
+        36,
+        558,
+        "Relatorio Executivo de Incidentes Zabbix",
+        17,
+        "F2"
+    )
+    add_pdf_text(
+        commands,
+        36,
+        538,
+        f"Periodo: {period_label} | Gerado em {generated} | Pagina 1 de {total_pages}",
+        9
+    )
+
+    cards = [
+        ("Total", summary["total"]),
+        ("Criticos", summary["critical"]),
+        ("Altos", summary["high"]),
+        ("Medios", summary["medium"]),
+    ]
+
+    x = 36
+
+    for label, value in cards:
+        commands.append(
+            b"0.93 0.95 0.97 rg %.2f 470 178 48 re f\n" % x
+        )
+        commands.append(
+            b"0.75 0.80 0.86 RG %.2f 470 178 48 re S\n" % x
+        )
+        add_pdf_text(commands, x + 12, 500, label, 9, "F2")
+        add_pdf_text(commands, x + 12, 480, value, 18, "F2")
+        x += 192
+
+    add_pdf_text(commands, 36, 432, "Distribuicao por severidade", 12, "F2")
+    y = 408
+
+    for item in summary["severity"][:6]:
+        add_pdf_text(
+            commands,
+            48,
+            y,
+            f"{item['name']}: {item['total']} ({item['percent']}%)",
+            9
+        )
+        y -= 18
+
+    add_pdf_text(commands, 330, 432, "Equipamentos mais afetados", 12, "F2")
+    y = 408
+
+    for item in summary["equipment"][:8]:
+        add_pdf_text(
+            commands,
+            342,
+            y,
+            f"{item['name']}: {item['total']} ({item['percent']}%)",
+            9
+        )
+        y -= 18
+
+    add_pdf_text(commands, 36, 248, "Hosts com mais incidentes", 12, "F2")
+    y = 224
+
+    for item in summary["top_hosts"]:
+        add_pdf_text(
+            commands,
+            48,
+            y,
+            f"{item['name']}: {item['total']} ({item['percent']}%)",
+            8
+        )
+        y -= 16
+
+    return b"".join(commands)
+
+
 def build_pdf_page(rows, page_number, total_pages, generated):
 
     commands = []
@@ -294,7 +417,7 @@ def build_pdf_page(rows, page_number, total_pages, generated):
         commands,
         36,
         558,
-        "Relatorio de Incidentes Zabbix",
+        "Detalhamento de Incidentes Zabbix",
         16,
         "F2"
     )
@@ -364,7 +487,7 @@ def build_pdf_page(rows, page_number, total_pages, generated):
     return b"".join(commands)
 
 
-def write_pdf_report(filename, incidents, generated):
+def write_pdf_report(filename, incidents, generated, summary, period_label):
 
     rows_per_page = 18
     pages = [
@@ -372,11 +495,19 @@ def write_pdf_report(filename, incidents, generated):
         for index in range(0, len(incidents), rows_per_page)
     ] or [[]]
 
-    total_pages = len(pages)
+    total_pages = len(pages) + 1
     page_streams = [
-        build_pdf_page(rows, index + 1, total_pages, generated)
-        for index, rows in enumerate(pages)
+        build_summary_pdf_page(
+            summary,
+            generated,
+            period_label,
+            total_pages
+        )
     ]
+    page_streams.extend([
+        build_pdf_page(rows, index + 2, total_pages, generated)
+        for index, rows in enumerate(pages)
+    ])
 
     objects = {
         1: b"<< /Type /Catalog /Pages 2 0 R >>",
@@ -495,6 +626,13 @@ for item in problems:
 # transforma lista em tabela
 df = pd.DataFrame(incidents)
 
+# monta indicadores para apresentacao
+summary = build_report_summary(incidents)
+period_label = (
+    f"{start_week.strftime('%d/%m/%Y %H:%M')} a "
+    f"{today.strftime('%d/%m/%Y %H:%M')}"
+)
+
 # ==================================================
 # CRIAR PASTA REPORTS
 # ==================================================
@@ -533,8 +671,10 @@ template = env.get_template(
 # renderiza HTML com os dados
 html_output = template.render(
     generated=today.strftime("%d/%m/%Y %H:%M"),
+    period=period_label,
     total=len(df),
-    incidents=incidents
+    incidents=incidents,
+    summary=summary
 )
 
 # nome do arquivo
@@ -563,7 +703,9 @@ pdf_name = (
 write_pdf_report(
     pdf_name,
     incidents,
-    today.strftime("%d/%m/%Y %H:%M")
+    today.strftime("%d/%m/%Y %H:%M"),
+    summary,
+    period_label
 )
 
 print(f"PDF gerado: {pdf_name}")

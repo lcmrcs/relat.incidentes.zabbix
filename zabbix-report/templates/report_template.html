@@ -14,6 +14,7 @@
             --line: #d9e2ec;
             --header: #102a43;
             --accent: #0b7285;
+            --accent-soft: #e6fcf5;
             --critical: #c92a2a;
             --high: #e67700;
             --medium: #f08c00;
@@ -42,7 +43,7 @@
             color: #ffffff;
             padding: 28px;
             border-radius: 8px;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
         h1 {
@@ -52,7 +53,7 @@
         }
 
         .meta {
-            margin: 0;
+            margin: 0 0 4px;
             color: #bcccdc;
         }
 
@@ -83,6 +84,87 @@
             color: var(--accent);
             font-size: 30px;
             font-weight: 700;
+        }
+
+        .summary-value.critical {
+            color: var(--critical);
+        }
+
+        .summary-value.high {
+            color: var(--high);
+        }
+
+        .summary-value.medium {
+            color: var(--medium);
+        }
+
+        .insights {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 18px;
+        }
+
+        .panel h2 {
+            margin: 0 0 14px;
+            color: #243b53;
+            font-size: 16px;
+        }
+
+        .metric-list {
+            display: grid;
+            gap: 10px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .metric-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .metric-name {
+            min-width: 0;
+            overflow: hidden;
+            color: #334e68;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .metric-total {
+            color: #102a43;
+            font-weight: 700;
+        }
+
+        .bar {
+            grid-column: 1 / -1;
+            height: 8px;
+            overflow: hidden;
+            background: #eef2f6;
+            border-radius: 999px;
+        }
+
+        .bar span {
+            display: block;
+            height: 100%;
+            background: var(--accent);
+            border-radius: inherit;
+        }
+
+        .section-title {
+            margin: 0 0 12px;
+            color: #243b53;
+            font-size: 18px;
         }
 
         .table-wrap {
@@ -162,23 +244,102 @@
             margin: 0;
             color: var(--muted);
         }
+
+        @media (max-width: 900px) {
+            .insights {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media print {
+            body {
+                background: #ffffff;
+            }
+
+            main {
+                width: 100%;
+                margin: 0;
+            }
+
+            .report-header,
+            .summary-item,
+            .panel,
+            .table-wrap {
+                border-radius: 0;
+            }
+        }
     </style>
 </head>
 <body>
     <main>
         <header class="report-header">
-            <h1>Relatorio de Incidentes Zabbix</h1>
+            <h1>Relatorio Executivo de Incidentes Zabbix</h1>
             <p class="meta">Gerado em {{ generated }}</p>
+            <p class="meta">Periodo analisado: {{ period }}</p>
         </header>
 
         <section class="summary" aria-label="Resumo do relatorio">
             <div class="summary-item">
                 <p class="summary-label">Total de incidentes</p>
-                <p class="summary-value">{{ total }}</p>
+                <p class="summary-value">{{ summary.total }}</p>
+            </div>
+            <div class="summary-item">
+                <p class="summary-label">Criticos</p>
+                <p class="summary-value critical">{{ summary.critical }}</p>
+            </div>
+            <div class="summary-item">
+                <p class="summary-label">Altos</p>
+                <p class="summary-value high">{{ summary.high }}</p>
+            </div>
+            <div class="summary-item">
+                <p class="summary-label">Medios</p>
+                <p class="summary-value medium">{{ summary.medium }}</p>
             </div>
         </section>
 
+        <section class="insights" aria-label="Indicadores do relatorio">
+            <article class="panel">
+                <h2>Severidade</h2>
+                <ul class="metric-list">
+                    {% for item in summary.severity %}
+                    <li class="metric-row">
+                        <span class="metric-name">{{ item.name }}</span>
+                        <span class="metric-total">{{ item.total }} | {{ item.percent }}%</span>
+                        <span class="bar"><span style="width: {{ item.percent }}%;"></span></span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </article>
+
+            <article class="panel">
+                <h2>Equipamentos Mais Afetados</h2>
+                <ul class="metric-list">
+                    {% for item in summary.equipment[:8] %}
+                    <li class="metric-row">
+                        <span class="metric-name" title="{{ item.name }}">{{ item.name }}</span>
+                        <span class="metric-total">{{ item.total }} | {{ item.percent }}%</span>
+                        <span class="bar"><span style="width: {{ item.percent }}%;"></span></span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </article>
+
+            <article class="panel">
+                <h2>Hosts com Mais Incidentes</h2>
+                <ul class="metric-list">
+                    {% for item in summary.top_hosts %}
+                    <li class="metric-row">
+                        <span class="metric-name" title="{{ item.name }}">{{ item.name }}</span>
+                        <span class="metric-total">{{ item.total }} | {{ item.percent }}%</span>
+                        <span class="bar"><span style="width: {{ item.percent }}%;"></span></span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </article>
+        </section>
+
         {% if incidents %}
+        <h2 class="section-title">Detalhamento dos Incidentes</h2>
         <section class="table-wrap" aria-label="Lista de incidentes">
             <table>
                 <thead>
