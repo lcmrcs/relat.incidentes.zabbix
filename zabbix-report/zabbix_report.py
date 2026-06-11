@@ -317,6 +317,9 @@ def build_report_summary(incidents):
 
     return {
         "total": total,
+        "unclassified": severity_counter.get("Não classificada", 0),
+        "information": severity_counter.get("Informação", 0),
+        "attention": severity_counter.get("Atenção", 0),
         "critical": severity_counter.get("Desastre", 0),
         "high": severity_counter.get("Alta", 0),
         "medium": severity_counter.get("Média", 0),
@@ -348,27 +351,34 @@ def build_summary_pdf_page(summary, generated, period_label, total_pages):
     )
 
     cards = [
-        ("Total", summary["total"]),
         ("Desastres", summary["critical"]),
         ("Altas", summary["high"]),
         ("Medias", summary["medium"]),
+        ("Atencao", summary["attention"]),
+        ("Informacao", summary["information"]),
+        ("Nao classificada", summary["unclassified"]),
     ]
 
     x = 36
+    y = 470
 
-    for label, value in cards:
+    for index, (label, value) in enumerate(cards):
+        if index == 3:
+            x = 36
+            y = 402
+
         commands.append(
-            b"0.93 0.95 0.97 rg %.2f 470 178 48 re f\n" % x
+            b"0.93 0.95 0.97 rg %.2f %.2f 178 48 re f\n" % (x, y)
         )
         commands.append(
-            b"0.75 0.80 0.86 RG %.2f 470 178 48 re S\n" % x
+            b"0.75 0.80 0.86 RG %.2f %.2f 178 48 re S\n" % (x, y)
         )
-        add_pdf_text(commands, x + 12, 500, label, 9, "F2")
-        add_pdf_text(commands, x + 12, 480, value, 18, "F2")
+        add_pdf_text(commands, x + 12, y + 30, label, 9, "F2")
+        add_pdf_text(commands, x + 12, y + 10, value, 18, "F2")
         x += 192
 
-    add_pdf_text(commands, 36, 432, "Distribuicao por severidade", 12, "F2")
-    y = 408
+    add_pdf_text(commands, 36, 346, "Distribuicao por severidade", 12, "F2")
+    y = 322
 
     for item in summary["severity"][:6]:
         add_pdf_text(
@@ -380,8 +390,8 @@ def build_summary_pdf_page(summary, generated, period_label, total_pages):
         )
         y -= 18
 
-    add_pdf_text(commands, 330, 432, "Equipamentos mais afetados", 12, "F2")
-    y = 408
+    add_pdf_text(commands, 330, 346, "Equipamentos mais afetados", 12, "F2")
+    y = 322
 
     for item in summary["equipment"][:8]:
         add_pdf_text(
@@ -393,8 +403,8 @@ def build_summary_pdf_page(summary, generated, period_label, total_pages):
         )
         y -= 18
 
-    add_pdf_text(commands, 36, 248, "Hosts com mais incidentes", 12, "F2")
-    y = 224
+    add_pdf_text(commands, 36, 162, "Hosts com mais incidentes", 12, "F2")
+    y = 138
 
     for item in summary["top_hosts"]:
         add_pdf_text(

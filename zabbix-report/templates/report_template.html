@@ -15,10 +15,12 @@
             --header: #102a43;
             --accent: #0b7285;
             --accent-soft: #e6fcf5;
+            --unclassified: #64748b;
+            --information: #2563eb;
+            --attention: #15803d;
             --disaster: #c92a2a;
             --high: #e67700;
             --medium: #f08c00;
-            --attention: #2b8a3e;
         }
 
         * {
@@ -86,7 +88,19 @@
             font-weight: 700;
         }
 
-        .summary-value.critical {
+        .summary-value.unclassified {
+            color: var(--unclassified);
+        }
+
+        .summary-value.information {
+            color: var(--information);
+        }
+
+        .summary-value.attention {
+            color: var(--attention);
+        }
+
+        .summary-value.disaster {
             color: var(--disaster);
         }
 
@@ -346,16 +360,28 @@
                 <p class="summary-value">{{ summary.total }}</p>
             </div>
             <div class="summary-item">
-                <p class="summary-label">Desastres</p>
-                <p class="summary-value critical">{{ summary.critical }}</p>
+                <p class="summary-label">Não classificadas</p>
+                <p class="summary-value unclassified">{{ summary.unclassified }}</p>
+            </div>
+            <div class="summary-item">
+                <p class="summary-label">Informações</p>
+                <p class="summary-value information">{{ summary.information }}</p>
+            </div>
+            <div class="summary-item">
+                <p class="summary-label">Atenções</p>
+                <p class="summary-value attention">{{ summary.attention }}</p>
+            </div>
+            <div class="summary-item">
+                <p class="summary-label">Médias</p>
+                <p class="summary-value medium">{{ summary.medium }}</p>
             </div>
             <div class="summary-item">
                 <p class="summary-label">Altas</p>
                 <p class="summary-value high">{{ summary.high }}</p>
             </div>
             <div class="summary-item">
-                <p class="summary-label">Medias</p>
-                <p class="summary-value medium">{{ summary.medium }}</p>
+                <p class="summary-label">Desastres</p>
+                <p class="summary-value disaster">{{ summary.critical }}</p>
             </div>
         </section>
 
