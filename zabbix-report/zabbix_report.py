@@ -5,6 +5,16 @@ import pandas as pd
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from jinja2 import Environment, FileSystemLoader
+from pathlib import Path
+
+# ==================================================
+# DEFINIR CAMINHOS DO PROJETO
+# ==================================================
+
+BASE_DIR = Path(__file__).resolve().parent
+ENV_FILE = BASE_DIR / ".env"
+TEMPLATES_DIR = BASE_DIR / "templates"
+REPORTS_DIR = BASE_DIR / "reports"
 
 # ==================================================
 # CARREGAR VARIÁVEIS DO .ENV
@@ -12,7 +22,7 @@ from jinja2 import Environment, FileSystemLoader
 
 # load_dotenv() lê o arquivo .env
 # e carrega as variáveis para dentro do Python
-load_dotenv()
+load_dotenv(ENV_FILE)
 
 # os.getenv() pega os valores do .env
 ZABBIX_URL = os.getenv("ZABBIX_URL")
@@ -225,15 +235,15 @@ df = pd.DataFrame(incidents)
 # ==================================================
 
 # exist_ok=True evita erro se já existir
-os.makedirs("reports", exist_ok=True)
+REPORTS_DIR.mkdir(exist_ok=True)
 
 # ==================================================
 # EXPORTAR EXCEL
 # ==================================================
 
 excel_name = (
-    f"reports/report_"
-    f"{today.strftime('%Y-%m-%d')}.xlsx"
+    REPORTS_DIR /
+    f"report_{today.strftime('%Y-%m-%d')}.xlsx"
 )
 
 # salva excel
@@ -247,7 +257,7 @@ print(f"Excel gerado: {excel_name}")
 
 # carrega pasta templates
 env = Environment(
-    loader=FileSystemLoader("templates")
+    loader=FileSystemLoader(TEMPLATES_DIR)
 )
 
 # carrega template HTML
@@ -264,8 +274,8 @@ html_output = template.render(
 
 # nome do arquivo
 html_name = (
-    f"reports/report_"
-    f"{today.strftime('%Y-%m-%d')}.html"
+    REPORTS_DIR /
+    f"report_{today.strftime('%Y-%m-%d')}.html"
 )
 
 # escreve arquivo HTML
