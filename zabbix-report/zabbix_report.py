@@ -71,9 +71,6 @@ payload = {
         # output extend = pega todas as informações
         "output": "extend",
 
-        # traz informações do host
-        "selectHosts": ["host"],
-
         # pega eventos recentes
         "recent": True,
 
@@ -127,6 +124,64 @@ if "error" in data:
     print("Erro retornado pela API Zabbix:")
     print(data["error"])
     exit()
+
+# ==================================================
+# BUSCAR HOSTS DOS PROBLEMAS
+# ==================================================
+
+problems = data.get("result", [])
+
+trigger_ids = sorted({
+    item.get("objectid")
+    for item in problems
+    if item.get("objectid")
+})
+
+hosts_by_trigger = {}
+
+if trigger_ids:
+
+    trigger_payload = {
+        "jsonrpc": "2.0",
+        "method": "trigger.get",
+
+        "params": {
+            "output": ["triggerid"],
+            "triggerids": trigger_ids,
+            "selectHosts": ["host", "name"]
+        },
+
+        "auth": ZABBIX_TOKEN,
+
+        "id": 2
+    }
+
+    trigger_response = requests.post(
+        ZABBIX_URL,
+        json=trigger_payload,
+        headers=headers
+    )
+
+    if trigger_response.status_code != 200:
+        print(f"Erro HTTP ao buscar hosts: {trigger_response.status_code}")
+        print(trigger_response.text)
+        exit()
+
+    trigger_data = trigger_response.json()
+
+    if "error" in trigger_data:
+        print("Erro retornado pela API Zabbix ao buscar hosts:")
+        print(trigger_data["error"])
+        exit()
+
+    for trigger in trigger_data.get("result", []):
+        hosts = trigger.get("hosts", [])
+
+        if hosts:
+            hosts_by_trigger[trigger["triggerid"]] = hosts[0].get(
+                "host",
+                "N/A"
+            )
 
 # ==================================================
 # MAPEAMENTO DE SEVERIDADE
@@ -184,14 +239,10 @@ incidents = []
 print("Processando incidentes...")
 
 # percorre cada problema retornado pela API
-for item in data.get("result", []):
+for item in problems:
 
     # pega o nome do host
-    host = (
-        item["hosts"][0]["host"]
-        if item.get("hosts")
-        else "N/A"
-    )
+    host = hosts_by_trigger.get(item.get("objectid"), "N/A")
 
     # nome do problema
     incident = item.get("name", "N/A")
