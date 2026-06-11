@@ -1,7 +1,7 @@
 # Relatorio de Incidentes Zabbix
 
 Projeto Python para consultar incidentes recentes no Zabbix e gerar relatorios
-operacionais em Excel e HTML.
+operacionais em Excel, HTML e PDF.
 
 ## Objetivo
 
@@ -19,11 +19,12 @@ organiza os dados em uma tabela e exporta os resultados para a pasta
 .
 ├── README.md
 └── zabbix-report/
-    ├── .env
+    ├── .env.example
     ├── .gitignore
     ├── requirements.txt
+    ├── templates/
+    │   └── report_template.html
     ├── test_zabbix_api.py
-    ├── venv/
     └── zabbix_report.py
 ```
 
@@ -32,7 +33,8 @@ Arquivos principais:
 - `zabbix-report/zabbix_report.py`: script principal de geracao dos relatorios.
 - `zabbix-report/test_zabbix_api.py`: script simples para testar a conexao com a API.
 - `zabbix-report/requirements.txt`: dependencias Python do projeto.
-- `zabbix-report/.env`: arquivo local de configuracao com URL e token do Zabbix.
+- `zabbix-report/.env.example`: modelo seguro para criar o arquivo local `.env`.
+- `zabbix-report/templates/report_template.html`: template HTML do relatorio executivo.
 
 ## Requisitos
 
@@ -51,7 +53,13 @@ Dependencias atuais:
 
 ## Configuracao
 
-Crie ou ajuste o arquivo `zabbix-report/.env` com as variaveis abaixo:
+Copie o arquivo de exemplo:
+
+```bash
+cp .env.example .env
+```
+
+Depois ajuste o arquivo `zabbix-report/.env` com as variaveis abaixo:
 
 ```env
 ZABBIX_URL=https://seu-zabbix.example.com/api_jsonrpc.php
@@ -107,14 +115,19 @@ O script principal:
 2. Consulta problemas recentes via metodo `problem.get`.
 3. Filtra o periodo dos ultimos 7 dias.
 4. Classifica os hosts por tipo de equipamento.
-5. Gera arquivos na pasta `reports/`.
+5. Monta um resumo executivo por severidade, equipamento e host.
+6. Gera arquivos na pasta `reports/`.
 
 Saidas esperadas:
 
 ```text
 reports/report_AAAA-MM-DD.xlsx
 reports/report_AAAA-MM-DD.html
+reports/report_AAAA-MM-DD.pdf
 ```
+
+O PDF e o HTML trazem uma visao amigavel para apresentacao, com indicadores
+executivos no inicio e detalhamento tecnico dos incidentes em seguida.
 
 ## Classificacao de Equipamentos
 
@@ -133,27 +146,18 @@ nome do equipamento:
 Essa classificacao pode ser refinada conforme o padrao real de nomes usado no
 Zabbix.
 
-## Ponto Pendente Conhecido
-
-O script principal referencia o template `templates/report_template.html`, mas
-essa pasta ainda precisa ser criada para que a geracao do HTML funcione
-corretamente.
-
-Enquanto isso, a geracao do Excel ja esta estruturada, desde que a consulta ao
-Zabbix retorne dados validos.
-
 ## Proximos Passos Sugeridos
 
-- Criar `zabbix-report/templates/report_template.html`.
-- Ajustar os caminhos do script para funcionarem independentemente da pasta de execucao.
 - Melhorar tratamento de erro no script principal, incluindo timeout e JSON invalido.
 - Separar o codigo em funcoes para facilitar manutencao e testes.
 - Adicionar filtros por severidade, grupo de hosts ou periodo customizado.
-- Avaliar exportacao em PDF ou envio automatico por e-mail.
+- Avaliar envio automatico por e-mail.
+- Adicionar testes automatizados para classificacao e geracao de relatorios.
 
 ## Seguranca
 
 - Nunca versionar `.env`, tokens ou senhas.
+- Versionar apenas `.env.example`, sempre com valores ficticios.
+- Manter `venv/`, `reports/`, caches e arquivos locais fora do Git.
 - Usar um token de API com permissoes limitadas ao necessario.
 - Testar primeiro em ambiente controlado antes de usar em producao.
-
