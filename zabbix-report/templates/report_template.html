@@ -15,10 +15,10 @@
             --header: #102a43;
             --accent: #0b7285;
             --accent-soft: #e6fcf5;
-            --critical: #c92a2a;
+            --disaster: #c92a2a;
             --high: #e67700;
             --medium: #f08c00;
-            --warning: #2b8a3e;
+            --attention: #2b8a3e;
         }
 
         * {
@@ -87,7 +87,7 @@
         }
 
         .summary-value.critical {
-            color: var(--critical);
+            color: var(--disaster);
         }
 
         .summary-value.high {
@@ -167,6 +167,58 @@
             font-size: 18px;
         }
 
+        .filter-panel {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 18px;
+            margin-bottom: 20px;
+        }
+
+        .filter-header {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .filter-header h2 {
+            margin: 0;
+            color: #243b53;
+            font-size: 18px;
+        }
+
+        .filter-status {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .equipment-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .filter-button {
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: #ffffff;
+            color: #334e68;
+            cursor: pointer;
+            font: inherit;
+            padding: 8px 12px;
+            transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+        }
+
+        .filter-button:hover,
+        .filter-button.active {
+            border-color: var(--accent);
+            background: var(--accent-soft);
+            color: #075563;
+        }
+
         .table-wrap {
             overflow-x: auto;
             background: var(--surface);
@@ -212,9 +264,9 @@
             text-align: center;
         }
 
-        .severity.critica {
+        .severity.desastre {
             background: #ffe3e3;
-            color: var(--critical);
+            color: var(--disaster);
         }
 
         .severity.alta {
@@ -227,9 +279,19 @@
             color: var(--medium);
         }
 
-        .severity.aviso {
+        .severity.atencao {
             background: #ebfbee;
-            color: var(--warning);
+            color: var(--attention);
+        }
+
+        .severity.informacao {
+            background: #e7f5ff;
+            color: #1864ab;
+        }
+
+        .severity.nao-classificada {
+            background: #f1f3f5;
+            color: #495057;
         }
 
         .empty-state {
@@ -284,15 +346,15 @@
                 <p class="summary-value">{{ summary.total }}</p>
             </div>
             <div class="summary-item">
-                <p class="summary-label">Criticos</p>
+                <p class="summary-label">Desastres</p>
                 <p class="summary-value critical">{{ summary.critical }}</p>
             </div>
             <div class="summary-item">
-                <p class="summary-label">Altos</p>
+                <p class="summary-label">Altas</p>
                 <p class="summary-value high">{{ summary.high }}</p>
             </div>
             <div class="summary-item">
-                <p class="summary-label">Medios</p>
+                <p class="summary-label">Medias</p>
                 <p class="summary-value medium">{{ summary.medium }}</p>
             </div>
         </section>
@@ -339,9 +401,28 @@
         </section>
 
         {% if incidents %}
+        <section class="filter-panel" aria-label="Filtro por tipo de equipamento">
+            <div class="filter-header">
+                <h2>Incidentes por Tipo de Equipamento</h2>
+                <span class="filter-status" id="filter-status">
+                    Exibindo {{ summary.total }} incidentes
+                </span>
+            </div>
+            <div class="equipment-filters">
+                <button class="filter-button active" type="button" data-equipment-filter="all">
+                    Todos ({{ summary.total }})
+                </button>
+                {% for item in summary.equipment %}
+                <button class="filter-button" type="button" data-equipment-filter="{{ item.name }}">
+                    {{ item.name }} ({{ item.total }})
+                </button>
+                {% endfor %}
+            </div>
+        </section>
+
         <h2 class="section-title">Detalhamento dos Incidentes</h2>
         <section class="table-wrap" aria-label="Lista de incidentes">
-            <table>
+            <table id="incidents-table">
                 <thead>
                     <tr>
                         <th>Data</th>
@@ -354,13 +435,13 @@
                 </thead>
                 <tbody>
                     {% for item in incidents %}
-                    <tr>
+                    <tr data-equipment="{{ item.equipment }}">
                         <td>{{ item.date }}</td>
                         <td>{{ item.host }}</td>
                         <td>{{ item.equipment }}</td>
                         <td>{{ item.incident }}</td>
                         <td>
-                            <span class="severity {{ item.severity | lower | replace('é', 'e') | replace('í', 'i') }}">
+                            <span class="severity {{ item.severity | lower | replace('ã', 'a') | replace('ç', 'c') | replace('é', 'e') | replace('í', 'i') | replace(' ', '-') }}">
                                 {{ item.severity }}
                             </span>
                         </td>
@@ -376,5 +457,41 @@
         </section>
         {% endif %}
     </main>
+    <script>
+        const buttons = document.querySelectorAll("[data-equipment-filter]");
+        const rows = document.querySelectorAll("#incidents-table tbody tr");
+        const status = document.getElementById("filter-status");
+
+        function updateEquipmentFilter(equipment) {
+            let visible = 0;
+
+            rows.forEach((row) => {
+                const matches = equipment === "all" || row.dataset.equipment === equipment;
+                row.hidden = !matches;
+
+                if (matches) {
+                    visible += 1;
+                }
+            });
+
+            buttons.forEach((button) => {
+                button.classList.toggle(
+                    "active",
+                    button.dataset.equipmentFilter === equipment
+                );
+            });
+
+            if (status) {
+                const label = equipment === "all" ? "todos os equipamentos" : equipment;
+                status.textContent = `Exibindo ${visible} incidentes de ${label}`;
+            }
+        }
+
+        buttons.forEach((button) => {
+            button.addEventListener("click", () => {
+                updateEquipmentFilter(button.dataset.equipmentFilter);
+            });
+        });
+    </script>
 </body>
 </html>

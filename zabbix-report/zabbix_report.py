@@ -189,12 +189,12 @@ if trigger_ids:
 # ==================================================
 
 severity_map = {
-    "0": "Não classificado",
+    "0": "Não classificada",
     "1": "Informação",
-    "2": "Aviso",
+    "2": "Atenção",
     "3": "Média",
     "4": "Alta",
-    "5": "Crítica"
+    "5": "Desastre"
 }
 
 # ==================================================
@@ -317,10 +317,10 @@ def build_report_summary(incidents):
 
     return {
         "total": total,
-        "critical": severity_counter.get("Crítica", 0),
+        "critical": severity_counter.get("Desastre", 0),
         "high": severity_counter.get("Alta", 0),
         "medium": severity_counter.get("Média", 0),
-        "warning": severity_counter.get("Aviso", 0),
+        "warning": severity_counter.get("Atenção", 0),
         "severity": format_counter(severity_counter),
         "equipment": format_counter(equipment_counter),
         "top_hosts": format_counter(host_counter)[:8],
@@ -349,9 +349,9 @@ def build_summary_pdf_page(summary, generated, period_label, total_pages):
 
     cards = [
         ("Total", summary["total"]),
-        ("Criticos", summary["critical"]),
-        ("Altos", summary["high"]),
-        ("Medios", summary["medium"]),
+        ("Desastres", summary["critical"]),
+        ("Altas", summary["high"]),
+        ("Medias", summary["medium"]),
     ]
 
     x = 36
