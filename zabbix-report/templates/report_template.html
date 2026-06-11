@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Relatorio de Incidentes Zabbix</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f4f6f8;
+            --surface: #ffffff;
+            --text: #1f2933;
+            --muted: #667085;
+            --line: #d9e2ec;
+            --header: #102a43;
+            --accent: #0b7285;
+            --critical: #c92a2a;
+            --high: #e67700;
+            --medium: #f08c00;
+            --warning: #2b8a3e;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.5;
+        }
+
+        main {
+            width: min(1180px, calc(100% - 32px));
+            margin: 32px auto;
+        }
+
+        .report-header {
+            background: var(--header);
+            color: #ffffff;
+            padding: 28px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 28px;
+            line-height: 1.2;
+        }
+
+        .meta {
+            margin: 0;
+            color: #bcccdc;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .summary-item {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 18px;
+        }
+
+        .summary-label {
+            margin: 0 0 6px;
+            color: var(--muted);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .summary-value {
+            margin: 0;
+            color: var(--accent);
+            font-size: 30px;
+            font-weight: 700;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 860px;
+        }
+
+        th,
+        td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--line);
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: #eef2f6;
+            color: #334e68;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .severity {
+            display: inline-block;
+            min-width: 88px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: #eef2f6;
+            color: #334e68;
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .severity.critica {
+            background: #ffe3e3;
+            color: var(--critical);
+        }
+
+        .severity.alta {
+            background: #fff4e6;
+            color: var(--high);
+        }
+
+        .severity.media {
+            background: #fff9db;
+            color: var(--medium);
+        }
+
+        .severity.aviso {
+            background: #ebfbee;
+            color: var(--warning);
+        }
+
+        .empty-state {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 28px;
+            text-align: center;
+        }
+
+        .empty-state p {
+            margin: 0;
+            color: var(--muted);
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <header class="report-header">
+            <h1>Relatorio de Incidentes Zabbix</h1>
+            <p class="meta">Gerado em {{ generated }}</p>
+        </header>
+
+        <section class="summary" aria-label="Resumo do relatorio">
+            <div class="summary-item">
+                <p class="summary-label">Total de incidentes</p>
+                <p class="summary-value">{{ total }}</p>
+            </div>
+        </section>
+
+        {% if incidents %}
+        <section class="table-wrap" aria-label="Lista de incidentes">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Host</th>
+                        <th>Equipamento</th>
+                        <th>Incidente</th>
+                        <th>Severidade</th>
+                        <th>Evento</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in incidents %}
+                    <tr>
+                        <td>{{ item.date }}</td>
+                        <td>{{ item.host }}</td>
+                        <td>{{ item.equipment }}</td>
+                        <td>{{ item.incident }}</td>
+                        <td>
+                            <span class="severity {{ item.severity | lower | replace('é', 'e') | replace('í', 'i') }}">
+                                {{ item.severity }}
+                            </span>
+                        </td>
+                        <td>{{ item.eventid }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        {% else %}
+        <section class="empty-state">
+            <p>Nenhum incidente encontrado para o periodo consultado.</p>
+        </section>
+        {% endif %}
+    </main>
+</body>
+</html>
