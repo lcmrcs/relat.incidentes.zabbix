@@ -15,6 +15,8 @@
             --header: #102a43;
             --accent: #0b7285;
             --accent-soft: #e6fcf5;
+            --open: #c92a2a;
+            --resolved: #2b8a3e;
             --unclassified: #64748b;
             --information: #2563eb;
             --attention: #15803d;
@@ -100,6 +102,14 @@
             color: var(--attention);
         }
 
+        .summary-value.open {
+            color: var(--open);
+        }
+
+        .summary-value.resolved {
+            color: var(--resolved);
+        }
+
         .summary-value.disaster {
             color: var(--disaster);
         }
@@ -114,7 +124,7 @@
 
         .insights {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 16px;
             margin-bottom: 20px;
         }
@@ -215,6 +225,22 @@
             gap: 8px;
         }
 
+        .filter-group {
+            margin-top: 14px;
+        }
+
+        .filter-group:first-of-type {
+            margin-top: 0;
+        }
+
+        .filter-label {
+            margin: 0 0 8px;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
         .filter-button {
             border: 1px solid var(--line);
             border-radius: 999px;
@@ -231,6 +257,12 @@
             border-color: var(--accent);
             background: var(--accent-soft);
             color: #075563;
+        }
+
+        .unit-scroll {
+            max-height: 148px;
+            overflow: auto;
+            padding-right: 4px;
         }
 
         .table-wrap {
@@ -308,6 +340,98 @@
             color: #495057;
         }
 
+        .status-badge {
+            display: inline-block;
+            min-width: 82px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .status-badge.aberto {
+            background: #ffe3e3;
+            color: var(--open);
+        }
+
+        .status-badge.resolvido {
+            background: #ebfbee;
+            color: var(--resolved);
+        }
+
+        .details-button {
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            background: #ffffff;
+            color: var(--accent);
+            cursor: pointer;
+            font: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 10px;
+        }
+
+        .details-button:hover {
+            background: var(--accent-soft);
+        }
+
+        dialog {
+            width: min(720px, calc(100% - 32px));
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            box-shadow: 0 24px 80px rgb(15 23 42 / 0.28);
+            padding: 0;
+        }
+
+        dialog::backdrop {
+            background: rgb(15 23 42 / 0.48);
+        }
+
+        .modal-header {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .modal-title {
+            margin: 0;
+            color: #102a43;
+            font-size: 18px;
+        }
+
+        .modal-close {
+            border: 0;
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 24px;
+            line-height: 1;
+        }
+
+        .modal-body {
+            display: grid;
+            grid-template-columns: 160px 1fr;
+            gap: 10px 16px;
+            padding: 20px;
+        }
+
+        .modal-label {
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .modal-value {
+            min-width: 0;
+            overflow-wrap: anywhere;
+            color: #243b53;
+        }
+
         .empty-state {
             background: var(--surface);
             border: 1px solid var(--line);
@@ -360,6 +484,14 @@
                 <p class="summary-value">{{ summary.total }}</p>
             </div>
             <div class="summary-item">
+                <p class="summary-label">Abertos</p>
+                <p class="summary-value open">{{ summary.open }}</p>
+            </div>
+            <div class="summary-item">
+                <p class="summary-label">Resolvidos</p>
+                <p class="summary-value resolved">{{ summary.resolved }}</p>
+            </div>
+            <div class="summary-item">
                 <p class="summary-label">Não classificadas</p>
                 <p class="summary-value unclassified">{{ summary.unclassified }}</p>
             </div>
@@ -386,6 +518,19 @@
         </section>
 
         <section class="insights" aria-label="Indicadores do relatorio">
+            <article class="panel">
+                <h2>Situação</h2>
+                <ul class="metric-list">
+                    {% for item in summary.status %}
+                    <li class="metric-row">
+                        <span class="metric-name">{{ item.name }}</span>
+                        <span class="metric-total">{{ item.total }} | {{ item.percent }}%</span>
+                        <span class="bar"><span style="width: {{ item.percent }}%;"></span></span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </article>
+
             <article class="panel">
                 <h2>Severidade</h2>
                 <ul class="metric-list">
@@ -424,25 +569,70 @@
                     {% endfor %}
                 </ul>
             </article>
+
+            <article class="panel">
+                <h2>Unidades Mais Afetadas</h2>
+                <ul class="metric-list">
+                    {% for item in summary.top_units %}
+                    <li class="metric-row">
+                        <span class="metric-name" title="{{ item.name }}">{{ item.name }}</span>
+                        <span class="metric-total">{{ item.total }} | {{ item.percent }}%</span>
+                        <span class="bar"><span style="width: {{ item.percent }}%;"></span></span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </article>
         </section>
 
         {% if incidents %}
         <section class="filter-panel" aria-label="Filtro por tipo de equipamento">
             <div class="filter-header">
-                <h2>Incidentes por Tipo de Equipamento</h2>
+                <h2>Particionamento dos Incidentes</h2>
                 <span class="filter-status" id="filter-status">
                     Exibindo {{ summary.total }} incidentes
                 </span>
             </div>
-            <div class="equipment-filters">
-                <button class="filter-button active" type="button" data-equipment-filter="all">
-                    Todos ({{ summary.total }})
-                </button>
-                {% for item in summary.equipment %}
-                <button class="filter-button" type="button" data-equipment-filter="{{ item.name }}">
-                    {{ item.name }} ({{ item.total }})
-                </button>
-                {% endfor %}
+
+            <div class="filter-group">
+                <p class="filter-label">Situação</p>
+                <div class="equipment-filters">
+                    <button class="filter-button active" type="button" data-status-filter="all">
+                        Todos ({{ summary.total }})
+                    </button>
+                    {% for item in summary.status %}
+                    <button class="filter-button" type="button" data-status-filter="{{ item.name }}">
+                        {{ item.name }} ({{ item.total }})
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <p class="filter-label">Unidade escolar</p>
+                <div class="equipment-filters unit-scroll">
+                    <button class="filter-button active" type="button" data-unit-filter="all">
+                        Todas ({{ summary.total }})
+                    </button>
+                    {% for item in summary.units %}
+                    <button class="filter-button" type="button" data-unit-filter="{{ item.name }}">
+                        {{ item.name }} ({{ item.total }})
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <p class="filter-label">Equipamento</p>
+                <div class="equipment-filters">
+                    <button class="filter-button active" type="button" data-equipment-filter="all">
+                        Todos ({{ summary.total }})
+                    </button>
+                    {% for item in summary.equipment %}
+                    <button class="filter-button" type="button" data-equipment-filter="{{ item.name }}">
+                        {{ item.name }} ({{ item.total }})
+                    </button>
+                    {% endfor %}
+                </div>
             </div>
         </section>
 
@@ -452,18 +642,30 @@
                 <thead>
                     <tr>
                         <th>Data</th>
-                        <th>Host</th>
+                        <th>Código</th>
+                        <th>Unidade</th>
+                        <th>Status</th>
                         <th>Equipamento</th>
                         <th>Incidente</th>
                         <th>Severidade</th>
-                        <th>Evento</th>
+                        <th>Detalhes</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for item in incidents %}
-                    <tr data-equipment="{{ item.equipment }}">
+                    <tr
+                        data-equipment="{{ item.equipment }}"
+                        data-status="{{ item.status }}"
+                        data-unit="{{ item.unit }}"
+                    >
                         <td>{{ item.date }}</td>
-                        <td>{{ item.host }}</td>
+                        <td>{{ item.unit_code or "-" }}</td>
+                        <td>{{ item.unit }}</td>
+                        <td>
+                            <span class="status-badge {{ item.status | lower }}">
+                                {{ item.status }}
+                            </span>
+                        </td>
                         <td>{{ item.equipment }}</td>
                         <td>{{ item.incident }}</td>
                         <td>
@@ -471,7 +673,25 @@
                                 {{ item.severity }}
                             </span>
                         </td>
-                        <td>{{ item.eventid }}</td>
+                        <td>
+                            <button
+                                class="details-button"
+                                type="button"
+                                data-details
+                                data-date="{{ item.date }}"
+                                data-resolved-at="{{ item.resolved_at or '-' }}"
+                                data-status="{{ item.status }}"
+                                data-unit-code="{{ item.unit_code or '-' }}"
+                                data-unit="{{ item.unit }}"
+                                data-host="{{ item.host }}"
+                                data-equipment="{{ item.equipment }}"
+                                data-incident="{{ item.incident }}"
+                                data-severity="{{ item.severity }}"
+                                data-eventid="{{ item.eventid }}"
+                            >
+                                Abrir
+                            </button>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -483,16 +703,42 @@
         </section>
         {% endif %}
     </main>
+    <dialog id="incident-dialog">
+        <div class="modal-header">
+            <h2 class="modal-title">Detalhes do Incidente</h2>
+            <button class="modal-close" type="button" data-modal-close aria-label="Fechar">x</button>
+        </div>
+        <div class="modal-body" id="incident-dialog-body"></div>
+    </dialog>
     <script>
-        const buttons = document.querySelectorAll("[data-equipment-filter]");
+        const equipmentButtons = document.querySelectorAll("[data-equipment-filter]");
+        const statusButtons = document.querySelectorAll("[data-status-filter]");
+        const unitButtons = document.querySelectorAll("[data-unit-filter]");
         const rows = document.querySelectorAll("#incidents-table tbody tr");
         const status = document.getElementById("filter-status");
+        const dialog = document.getElementById("incident-dialog");
+        const dialogBody = document.getElementById("incident-dialog-body");
+        const activeFilters = {
+            equipment: "all",
+            status: "all",
+            unit: "all",
+        };
 
-        function updateEquipmentFilter(equipment) {
+        function updateFilters() {
             let visible = 0;
 
             rows.forEach((row) => {
-                const matches = equipment === "all" || row.dataset.equipment === equipment;
+                const equipmentMatches =
+                    activeFilters.equipment === "all" ||
+                    row.dataset.equipment === activeFilters.equipment;
+                const statusMatches =
+                    activeFilters.status === "all" ||
+                    row.dataset.status === activeFilters.status;
+                const unitMatches =
+                    activeFilters.unit === "all" ||
+                    row.dataset.unit === activeFilters.unit;
+                const matches = equipmentMatches && statusMatches && unitMatches;
+
                 row.hidden = !matches;
 
                 if (matches) {
@@ -500,23 +746,88 @@
                 }
             });
 
-            buttons.forEach((button) => {
+            equipmentButtons.forEach((button) => {
                 button.classList.toggle(
                     "active",
-                    button.dataset.equipmentFilter === equipment
+                    button.dataset.equipmentFilter === activeFilters.equipment
+                );
+            });
+
+            statusButtons.forEach((button) => {
+                button.classList.toggle(
+                    "active",
+                    button.dataset.statusFilter === activeFilters.status
+                );
+            });
+
+            unitButtons.forEach((button) => {
+                button.classList.toggle(
+                    "active",
+                    button.dataset.unitFilter === activeFilters.unit
                 );
             });
 
             if (status) {
-                const label = equipment === "all" ? "todos os equipamentos" : equipment;
-                status.textContent = `Exibindo ${visible} incidentes de ${label}`;
+                status.textContent = `Exibindo ${visible} incidentes`;
             }
         }
 
-        buttons.forEach((button) => {
+        equipmentButtons.forEach((button) => {
             button.addEventListener("click", () => {
-                updateEquipmentFilter(button.dataset.equipmentFilter);
+                activeFilters.equipment = button.dataset.equipmentFilter;
+                updateFilters();
             });
+        });
+
+        statusButtons.forEach((button) => {
+            button.addEventListener("click", () => {
+                activeFilters.status = button.dataset.statusFilter;
+                updateFilters();
+            });
+        });
+
+        unitButtons.forEach((button) => {
+            button.addEventListener("click", () => {
+                activeFilters.unit = button.dataset.unitFilter;
+                updateFilters();
+            });
+        });
+
+        document.querySelectorAll("[data-details]").forEach((button) => {
+            button.addEventListener("click", () => {
+                const fields = [
+                    ["Data de abertura", button.dataset.date],
+                    ["Resolvido em", button.dataset.resolvedAt],
+                    ["Status", button.dataset.status],
+                    ["Código da unidade", button.dataset.unitCode],
+                    ["Unidade", button.dataset.unit],
+                    ["Host", button.dataset.host],
+                    ["Equipamento", button.dataset.equipment],
+                    ["Incidente", button.dataset.incident],
+                    ["Severidade", button.dataset.severity],
+                    ["Evento", button.dataset.eventid],
+                ];
+
+                dialogBody.replaceChildren();
+
+                fields.forEach(([label, value]) => {
+                    const labelElement = document.createElement("div");
+                    const valueElement = document.createElement("div");
+
+                    labelElement.className = "modal-label";
+                    valueElement.className = "modal-value";
+                    labelElement.textContent = label;
+                    valueElement.textContent = value || "-";
+
+                    dialogBody.append(labelElement, valueElement);
+                });
+
+                dialog.showModal();
+            });
+        });
+
+        document.querySelector("[data-modal-close]").addEventListener("click", () => {
+            dialog.close();
         });
     </script>
 </body>
