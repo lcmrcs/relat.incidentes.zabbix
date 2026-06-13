@@ -434,6 +434,10 @@
             font-weight: 700;
         }
 
+        .filtered-value.priority-high {
+            color: var(--open);
+        }
+
         .unit-scroll {
             max-height: 216px;
             overflow: auto;
@@ -650,6 +654,36 @@
         .status-badge.resolvido {
             background: #ebfbee;
             color: var(--resolved);
+        }
+
+        .priority-badge {
+            display: inline-block;
+            min-width: 82px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .priority-badge.critica {
+            background: #ffe3e3;
+            color: var(--open);
+        }
+
+        .priority-badge.alta {
+            background: #fff4e6;
+            color: var(--high);
+        }
+
+        .priority-badge.media {
+            background: #e7f5ff;
+            color: #1864ab;
+        }
+
+        .priority-badge.normal {
+            background: #f1f3f5;
+            color: #495057;
         }
 
         .details-button {
@@ -1189,8 +1223,20 @@
                     <p class="filtered-value open" data-filter-summary="oldest">-</p>
                 </div>
                 <div class="filtered-card">
-                    <p class="filtered-label">Acima de 7 dias</p>
-                    <p class="filtered-value high" data-filter-summary="over7">0</p>
+                    <p class="filtered-label">Até 3 dias</p>
+                    <p class="filtered-value information" data-filter-summary="rangeUpTo3">0</p>
+                </div>
+                <div class="filtered-card">
+                    <p class="filtered-label">4 a 30 dias</p>
+                    <p class="filtered-value high" data-filter-summary="range4To30">0</p>
+                </div>
+                <div class="filtered-card">
+                    <p class="filtered-label">+30 dias</p>
+                    <p class="filtered-value open" data-filter-summary="rangeOver30">0</p>
+                </div>
+                <div class="filtered-card">
+                    <p class="filtered-label">Prioridade alta</p>
+                    <p class="filtered-value priority-high" data-filter-summary="priorityHigh">0</p>
                 </div>
                 <div class="filtered-card">
                     <p class="filtered-label">Alta</p>
@@ -1227,6 +1273,7 @@
                         <th><button class="sort-button" type="button" data-sort-key="equipment">Equipamento</button></th>
                         <th><button class="sort-button" type="button" data-sort-key="incident">Incidente</button></th>
                         <th><button class="sort-button" type="button" data-sort-key="severityRank">Severidade</button></th>
+                        <th><button class="sort-button" type="button" data-sort-key="priorityRank">Prioridade</button></th>
                         <th>Detalhes</th>
                     </tr>
                 </thead>
@@ -1259,6 +1306,7 @@
                                 {{ item.severity }}
                             </span>
                         </td>
+                        <td data-priority-cell></td>
                         <td>
                             <button
                                 class="details-button"
@@ -1479,6 +1527,45 @@
             return `${minutes}min`;
         }
 
+        function getPriority(item) {
+            if (item.severity === "Desastre" || item.ageSeconds >= 2592000) {
+                return { label: "Crítica", rank: 3, className: "critica" };
+            }
+
+            if (item.severity === "Alta" || item.ageSeconds >= 604800) {
+                return { label: "Alta", rank: 2, className: "alta" };
+            }
+
+            if (item.severity === "Média" || item.ageSeconds >= 86400) {
+                return { label: "Média", rank: 1, className: "media" };
+            }
+
+            return { label: "Normal", rank: 0, className: "normal" };
+        }
+
+        rowData.forEach((item) => {
+            const priority = getPriority(item);
+            const cell = item.row.querySelector("[data-priority-cell]");
+            const detailsButton = item.row.querySelector("[data-details]");
+
+            item.priority = priority.label;
+            item.priorityRank = priority.rank;
+            item.priorityClass = priority.className;
+            item.searchText = `${item.searchText} ${priority.label.toLowerCase()}`;
+
+            if (cell) {
+                const badge = document.createElement("span");
+
+                badge.className = `priority-badge ${priority.className}`;
+                badge.textContent = priority.label;
+                cell.replaceChildren(badge);
+            }
+
+            if (detailsButton) {
+                detailsButton.dataset.priority = priority.label;
+            }
+        });
+
         function rowMatches(item, overrides = {}) {
             const filters = { ...activeFilters, ...overrides };
             const ageRange = parseAgeRange(filters.age);
@@ -1695,7 +1782,10 @@
 
         function updateFilteredSummary(total, severityCounts, ages) {
             const oldestAge = ages.length ? Math.max(...ages) : 0;
-            const over7 = ages.filter((age) => age >= 604800).length;
+            const rangeUpTo3 = ages.filter((age) => age < 345600).length;
+            const range4To30 = ages.filter((age) => age >= 345600 && age < 2678400).length;
+            const rangeOver30 = ages.filter((age) => age >= 2678400).length;
+            const priorityHigh = getVisibleRows().filter((item) => item.priorityRank >= 2).length;
 
             filterSummaryItems.forEach((item) => {
                 const key = item.dataset.filterSummary;
@@ -1710,13 +1800,32 @@
                     return;
                 }
 
-                if (key === "over7") {
-                    item.textContent = over7;
+                if (key === "rangeUpTo3") {
+                    item.textContent = rangeUpTo3;
+                    return;
+                }
+
+                if (key === "range4To30") {
+                    item.textContent = range4To30;
+                    return;
+                }
+
+                if (key === "rangeOver30") {
+                    item.textContent = rangeOver30;
+                    return;
+                }
+
+                if (key === "priorityHigh") {
+                    item.textContent = priorityHigh;
                     return;
                 }
 
                 item.textContent = severityCounts.get(key) || 0;
             });
+        }
+
+        function getVisibleRows() {
+            return rowData.filter(rowMatches);
         }
 
         function compareValues(first, second) {
@@ -1928,6 +2037,7 @@
                 "Equipamento",
                 "Incidente",
                 "Severidade",
+                "Prioridade",
                 "Tempo offline",
                 "Resolvido em",
                 "Evento",
@@ -1943,6 +2053,7 @@
                     item.equipment,
                     item.incident,
                     item.severity,
+                    item.priority,
                     item.ageLabel,
                     item.resolvedAt,
                     item.eventid,
@@ -1983,6 +2094,7 @@
                 ["Equipamento", button.dataset.equipment],
                 ["Incidente", button.dataset.incident],
                 ["Severidade", button.dataset.severity],
+                ["Prioridade", button.dataset.priority],
                 ["Tempo offline", button.dataset.ageLabel],
                 ["Evento", button.dataset.eventid],
             ];
