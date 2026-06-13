@@ -155,6 +155,13 @@ Funcao:
 - Remove eventos ja resolvidos do relatorio.
 - Mostra somente eventos/incidentes que continuam abertos.
 
+Observacao:
+- Este e o comando recomendado para o relatorio operacional atual.
+- O HTML foi organizado para acompanhar incidentes abertos, com filtros por
+  unidade escolar, equipamento, severidade, tempo offline e prioridade.
+- Como todos os registros deste modo estao abertos, o filtro de situacao fica
+  oculto automaticamente para evitar duplicidade entre `Tudo` e `Aberto`.
+
 ## 12. Ver arquivos modificados no Git
 
 ```bash
@@ -235,7 +242,7 @@ Quando quiser testar e gerar um relatorio, use:
 cd /mnt/c/Users/chip/Documents/relat.incidentes.zabbix
 source zabbix-report/venv/bin/activate
 python zabbix-report/test_zabbix_api.py
-python zabbix-report/zabbix_report.py --periodo 24h
+python zabbix-report/zabbix_report.py --periodo historico --status abertos
 ```
 
 Quando quiser salvar e subir alteracoes:
