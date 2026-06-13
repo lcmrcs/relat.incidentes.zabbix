@@ -1002,7 +1002,7 @@
             <article class="panel">
                 <h2>Equipamentos Mais Afetados</h2>
                 <ul class="metric-list">
-                    {% for item in summary.equipment[:8] %}
+                    {% for item in summary.top_equipment %}
                     <li class="metric-row">
                         <button class="metric-action" type="button" data-quick-equipment="{{ item.name }}">
                             <span class="metric-name" title="{{ item.name }}">{{ item.name }}</span>

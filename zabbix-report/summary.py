@@ -214,5 +214,6 @@ def build_report_summary(incidents):
         "top_units": format_counter(unit_counter)[:12],
         "severity": format_counter(severity_counter),
         "equipment": format_counter(equipment_counter, EQUIPMENT_ORDER),
+        "top_equipment": format_counter(equipment_counter)[:8],
         "top_hosts": format_counter(host_counter)[:8],
     }
