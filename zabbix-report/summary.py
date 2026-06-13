@@ -61,6 +61,17 @@ def build_age_summary(incidents):
             "over_2d": 0,
             "over_5d": 0,
             "over_7d": 0,
+            "over_30d": 0,
+            "over_90d": 0,
+            "range_24h": 0,
+            "range_1_3d": 0,
+            "range_4_10d": 0,
+            "range_11_20d": 0,
+            "range_21_30d": 0,
+            "range_31_50d": 0,
+            "range_51_75d": 0,
+            "range_76_90d": 0,
+            "range_over_90d": 0,
         }
 
     sorted_by_age = sorted(dated_incidents, key=lambda item: item["timestamp"])
@@ -79,6 +90,17 @@ def build_age_summary(incidents):
         "over_2d": sum(1 for age in ages if age >= 172800),
         "over_5d": sum(1 for age in ages if age >= 432000),
         "over_7d": sum(1 for age in ages if age >= 604800),
+        "over_30d": sum(1 for age in ages if age >= 2592000),
+        "over_90d": sum(1 for age in ages if age >= 7776000),
+        "range_24h": sum(1 for age in ages if age < 86400),
+        "range_1_3d": sum(1 for age in ages if 86400 <= age < 345600),
+        "range_4_10d": sum(1 for age in ages if 345600 <= age < 950400),
+        "range_11_20d": sum(1 for age in ages if 950400 <= age < 1814400),
+        "range_21_30d": sum(1 for age in ages if 1814400 <= age < 2678400),
+        "range_31_50d": sum(1 for age in ages if 2678400 <= age < 4406400),
+        "range_51_75d": sum(1 for age in ages if 4406400 <= age < 6566400),
+        "range_76_90d": sum(1 for age in ages if 6566400 <= age < 7862400),
+        "range_over_90d": sum(1 for age in ages if age >= 7862400),
     }
 
 

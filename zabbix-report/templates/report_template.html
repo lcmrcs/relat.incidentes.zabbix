@@ -312,7 +312,7 @@
 
         .filter-grid {
             display: grid;
-            grid-template-columns: minmax(170px, 0.8fr) minmax(280px, 1.4fr) minmax(220px, 1fr) minmax(190px, 0.9fr);
+            grid-template-columns: minmax(160px, 0.8fr) minmax(260px, 1.35fr) minmax(200px, 1fr) minmax(180px, 0.9fr) minmax(190px, 0.9fr);
             gap: 16px;
             align-items: start;
         }
@@ -875,17 +875,78 @@
 
         <section class="insights" aria-label="Indicadores do relatorio">
             <article class="panel">
-                <h2>Situação</h2>
+                <h2>Tempo Offline</h2>
                 <ul class="metric-list">
-                    {% for item in summary.status %}
                     <li class="metric-row">
-                        <button class="metric-action" type="button" data-quick-status="{{ item.name }}">
-                            <span class="metric-name">{{ item.name }}</span>
-                            <span class="metric-total">{{ item.total }} | {{ item.percent }}%</span>
+                        <button class="metric-action" type="button" data-quick-age="0-86400">
+                            <span class="metric-name">Últimas 24h</span>
+                            <span class="metric-total">{{ summary.age.range_24h }}</span>
                         </button>
-                        <span class="bar"><span style="width: {{ item.percent }}%;"></span></span>
+                        <span class="bar"><span style="width: {{ (summary.age.range_24h / summary.event_total * 100) | round(1) if summary.event_total else 0 }}%;"></span></span>
                     </li>
-                    {% endfor %}
+                    <li class="metric-row">
+                        <button class="metric-action" type="button" data-quick-age="86400-345600">
+                            <span class="metric-name">1 a 3 dias</span>
+                            <span class="metric-total">{{ summary.age.range_1_3d }}</span>
+                        </button>
+                        <span class="bar"><span style="width: {{ (summary.age.range_1_3d / summary.event_total * 100) | round(1) if summary.event_total else 0 }}%;"></span></span>
+                    </li>
+                    <li class="metric-row">
+                        <button class="metric-action" type="button" data-quick-age="345600-950400">
+                            <span class="metric-name">4 a 10 dias</span>
+                            <span class="metric-total">{{ summary.age.range_4_10d }}</span>
+                        </button>
+                        <span class="bar"><span style="width: {{ (summary.age.range_4_10d / summary.event_total * 100) | round(1) if summary.event_total else 0 }}%;"></span></span>
+                    </li>
+                    <li class="metric-row">
+                        <button class="metric-action" type="button" data-quick-age="950400-1814400">
+                            <span class="metric-name">11 a 20 dias</span>
+                            <span class="metric-total">{{ summary.age.range_11_20d }}</span>
+                        </button>
+                        <span class="bar"><span style="width: {{ (summary.age.range_11_20d / summary.event_total * 100) | round(1) if summary.event_total else 0 }}%;"></span></span>
+                    </li>
+                    <li class="metric-row">
+                        <button class="metric-action" type="button" data-quick-age="1814400-2678400">
+                            <span class="metric-name">21 a 30 dias</span>
+                            <span class="metric-total">{{ summary.age.range_21_30d }}</span>
+                        </button>
+                        <span class="bar"><span style="width: {{ (summary.age.range_21_30d / summary.event_total * 100) | round(1) if summary.event_total else 0 }}%;"></span></span>
+                    </li>
+                    <li class="metric-row">
+                        <button class="metric-action" type="button" data-quick-age="2678400-4406400">
+                            <span class="metric-name">31 a 50 dias</span>
+                            <span class="metric-total">{{ summary.age.range_31_50d }}</span>
+                        </button>
+                        <span class="bar"><span style="width: {{ (summary.age.range_31_50d / summary.event_total * 100) | round(1) if summary.event_total else 0 }}%;"></span></span>
+                    </li>
+                    <li class="metric-row">
+                        <button class="metric-action" type="button" data-quick-age="4406400-6566400">
+                            <span class="metric-name">51 a 75 dias</span>
+                            <span class="metric-total">{{ summary.age.range_51_75d }}</span>
+                        </button>
+                        <span class="bar"><span style="width: {{ (summary.age.range_51_75d / summary.event_total * 100) | round(1) if summary.event_total else 0 }}%;"></span></span>
+                    </li>
+                    <li class="metric-row">
+                        <button class="metric-action" type="button" data-quick-age="6566400-7862400">
+                            <span class="metric-name">76 a 90 dias</span>
+                            <span class="metric-total">{{ summary.age.range_76_90d }}</span>
+                        </button>
+                        <span class="bar"><span style="width: {{ (summary.age.range_76_90d / summary.event_total * 100) | round(1) if summary.event_total else 0 }}%;"></span></span>
+                    </li>
+                    <li class="metric-row">
+                        <button class="metric-action" type="button" data-quick-age="7862400-">
+                            <span class="metric-name">+90 dias</span>
+                            <span class="metric-total">{{ summary.age.range_over_90d }}</span>
+                        </button>
+                        <span class="bar"><span style="width: {{ (summary.age.range_over_90d / summary.event_total * 100) | round(1) if summary.event_total else 0 }}%;"></span></span>
+                    </li>
+                    <li class="metric-row">
+                        <span class="metric-action">
+                            <span class="metric-name">Mais antigo</span>
+                            <span class="metric-total">{{ summary.age.oldest_label }}</span>
+                        </span>
+                        <span class="bar"><span style="width: 100%;"></span></span>
+                    </li>
                 </ul>
             </article>
 
@@ -1068,6 +1129,52 @@
                             <span class="filter-count">{{ item.total }}</span>
                         </button>
                         {% endfor %}
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <p class="filter-label"><span class="filter-step">5</span>Tempo offline</p>
+                    <div class="filter-options">
+                        <button class="filter-button active" type="button" data-age-filter="all">
+                            <span>Tudo</span>
+                            <span class="filter-count">{{ summary.event_total }}</span>
+                        </button>
+                        <button class="filter-button" type="button" data-age-filter="0-86400">
+                            <span>Últimas 24h</span>
+                            <span class="filter-count">0</span>
+                        </button>
+                        <button class="filter-button" type="button" data-age-filter="86400-345600">
+                            <span>1 a 3 dias</span>
+                            <span class="filter-count">0</span>
+                        </button>
+                        <button class="filter-button" type="button" data-age-filter="345600-950400">
+                            <span>4 a 10 dias</span>
+                            <span class="filter-count">0</span>
+                        </button>
+                        <button class="filter-button" type="button" data-age-filter="950400-1814400">
+                            <span>11 a 20 dias</span>
+                            <span class="filter-count">0</span>
+                        </button>
+                        <button class="filter-button" type="button" data-age-filter="1814400-2678400">
+                            <span>21 a 30 dias</span>
+                            <span class="filter-count">0</span>
+                        </button>
+                        <button class="filter-button" type="button" data-age-filter="2678400-4406400">
+                            <span>31 a 50 dias</span>
+                            <span class="filter-count">0</span>
+                        </button>
+                        <button class="filter-button" type="button" data-age-filter="4406400-6566400">
+                            <span>51 a 75 dias</span>
+                            <span class="filter-count">0</span>
+                        </button>
+                        <button class="filter-button" type="button" data-age-filter="6566400-7862400">
+                            <span>76 a 90 dias</span>
+                            <span class="filter-count">0</span>
+                        </button>
+                        <button class="filter-button" type="button" data-age-filter="7862400-">
+                            <span>+90 dias</span>
+                            <span class="filter-count">0</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1270,6 +1377,7 @@
         const statusButtons = document.querySelectorAll("[data-status-filter]");
         const unitButtons = document.querySelectorAll("[data-unit-filter]");
         const severityButtons = document.querySelectorAll("[data-severity-filter]");
+        const ageButtons = document.querySelectorAll("[data-age-filter]");
         const sortButtons = document.querySelectorAll("[data-sort-key]");
         const tableBody = document.querySelector("#incidents-table tbody");
         const severityRank = {
@@ -1332,6 +1440,7 @@
             status: "all",
             unit: "all",
             severity: "all",
+            age: "all",
         };
         const activeSort = {
             key: "date",
@@ -1372,6 +1481,7 @@
 
         function rowMatches(item, overrides = {}) {
             const filters = { ...activeFilters, ...overrides };
+            const ageRange = parseAgeRange(filters.age);
             const equipmentMatches =
                 filters.equipment === "all" ||
                 item.equipment === filters.equipment;
@@ -1384,6 +1494,9 @@
             const severityMatches =
                 filters.severity === "all" ||
                 item.severity === filters.severity;
+            const ageMatches =
+                filters.age === "all" ||
+                isAgeInRange(item.ageSeconds, ageRange);
             const searchMatches =
                 !globalSearchText ||
                 item.searchText.includes(globalSearchText);
@@ -1393,6 +1506,7 @@
                 statusMatches &&
                 unitMatches &&
                 severityMatches &&
+                ageMatches &&
                 searchMatches
             );
         }
@@ -1401,13 +1515,38 @@
             map.set(key, (map.get(key) || 0) + 1);
         }
 
+        function parseAgeRange(value) {
+            if (value === "all") {
+                return null;
+            }
+
+            const [minValue, maxValue] = String(value).split("-");
+
+            return {
+                min: Number(minValue) || 0,
+                max: maxValue ? Number(maxValue) : Infinity,
+            };
+        }
+
+        function isAgeInRange(ageSeconds, range) {
+            if (!range) {
+                return true;
+            }
+
+            return ageSeconds >= range.min && ageSeconds < range.max;
+        }
+
         function getCountScope() {
             const counts = {
                 equipment: new Map([["all", 0]]),
                 status: new Map([["all", 0]]),
                 unit: new Map([["all", 0]]),
                 severity: new Map([["all", 0]]),
+                age: new Map([["all", 0]]),
             };
+            const ageRanges = Array.from(ageButtons)
+                .map((button) => button.dataset.ageFilter)
+                .filter((value) => value !== "all");
 
             rowData.forEach((item) => {
                 if (rowMatches(item, { equipment: "all" })) {
@@ -1428,6 +1567,16 @@
                 if (rowMatches(item, { severity: "all" })) {
                     addCount(counts.severity, "all");
                     addCount(counts.severity, item.severity);
+                }
+
+                if (rowMatches(item, { age: "all" })) {
+                    addCount(counts.age, "all");
+
+                    ageRanges.forEach((rangeValue) => {
+                        if (isAgeInRange(item.ageSeconds, parseAgeRange(rangeValue))) {
+                            addCount(counts.age, rangeValue);
+                        }
+                    });
                 }
             });
 
@@ -1511,6 +1660,13 @@
                 );
             });
 
+            ageButtons.forEach((button) => {
+                button.classList.toggle(
+                    "active",
+                    button.dataset.ageFilter === activeFilters.age
+                );
+            });
+
             const counts = getCountScope();
 
             applySort();
@@ -1518,6 +1674,7 @@
             updateButtonCounts(equipmentButtons, "equipmentFilter", counts.equipment);
             updateButtonCounts(statusButtons, "statusFilter", counts.status);
             updateButtonCounts(severityButtons, "severityFilter", counts.severity);
+            updateButtonCounts(ageButtons, "ageFilter", counts.age);
             updateButtonCounts(
                 unitButtons,
                 "unitFilter",
@@ -1644,6 +1801,13 @@
             });
         });
 
+        ageButtons.forEach((button) => {
+            button.addEventListener("click", () => {
+                activeFilters.age = button.dataset.ageFilter;
+                updateFilters();
+            });
+        });
+
         sortButtons.forEach((button) => {
             button.addEventListener("click", () => {
                 const key = button.dataset.sortKey;
@@ -1661,7 +1825,7 @@
         });
 
         document.addEventListener("click", (event) => {
-            const button = event.target.closest("[data-quick-status], [data-quick-severity], [data-quick-equipment], [data-quick-unit], [data-quick-search]");
+            const button = event.target.closest("[data-quick-status], [data-quick-severity], [data-quick-equipment], [data-quick-unit], [data-quick-search], [data-quick-age]");
 
             if (!button) {
                 return;
@@ -1681,6 +1845,10 @@
 
             if (button.dataset.quickUnit) {
                 activeFilters.unit = button.dataset.quickUnit;
+            }
+
+            if (button.dataset.quickAge) {
+                activeFilters.age = button.dataset.quickAge;
             }
 
             if (button.dataset.quickSearch) {
@@ -1726,6 +1894,7 @@
                 activeFilters.status = "all";
                 activeFilters.unit = "all";
                 activeFilters.severity = "all";
+                activeFilters.age = "all";
                 unitSearchText = "";
                 globalSearchText = "";
 
