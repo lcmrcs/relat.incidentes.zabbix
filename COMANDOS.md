@@ -118,7 +118,44 @@ Funcao:
 - Busca eventos de problema dos ultimos 7 dias.
 - Equivale ao periodo semanal.
 
-## 10. Ver arquivos modificados no Git
+## 10. Gerar relatorio desde uma data especifica
+
+```bash
+python zabbix-report/zabbix_report.py --desde 2026-01-01
+```
+
+Funcao:
+- Busca eventos de problema desde a data informada ate o momento atual.
+- Use o formato `AAAA-MM-DD`.
+- E mais seguro que buscar o historico completo quando o Zabbix tem muitos dados.
+
+## 11. Gerar relatorio do historico completo
+
+```bash
+python zabbix-report/zabbix_report.py --periodo historico
+```
+
+Funcao:
+- Busca eventos de problema desde o registro mais antigo disponivel no Zabbix
+  ate o momento atual.
+
+Atencao:
+- Este comando pode demorar bastante.
+- Pode gerar arquivos HTML, PDF e Excel muito grandes.
+- Use primeiro `--desde` se quiser controlar melhor o tamanho do relatorio.
+
+Para buscar o historico completo contando apenas incidentes abertos:
+
+```bash
+python zabbix-report/zabbix_report.py --periodo historico --status abertos
+```
+
+Funcao:
+- Busca o historico disponivel no Zabbix.
+- Remove eventos ja resolvidos do relatorio.
+- Mostra somente eventos/incidentes que continuam abertos.
+
+## 12. Ver arquivos modificados no Git
 
 ```bash
 git status
@@ -129,7 +166,7 @@ Funcao:
 - Mostra quais arquivos estao prontos para commit.
 - Ajuda a evitar subir arquivos errados para o GitHub.
 
-## 11. Preparar arquivos para commit
+## 13. Preparar arquivos para commit
 
 ```bash
 git add .
@@ -149,7 +186,7 @@ git add zabbix-report/zabbix_report.py
 git add zabbix-report/templates/report_template.html
 ```
 
-## 12. Criar commit
+## 14. Criar commit
 
 ```bash
 git commit -m "descreva aqui o que foi alterado"
@@ -165,7 +202,7 @@ Exemplo:
 git commit -m "feat: melhora filtros do relatorio Zabbix"
 ```
 
-## 13. Enviar alteracoes para o GitHub
+## 15. Enviar alteracoes para o GitHub
 
 ```bash
 git push origin main
@@ -190,7 +227,7 @@ Observacao:
 - O GitHub nao usa mais senha normal para `git push`.
 - Use um Personal Access Token.
 
-## 14. Fluxo rapido do dia a dia
+## 16. Fluxo rapido do dia a dia
 
 Quando quiser testar e gerar um relatorio, use:
 

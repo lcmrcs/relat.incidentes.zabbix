@@ -157,6 +157,28 @@
             align-items: center;
         }
 
+        .metric-action {
+            display: grid;
+            grid-column: 1 / -1;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 12px;
+            align-items: center;
+            width: 100%;
+            border: 0;
+            background: transparent;
+            color: inherit;
+            cursor: pointer;
+            font: inherit;
+            padding: 0;
+            text-align: left;
+        }
+
+        .metric-action:hover .metric-name {
+            color: var(--accent);
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
         .metric-name {
             min-width: 0;
             overflow: hidden;
@@ -195,8 +217,70 @@
             background: var(--surface);
             border: 1px solid var(--line);
             border-radius: 8px;
-            padding: 18px;
+            padding: 20px;
             margin-bottom: 20px;
+        }
+
+        .zabbix-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+            background: #fffaf0;
+            border: 1px solid #f6d365;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            padding: 16px 18px;
+        }
+
+        .zabbix-panel h2 {
+            margin: 0 0 4px;
+            color: #7c4a03;
+            font-size: 16px;
+        }
+
+        .zabbix-panel p {
+            margin: 0;
+            color: #8a6d3b;
+            font-size: 14px;
+        }
+
+        .zabbix-button {
+            border: 1px solid #b7791f;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #7c4a03;
+            cursor: pointer;
+            font: inherit;
+            font-weight: 700;
+            padding: 9px 12px;
+        }
+
+        .zabbix-button:hover {
+            background: #fff3cd;
+        }
+
+        .zabbix-panel.server-panel {
+            background: #fff5f5;
+            border-color: #feb2b2;
+        }
+
+        .zabbix-panel.server-panel h2 {
+            color: #9b2c2c;
+        }
+
+        .zabbix-panel.server-panel p {
+            color: #742a2a;
+        }
+
+        .zabbix-panel.server-panel .zabbix-button {
+            border-color: #c53030;
+            color: #9b2c2c;
+        }
+
+        .zabbix-panel.server-panel .zabbix-button:hover {
+            background: #fed7d7;
         }
 
         .filter-header {
@@ -219,37 +303,176 @@
             font-size: 14px;
         }
 
-        .equipment-filters {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
+        .filter-tools {
+            display: grid;
+            grid-template-columns: minmax(220px, 1fr) auto auto;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: minmax(170px, 0.8fr) minmax(280px, 1.4fr) minmax(220px, 1fr) minmax(190px, 0.9fr);
+            gap: 16px;
+            align-items: start;
         }
 
         .filter-group {
-            margin-top: 14px;
-        }
-
-        .filter-group:first-of-type {
-            margin-top: 0;
+            min-width: 0;
+            border: 1px solid #edf2f7;
+            border-radius: 8px;
+            background: #fbfdff;
+            padding: 12px;
         }
 
         .filter-label {
-            margin: 0 0 8px;
-            color: var(--muted);
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin: 0 0 10px;
+            color: #334e68;
             font-size: 13px;
             font-weight: 700;
             text-transform: uppercase;
         }
 
-        .filter-button {
-            border: 1px solid var(--line);
+        .filter-step {
+            display: inline-grid;
+            width: 22px;
+            height: 22px;
+            place-items: center;
             border-radius: 999px;
+            background: var(--accent);
+            color: #ffffff;
+            font-size: 12px;
+        }
+
+        .filter-options {
+            display: grid;
+            gap: 8px;
+        }
+
+        .unit-search,
+        .global-search {
+            width: 100%;
+            height: 40px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #ffffff;
+            color: var(--text);
+            font: inherit;
+            margin-bottom: 10px;
+            padding: 0 12px;
+        }
+
+        .global-search {
+            margin-bottom: 0;
+        }
+
+        .unit-search:focus,
+        .global-search:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgb(11 114 133 / 0.12);
+            outline: none;
+        }
+
+        .clear-button {
+            height: 40px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
             background: #ffffff;
             color: #334e68;
             cursor: pointer;
             font: inherit;
-            padding: 8px 12px;
-            transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+            font-weight: 700;
+            padding: 0 14px;
+            white-space: nowrap;
+        }
+
+        .clear-button:hover {
+            border-color: var(--accent);
+            color: #075563;
+        }
+
+        .download-button {
+            border-color: var(--accent);
+            background: var(--accent);
+            color: #ffffff;
+        }
+
+        .download-button:hover {
+            background: #075563;
+            color: #ffffff;
+        }
+
+        .filtered-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+            margin: 16px 0 0;
+        }
+
+        .filtered-card {
+            border: 1px solid #edf2f7;
+            border-radius: 8px;
+            background: #ffffff;
+            padding: 12px;
+        }
+
+        .filtered-label {
+            margin: 0 0 4px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .filtered-value {
+            margin: 0;
+            color: #102a43;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .unit-scroll {
+            max-height: 216px;
+            overflow: auto;
+            padding-right: 4px;
+        }
+
+        .filter-button {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 10px;
+            align-items: center;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #ffffff;
+            color: #334e68;
+            cursor: pointer;
+            font: inherit;
+            min-height: 40px;
+            padding: 9px 10px;
+            text-align: left;
+            transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+        }
+
+        .filter-button span:first-child {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .filter-count {
+            min-width: 38px;
+            border-radius: 999px;
+            background: #eef2f6;
+            color: #334e68;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 3px 8px;
+            text-align: center;
         }
 
         .filter-button:hover,
@@ -259,10 +482,40 @@
             color: #075563;
         }
 
-        .unit-scroll {
-            max-height: 148px;
-            overflow: auto;
-            padding-right: 4px;
+        .filter-button.active {
+            box-shadow: inset 3px 0 0 var(--accent);
+        }
+
+        .filter-button.active .filter-count {
+            background: #ffffff;
+            color: #075563;
+        }
+
+        .filter-button.empty {
+            display: none;
+        }
+
+        .filter-button.zero:not(.active) {
+            color: #7b8794;
+            background: #f8fafc;
+        }
+
+        .filter-button.zero:not(.active) .filter-count {
+            background: #f1f3f5;
+            color: #7b8794;
+        }
+
+        @media (max-width: 1180px) {
+            .filter-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 720px) {
+            .filter-tools,
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         .table-wrap {
@@ -287,11 +540,50 @@
         }
 
         th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
             background: #eef2f6;
             color: #334e68;
             font-size: 13px;
             text-transform: uppercase;
             letter-spacing: 0.03em;
+        }
+
+        .sort-button {
+            display: inline-flex;
+            gap: 6px;
+            align-items: center;
+            width: 100%;
+            border: 0;
+            background: transparent;
+            color: inherit;
+            cursor: pointer;
+            font: inherit;
+            font-weight: 700;
+            letter-spacing: inherit;
+            padding: 0;
+            text-align: left;
+            text-transform: inherit;
+        }
+
+        .sort-button::after {
+            content: "";
+            width: 0;
+            height: 0;
+            border-right: 4px solid transparent;
+            border-left: 4px solid transparent;
+            opacity: 0;
+        }
+
+        .sort-button.active.asc::after {
+            border-bottom: 6px solid currentColor;
+            opacity: 1;
+        }
+
+        .sort-button.active.desc::after {
+            border-top: 6px solid currentColor;
+            opacity: 1;
         }
 
         tr:last-child td {
@@ -432,6 +724,28 @@
             color: #243b53;
         }
 
+        .modal-table-wrap {
+            max-height: min(560px, 70vh);
+            overflow: auto;
+            padding: 0 20px 20px;
+        }
+
+        .modal-table {
+            min-width: 680px;
+        }
+
+        .modal-table th,
+        .modal-table td {
+            white-space: nowrap;
+        }
+
+        .modal-table td:nth-child(4) {
+            max-width: 320px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
         .empty-state {
             background: var(--surface);
             border: 1px solid var(--line);
@@ -443,6 +757,20 @@
         .empty-state p {
             margin: 0;
             color: var(--muted);
+        }
+
+        .table-empty {
+            margin-top: 12px;
+            background: var(--surface);
+            border: 1px dashed var(--line);
+            border-radius: 8px;
+            color: var(--muted);
+            padding: 18px;
+            text-align: center;
+        }
+
+        .table-empty[hidden] {
+            display: none;
         }
 
         @media (max-width: 900px) {
@@ -480,41 +808,69 @@
 
         <section class="summary" aria-label="Resumo do relatorio">
             <div class="summary-item">
-                <p class="summary-label">Total de incidentes</p>
-                <p class="summary-value">{{ summary.total }}</p>
+                <p class="summary-label">Eventos Zabbix</p>
+                <p class="summary-value">{{ summary.event_total }}</p>
             </div>
             <div class="summary-item">
-                <p class="summary-label">Abertos</p>
-                <p class="summary-value open">{{ summary.open }}</p>
+                <p class="summary-label">Incidentes únicos</p>
+                <p class="summary-value">{{ summary.unique_total }}</p>
             </div>
             <div class="summary-item">
-                <p class="summary-label">Resolvidos</p>
-                <p class="summary-value resolved">{{ summary.resolved }}</p>
+                <p class="summary-label">Únicos abertos</p>
+                <p class="summary-value open">{{ summary.unique_open }}</p>
             </div>
             <div class="summary-item">
-                <p class="summary-label">Não classificadas</p>
+                <p class="summary-label">Únicos resolvidos</p>
+                <p class="summary-value resolved">{{ summary.unique_resolved }}</p>
+            </div>
+            <div class="summary-item">
+                <p class="summary-label">Mais antigo aberto</p>
+                <p class="summary-value open">{{ summary.age.oldest_label }}</p>
+            </div>
+            <div class="summary-item">
+                <p class="summary-label">Média de idade</p>
+                <p class="summary-value">{{ summary.age.average_label }}</p>
+            </div>
+            <div class="summary-item">
+                <p class="summary-label">Acima de 7 dias</p>
+                <p class="summary-value high">{{ summary.age.over_7d }}</p>
+            </div>
+            {% if summary.unclassified %}
+            <div class="summary-item">
+                <p class="summary-label">Não classificada</p>
                 <p class="summary-value unclassified">{{ summary.unclassified }}</p>
             </div>
+            {% endif %}
+            {% if summary.information %}
             <div class="summary-item">
-                <p class="summary-label">Informações</p>
+                <p class="summary-label">Informação</p>
                 <p class="summary-value information">{{ summary.information }}</p>
             </div>
+            {% endif %}
+            {% if summary.attention %}
             <div class="summary-item">
-                <p class="summary-label">Atenções</p>
+                <p class="summary-label">Atenção</p>
                 <p class="summary-value attention">{{ summary.attention }}</p>
             </div>
+            {% endif %}
+            {% if summary.medium %}
             <div class="summary-item">
-                <p class="summary-label">Médias</p>
+                <p class="summary-label">Média</p>
                 <p class="summary-value medium">{{ summary.medium }}</p>
             </div>
+            {% endif %}
+            {% if summary.high %}
             <div class="summary-item">
-                <p class="summary-label">Altas</p>
+                <p class="summary-label">Alta</p>
                 <p class="summary-value high">{{ summary.high }}</p>
             </div>
+            {% endif %}
+            {% if summary.critical %}
             <div class="summary-item">
-                <p class="summary-label">Desastres</p>
+                <p class="summary-label">Desastre</p>
                 <p class="summary-value disaster">{{ summary.critical }}</p>
             </div>
+            {% endif %}
         </section>
 
         <section class="insights" aria-label="Indicadores do relatorio">
@@ -523,8 +879,10 @@
                 <ul class="metric-list">
                     {% for item in summary.status %}
                     <li class="metric-row">
-                        <span class="metric-name">{{ item.name }}</span>
-                        <span class="metric-total">{{ item.total }} | {{ item.percent }}%</span>
+                        <button class="metric-action" type="button" data-quick-status="{{ item.name }}">
+                            <span class="metric-name">{{ item.name }}</span>
+                            <span class="metric-total">{{ item.total }} | {{ item.percent }}%</span>
+                        </button>
                         <span class="bar"><span style="width: {{ item.percent }}%;"></span></span>
                     </li>
                     {% endfor %}
@@ -536,8 +894,10 @@
                 <ul class="metric-list">
                     {% for item in summary.severity %}
                     <li class="metric-row">
-                        <span class="metric-name">{{ item.name }}</span>
-                        <span class="metric-total">{{ item.total }} | {{ item.percent }}%</span>
+                        <button class="metric-action" type="button" data-quick-severity="{{ item.name }}">
+                            <span class="metric-name">{{ item.name }}</span>
+                            <span class="metric-total">{{ item.total }} | {{ item.percent }}%</span>
+                        </button>
                         <span class="bar"><span style="width: {{ item.percent }}%;"></span></span>
                     </li>
                     {% endfor %}
@@ -549,8 +909,10 @@
                 <ul class="metric-list">
                     {% for item in summary.equipment[:8] %}
                     <li class="metric-row">
-                        <span class="metric-name" title="{{ item.name }}">{{ item.name }}</span>
-                        <span class="metric-total">{{ item.total }} | {{ item.percent }}%</span>
+                        <button class="metric-action" type="button" data-quick-equipment="{{ item.name }}">
+                            <span class="metric-name" title="{{ item.name }}">{{ item.name }}</span>
+                            <span class="metric-total">{{ item.total }} | {{ item.percent }}%</span>
+                        </button>
                         <span class="bar"><span style="width: {{ item.percent }}%;"></span></span>
                     </li>
                     {% endfor %}
@@ -562,8 +924,10 @@
                 <ul class="metric-list">
                     {% for item in summary.top_hosts %}
                     <li class="metric-row">
-                        <span class="metric-name" title="{{ item.name }}">{{ item.name }}</span>
-                        <span class="metric-total">{{ item.total }} | {{ item.percent }}%</span>
+                        <button class="metric-action" type="button" data-quick-search="{{ item.name }}">
+                            <span class="metric-name" title="{{ item.name }}">{{ item.name }}</span>
+                            <span class="metric-total">{{ item.total }} | {{ item.percent }}%</span>
+                        </button>
                         <span class="bar"><span style="width: {{ item.percent }}%;"></span></span>
                     </li>
                     {% endfor %}
@@ -575,8 +939,10 @@
                 <ul class="metric-list">
                     {% for item in summary.top_units %}
                     <li class="metric-row">
-                        <span class="metric-name" title="{{ item.name }}">{{ item.name }}</span>
-                        <span class="metric-total">{{ item.total }} | {{ item.percent }}%</span>
+                        <button class="metric-action" type="button" data-quick-unit="{{ item.name }}">
+                            <span class="metric-name" title="{{ item.name }}">{{ item.name }}</span>
+                            <span class="metric-total">{{ item.total }} | {{ item.percent }}%</span>
+                        </button>
                         <span class="bar"><span style="width: {{ item.percent }}%;"></span></span>
                     </li>
                     {% endfor %}
@@ -584,70 +950,176 @@
             </article>
         </section>
 
+        {% if zabbix_incidents %}
+        <section class="zabbix-panel server-panel" aria-label="Eventos do servidor Zabbix">
+            <div>
+                <h2>Servidor Zabbix</h2>
+                <p>Total: {{ zabbix_summary.event_total }} | Separado da lista de unidade escolar</p>
+            </div>
+            <button class="zabbix-button" type="button" data-zabbix-open>
+                Abrir janela
+            </button>
+        </section>
+        {% endif %}
+
+        {% if confea_incidents %}
+        <section class="zabbix-panel" aria-label="Eventos da CONFEA VPN">
+            <div>
+                <h2>CONFEA VPN</h2>
+                <p>Total: {{ confea_summary.event_total }} | VM monitorada por ping via VPN</p>
+            </div>
+            <button class="zabbix-button" type="button" data-confea-open>
+                Abrir janela
+            </button>
+        </section>
+        {% endif %}
+
         {% if incidents %}
         <section class="filter-panel" aria-label="Filtro por tipo de equipamento">
             <div class="filter-header">
-                <h2>Particionamento dos Incidentes</h2>
+                <h2>Filtro do Relatório</h2>
                 <span class="filter-status" id="filter-status">
-                    Exibindo {{ summary.total }} incidentes
+                    Exibindo: {{ summary.event_total }}
                 </span>
             </div>
 
-            <div class="filter-group">
-                <p class="filter-label">Situação</p>
-                <div class="equipment-filters">
-                    <button class="filter-button active" type="button" data-status-filter="all">
-                        Todos ({{ summary.total }})
-                    </button>
-                    {% for item in summary.status %}
-                    <button class="filter-button" type="button" data-status-filter="{{ item.name }}">
-                        {{ item.name }} ({{ item.total }})
-                    </button>
-                    {% endfor %}
+            <div class="filter-tools">
+                <input
+                    class="global-search"
+                    id="global-search"
+                    type="search"
+                    placeholder="Pesquisar host, incidente, equipamento ou severidade"
+                    autocomplete="off"
+                >
+                <button class="clear-button" type="button" id="clear-filters">
+                    Limpar filtro
+                </button>
+                <button class="clear-button download-button" type="button" id="download-filtered">
+                    Baixar CSV
+                </button>
+            </div>
+
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <p class="filter-label"><span class="filter-step">1</span>Situação</p>
+                    <div class="filter-options">
+                        <button class="filter-button active" type="button" data-status-filter="all">
+                            <span>Tudo</span>
+                            <span class="filter-count">{{ summary.event_total }}</span>
+                        </button>
+                        {% for item in summary.status %}
+                        <button class="filter-button" type="button" data-status-filter="{{ item.name }}">
+                            <span>{{ item.name }}</span>
+                            <span class="filter-count">{{ item.total }}</span>
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <p class="filter-label"><span class="filter-step">2</span>Unidade escolar</p>
+                    <input
+                        class="unit-search"
+                        id="unit-search"
+                        type="search"
+                        placeholder="Pesquisar código ou nome da unidade"
+                        autocomplete="off"
+                    >
+                    <div class="filter-options unit-scroll">
+                        <button class="filter-button active" type="button" data-unit-filter="all">
+                            <span>Tudo</span>
+                            <span class="filter-count">{{ summary.event_total }}</span>
+                        </button>
+                        {% for item in summary.units %}
+                        <button class="filter-button" type="button" data-unit-filter="{{ item.name }}">
+                            <span title="{{ item.name }}">{{ item.name }}</span>
+                            <span class="filter-count">{{ item.total }}</span>
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <p class="filter-label"><span class="filter-step">3</span>Equipamento</p>
+                    <div class="filter-options">
+                        <button class="filter-button active" type="button" data-equipment-filter="all">
+                            <span>Tudo</span>
+                            <span class="filter-count">{{ summary.event_total }}</span>
+                        </button>
+                        {% for item in summary.equipment %}
+                        <button class="filter-button" type="button" data-equipment-filter="{{ item.name }}">
+                            <span>{{ item.name }}</span>
+                            <span class="filter-count">{{ item.total }}</span>
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <p class="filter-label"><span class="filter-step">4</span>Severidade</p>
+                    <div class="filter-options">
+                        <button class="filter-button active" type="button" data-severity-filter="all">
+                            <span>Tudo</span>
+                            <span class="filter-count">{{ summary.event_total }}</span>
+                        </button>
+                        {% for item in summary.severity %}
+                        <button class="filter-button" type="button" data-severity-filter="{{ item.name }}">
+                            <span>{{ item.name }}</span>
+                            <span class="filter-count">{{ item.total }}</span>
+                        </button>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
 
-            <div class="filter-group">
-                <p class="filter-label">Unidade escolar</p>
-                <div class="equipment-filters unit-scroll">
-                    <button class="filter-button active" type="button" data-unit-filter="all">
-                        Todas ({{ summary.total }})
-                    </button>
-                    {% for item in summary.units %}
-                    <button class="filter-button" type="button" data-unit-filter="{{ item.name }}">
-                        {{ item.name }} ({{ item.total }})
-                    </button>
-                    {% endfor %}
+            <div class="filtered-summary" aria-label="Resumo do filtro aplicado">
+                <div class="filtered-card">
+                    <p class="filtered-label">Resultado</p>
+                    <p class="filtered-value" data-filter-summary="total">{{ summary.event_total }}</p>
                 </div>
-            </div>
-
-            <div class="filter-group">
-                <p class="filter-label">Equipamento</p>
-                <div class="equipment-filters">
-                    <button class="filter-button active" type="button" data-equipment-filter="all">
-                        Todos ({{ summary.total }})
-                    </button>
-                    {% for item in summary.equipment %}
-                    <button class="filter-button" type="button" data-equipment-filter="{{ item.name }}">
-                        {{ item.name }} ({{ item.total }})
-                    </button>
-                    {% endfor %}
+                <div class="filtered-card">
+                    <p class="filtered-label">Mais antigo</p>
+                    <p class="filtered-value open" data-filter-summary="oldest">-</p>
+                </div>
+                <div class="filtered-card">
+                    <p class="filtered-label">Acima de 7 dias</p>
+                    <p class="filtered-value high" data-filter-summary="over7">0</p>
+                </div>
+                <div class="filtered-card">
+                    <p class="filtered-label">Alta</p>
+                    <p class="filtered-value high" data-filter-summary="Alta">0</p>
+                </div>
+                <div class="filtered-card">
+                    <p class="filtered-label">Média</p>
+                    <p class="filtered-value medium" data-filter-summary="Média">0</p>
+                </div>
+                <div class="filtered-card">
+                    <p class="filtered-label">Atenção</p>
+                    <p class="filtered-value attention" data-filter-summary="Atenção">0</p>
+                </div>
+                <div class="filtered-card">
+                    <p class="filtered-label">Informação</p>
+                    <p class="filtered-value information" data-filter-summary="Informação">0</p>
+                </div>
+                <div class="filtered-card">
+                    <p class="filtered-label">Desastre</p>
+                    <p class="filtered-value disaster" data-filter-summary="Desastre">0</p>
                 </div>
             </div>
         </section>
 
-        <h2 class="section-title">Detalhamento dos Incidentes</h2>
+        <h2 class="section-title">Detalhamento dos Eventos</h2>
         <section class="table-wrap" aria-label="Lista de incidentes">
             <table id="incidents-table">
                 <thead>
                     <tr>
-                        <th>Data</th>
-                        <th>Código</th>
-                        <th>Unidade</th>
-                        <th>Status</th>
-                        <th>Equipamento</th>
-                        <th>Incidente</th>
-                        <th>Severidade</th>
+                        <th><button class="sort-button" type="button" data-sort-key="date">Data</button></th>
+                        <th><button class="sort-button" type="button" data-sort-key="unitCode">Código</button></th>
+                        <th><button class="sort-button" type="button" data-sort-key="unit">Unidade</button></th>
+                        <th><button class="sort-button" type="button" data-sort-key="status">Status</button></th>
+                        <th><button class="sort-button" type="button" data-sort-key="equipment">Equipamento</button></th>
+                        <th><button class="sort-button" type="button" data-sort-key="incident">Incidente</button></th>
+                        <th><button class="sort-button" type="button" data-sort-key="severityRank">Severidade</button></th>
                         <th>Detalhes</th>
                     </tr>
                 </thead>
@@ -657,6 +1129,13 @@
                         data-equipment="{{ item.equipment }}"
                         data-status="{{ item.status }}"
                         data-unit="{{ item.unit }}"
+                        data-unit-code="{{ item.unit_code or '-' }}"
+                        data-host="{{ item.host }}"
+                        data-incident="{{ item.incident }}"
+                        data-severity="{{ item.severity }}"
+                        data-timestamp="{{ item.timestamp }}"
+                        data-age-seconds="{{ item.age_seconds }}"
+                        data-age-label="{{ item.age_label }}"
                     >
                         <td>{{ item.date }}</td>
                         <td>{{ item.unit_code or "-" }}</td>
@@ -687,6 +1166,7 @@
                                 data-equipment="{{ item.equipment }}"
                                 data-incident="{{ item.incident }}"
                                 data-severity="{{ item.severity }}"
+                                data-age-label="{{ item.age_label }}"
                                 data-eventid="{{ item.eventid }}"
                             >
                                 Abrir
@@ -697,6 +1177,9 @@
                 </tbody>
             </table>
         </section>
+        <div class="table-empty" id="table-empty" hidden>
+            Nenhum registro encontrado com o filtro atual.
+        </div>
         {% else %}
         <section class="empty-state">
             <p>Nenhum incidente encontrado para o periodo consultado.</p>
@@ -710,39 +1193,293 @@
         </div>
         <div class="modal-body" id="incident-dialog-body"></div>
     </dialog>
+    {% if zabbix_incidents %}
+    <dialog id="zabbix-dialog">
+        <div class="modal-header">
+            <h2 class="modal-title">Servidor Zabbix</h2>
+            <button class="modal-close" type="button" data-zabbix-close aria-label="Fechar">x</button>
+        </div>
+        <div class="modal-table-wrap">
+            <table class="modal-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Status</th>
+                        <th>Host</th>
+                        <th>Incidente</th>
+                        <th>Severidade</th>
+                        <th>Tempo offline</th>
+                        <th>Evento</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in zabbix_incidents %}
+                    <tr>
+                        <td>{{ item.date }}</td>
+                        <td>{{ item.status }}</td>
+                        <td>{{ item.host }}</td>
+                        <td title="{{ item.incident }}">{{ item.incident }}</td>
+                        <td>{{ item.severity }}</td>
+                        <td>{{ item.age_label }}</td>
+                        <td>{{ item.eventid }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </dialog>
+    {% endif %}
+    {% if confea_incidents %}
+    <dialog id="confea-dialog">
+        <div class="modal-header">
+            <h2 class="modal-title">CONFEA VPN</h2>
+            <button class="modal-close" type="button" data-confea-close aria-label="Fechar">x</button>
+        </div>
+        <div class="modal-table-wrap">
+            <table class="modal-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Status</th>
+                        <th>Host</th>
+                        <th>Incidente</th>
+                        <th>Severidade</th>
+                        <th>Tempo offline</th>
+                        <th>Evento</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in confea_incidents %}
+                    <tr>
+                        <td>{{ item.date }}</td>
+                        <td>{{ item.status }}</td>
+                        <td>{{ item.host }}</td>
+                        <td title="{{ item.incident }}">{{ item.incident }}</td>
+                        <td>{{ item.severity }}</td>
+                        <td>{{ item.age_label }}</td>
+                        <td>{{ item.eventid }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </dialog>
+    {% endif %}
     <script>
         const equipmentButtons = document.querySelectorAll("[data-equipment-filter]");
         const statusButtons = document.querySelectorAll("[data-status-filter]");
         const unitButtons = document.querySelectorAll("[data-unit-filter]");
+        const severityButtons = document.querySelectorAll("[data-severity-filter]");
+        const sortButtons = document.querySelectorAll("[data-sort-key]");
+        const tableBody = document.querySelector("#incidents-table tbody");
+        const severityRank = {
+            "Não classificada": 0,
+            "Informação": 1,
+            "Atenção": 2,
+            "Média": 3,
+            "Alta": 4,
+            "Desastre": 5,
+        };
+        const statusRank = {
+            "Resolvido": 0,
+            "Aberto": 1,
+        };
         const rows = document.querySelectorAll("#incidents-table tbody tr");
+        const rowData = Array.from(rows).map((row) => ({
+            row,
+            date: parseDate(row.children[0].textContent),
+            timestamp: Number(row.dataset.timestamp) || 0,
+            ageSeconds: Number(row.dataset.ageSeconds) || 0,
+            ageLabel: row.dataset.ageLabel || "-",
+            unitCode: row.dataset.unitCode,
+            equipment: row.dataset.equipment,
+            status: row.dataset.status,
+            statusRank: statusRank[row.dataset.status] ?? 0,
+            unit: row.dataset.unit,
+            host: row.dataset.host,
+            severity: row.dataset.severity,
+            severityRank: severityRank[row.dataset.severity] ?? 0,
+            incident: row.dataset.incident,
+            resolvedAt: row.querySelector("[data-details]")?.dataset.resolvedAt || "-",
+            eventid: row.querySelector("[data-details]")?.dataset.eventid || "",
+            searchText: [
+                row.dataset.unitCode,
+                row.dataset.unit,
+                row.dataset.host,
+                row.dataset.equipment,
+                row.dataset.incident,
+                row.dataset.severity,
+                row.dataset.status,
+            ].join(" ").toLowerCase(),
+        }));
         const status = document.getElementById("filter-status");
+        const unitSearch = document.getElementById("unit-search");
+        const globalSearch = document.getElementById("global-search");
+        const clearFilters = document.getElementById("clear-filters");
+        const downloadFiltered = document.getElementById("download-filtered");
+        const tableEmpty = document.getElementById("table-empty");
+        const filterSummaryItems = document.querySelectorAll("[data-filter-summary]");
         const dialog = document.getElementById("incident-dialog");
         const dialogBody = document.getElementById("incident-dialog-body");
+        const zabbixDialog = document.getElementById("zabbix-dialog");
+        const zabbixOpenButton = document.querySelector("[data-zabbix-open]");
+        const zabbixCloseButton = document.querySelector("[data-zabbix-close]");
+        const confeaDialog = document.getElementById("confea-dialog");
+        const confeaOpenButton = document.querySelector("[data-confea-open]");
+        const confeaCloseButton = document.querySelector("[data-confea-close]");
         const activeFilters = {
             equipment: "all",
             status: "all",
             unit: "all",
+            severity: "all",
         };
+        const activeSort = {
+            key: "date",
+            direction: "desc",
+        };
+        let unitSearchText = "";
+        let globalSearchText = "";
+        let unitSearchTimer = null;
+        let globalSearchTimer = null;
+
+        function parseDate(value) {
+            const [datePart, timePart = "00:00"] = value.trim().split(" ");
+            const [day, month, year] = datePart.split("/").map(Number);
+            const [hour, minute] = timePart.split(":").map(Number);
+
+            return new Date(year, month - 1, day, hour, minute).getTime();
+        }
+
+        function formatAge(seconds) {
+            if (!seconds || seconds <= 0) {
+                return "0h";
+            }
+
+            const days = Math.floor(seconds / 86400);
+            const hours = Math.floor((seconds % 86400) / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+
+            if (days) {
+                return `${days}d ${hours}h`;
+            }
+
+            if (hours) {
+                return `${hours}h ${minutes}min`;
+            }
+
+            return `${minutes}min`;
+        }
+
+        function rowMatches(item, overrides = {}) {
+            const filters = { ...activeFilters, ...overrides };
+            const equipmentMatches =
+                filters.equipment === "all" ||
+                item.equipment === filters.equipment;
+            const statusMatches =
+                filters.status === "all" ||
+                item.status === filters.status;
+            const unitMatches =
+                filters.unit === "all" ||
+                item.unit === filters.unit;
+            const severityMatches =
+                filters.severity === "all" ||
+                item.severity === filters.severity;
+            const searchMatches =
+                !globalSearchText ||
+                item.searchText.includes(globalSearchText);
+
+            return (
+                equipmentMatches &&
+                statusMatches &&
+                unitMatches &&
+                severityMatches &&
+                searchMatches
+            );
+        }
+
+        function addCount(map, key) {
+            map.set(key, (map.get(key) || 0) + 1);
+        }
+
+        function getCountScope() {
+            const counts = {
+                equipment: new Map([["all", 0]]),
+                status: new Map([["all", 0]]),
+                unit: new Map([["all", 0]]),
+                severity: new Map([["all", 0]]),
+            };
+
+            rowData.forEach((item) => {
+                if (rowMatches(item, { equipment: "all" })) {
+                    addCount(counts.equipment, "all");
+                    addCount(counts.equipment, item.equipment);
+                }
+
+                if (rowMatches(item, { status: "all" })) {
+                    addCount(counts.status, "all");
+                    addCount(counts.status, item.status);
+                }
+
+                if (rowMatches(item, { unit: "all" })) {
+                    addCount(counts.unit, "all");
+                    addCount(counts.unit, item.unit);
+                }
+
+                if (rowMatches(item, { severity: "all" })) {
+                    addCount(counts.severity, "all");
+                    addCount(counts.severity, item.severity);
+                }
+            });
+
+            return counts;
+        }
+
+        function updateButtonCounts(buttons, dataName, countMap, options = {}) {
+            buttons.forEach((button) => {
+                const value = button.dataset[dataName];
+                const count = countMap.get(value) || 0;
+                const counter = button.querySelector(".filter-count");
+                const label = (
+                    button.querySelector("span:first-child")?.textContent || ""
+                ).toLowerCase();
+                const searchMiss =
+                    options.search &&
+                    value !== "all" &&
+                    !label.includes(options.search);
+
+                if (counter) {
+                    counter.textContent = count;
+                }
+
+                button.classList.toggle(
+                    "empty",
+                    Boolean(options.search) && searchMiss && value !== "all"
+                );
+                button.classList.toggle(
+                    "zero",
+                    count === 0 && value !== "all"
+                );
+            });
+        }
 
         function updateFilters() {
             let visible = 0;
+            const visibleSeverityCounts = new Map();
+            const visibleAges = [];
+            const nowSeconds = Date.now() / 1000;
 
-            rows.forEach((row) => {
-                const equipmentMatches =
-                    activeFilters.equipment === "all" ||
-                    row.dataset.equipment === activeFilters.equipment;
-                const statusMatches =
-                    activeFilters.status === "all" ||
-                    row.dataset.status === activeFilters.status;
-                const unitMatches =
-                    activeFilters.unit === "all" ||
-                    row.dataset.unit === activeFilters.unit;
-                const matches = equipmentMatches && statusMatches && unitMatches;
+            rowData.forEach((item) => {
+                const matches = rowMatches(item);
 
-                row.hidden = !matches;
+                item.row.hidden = !matches;
 
                 if (matches) {
                     visible += 1;
+                    addCount(visibleSeverityCounts, item.severity);
+
+                    if (item.timestamp) {
+                        visibleAges.push(Math.max(0, nowSeconds - item.timestamp));
+                    }
                 }
             });
 
@@ -767,9 +1504,116 @@
                 );
             });
 
+            severityButtons.forEach((button) => {
+                button.classList.toggle(
+                    "active",
+                    button.dataset.severityFilter === activeFilters.severity
+                );
+            });
+
+            const counts = getCountScope();
+
+            applySort();
+            updateSortButtons();
+            updateButtonCounts(equipmentButtons, "equipmentFilter", counts.equipment);
+            updateButtonCounts(statusButtons, "statusFilter", counts.status);
+            updateButtonCounts(severityButtons, "severityFilter", counts.severity);
+            updateButtonCounts(
+                unitButtons,
+                "unitFilter",
+                counts.unit,
+                { search: unitSearchText }
+            );
+
             if (status) {
-                status.textContent = `Exibindo ${visible} incidentes`;
+                status.textContent = `Exibindo: ${visible}`;
             }
+
+            if (tableEmpty) {
+                tableEmpty.hidden = visible !== 0;
+            }
+
+            updateFilteredSummary(visible, visibleSeverityCounts, visibleAges);
+        }
+
+        function updateFilteredSummary(total, severityCounts, ages) {
+            const oldestAge = ages.length ? Math.max(...ages) : 0;
+            const over7 = ages.filter((age) => age >= 604800).length;
+
+            filterSummaryItems.forEach((item) => {
+                const key = item.dataset.filterSummary;
+
+                if (key === "total") {
+                    item.textContent = total;
+                    return;
+                }
+
+                if (key === "oldest") {
+                    item.textContent = ages.length ? formatAge(oldestAge) : "-";
+                    return;
+                }
+
+                if (key === "over7") {
+                    item.textContent = over7;
+                    return;
+                }
+
+                item.textContent = severityCounts.get(key) || 0;
+            });
+        }
+
+        function compareValues(first, second) {
+            if (typeof first === "number" && typeof second === "number") {
+                return first - second;
+            }
+
+            return String(first || "").localeCompare(
+                String(second || ""),
+                "pt-BR",
+                { numeric: true, sensitivity: "base" }
+            );
+        }
+
+        function applySort() {
+            if (!tableBody) {
+                return;
+            }
+
+            const sortedRows = getSortedRows();
+            const fragment = document.createDocumentFragment();
+
+            sortedRows.forEach((item) => {
+                fragment.appendChild(item.row);
+            });
+
+            tableBody.appendChild(fragment);
+        }
+
+        function getSortedRows() {
+            return [...rowData].sort((first, second) => {
+                const result = compareValues(
+                    first[activeSort.key],
+                    second[activeSort.key]
+                );
+
+                return activeSort.direction === "asc" ? result : -result;
+            });
+        }
+
+        function updateSortButtons() {
+            sortButtons.forEach((button) => {
+                const isActive = button.dataset.sortKey === activeSort.key;
+
+                button.classList.toggle("active", isActive);
+                button.classList.toggle(
+                    "asc",
+                    isActive && activeSort.direction === "asc"
+                );
+                button.classList.toggle(
+                    "desc",
+                    isActive && activeSort.direction === "desc"
+                );
+            });
         }
 
         equipmentButtons.forEach((button) => {
@@ -793,42 +1637,227 @@
             });
         });
 
-        document.querySelectorAll("[data-details]").forEach((button) => {
+        severityButtons.forEach((button) => {
             button.addEventListener("click", () => {
-                const fields = [
-                    ["Data de abertura", button.dataset.date],
-                    ["Resolvido em", button.dataset.resolvedAt],
-                    ["Status", button.dataset.status],
-                    ["Código da unidade", button.dataset.unitCode],
-                    ["Unidade", button.dataset.unit],
-                    ["Host", button.dataset.host],
-                    ["Equipamento", button.dataset.equipment],
-                    ["Incidente", button.dataset.incident],
-                    ["Severidade", button.dataset.severity],
-                    ["Evento", button.dataset.eventid],
-                ];
-
-                dialogBody.replaceChildren();
-
-                fields.forEach(([label, value]) => {
-                    const labelElement = document.createElement("div");
-                    const valueElement = document.createElement("div");
-
-                    labelElement.className = "modal-label";
-                    valueElement.className = "modal-value";
-                    labelElement.textContent = label;
-                    valueElement.textContent = value || "-";
-
-                    dialogBody.append(labelElement, valueElement);
-                });
-
-                dialog.showModal();
+                activeFilters.severity = button.dataset.severityFilter;
+                updateFilters();
             });
+        });
+
+        sortButtons.forEach((button) => {
+            button.addEventListener("click", () => {
+                const key = button.dataset.sortKey;
+
+                if (activeSort.key === key) {
+                    activeSort.direction =
+                        activeSort.direction === "asc" ? "desc" : "asc";
+                } else {
+                    activeSort.key = key;
+                    activeSort.direction = key === "date" ? "desc" : "asc";
+                }
+
+                updateFilters();
+            });
+        });
+
+        document.addEventListener("click", (event) => {
+            const button = event.target.closest("[data-quick-status], [data-quick-severity], [data-quick-equipment], [data-quick-unit], [data-quick-search]");
+
+            if (!button) {
+                return;
+            }
+
+            if (button.dataset.quickStatus) {
+                activeFilters.status = button.dataset.quickStatus;
+            }
+
+            if (button.dataset.quickSeverity) {
+                activeFilters.severity = button.dataset.quickSeverity;
+            }
+
+            if (button.dataset.quickEquipment) {
+                activeFilters.equipment = button.dataset.quickEquipment;
+            }
+
+            if (button.dataset.quickUnit) {
+                activeFilters.unit = button.dataset.quickUnit;
+            }
+
+            if (button.dataset.quickSearch) {
+                globalSearchText = button.dataset.quickSearch.toLowerCase();
+
+                if (globalSearch) {
+                    globalSearch.value = button.dataset.quickSearch;
+                }
+            }
+
+            updateFilters();
+            document.getElementById("incidents-table")?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+            });
+        });
+
+        if (unitSearch) {
+            unitSearch.addEventListener("input", () => {
+                window.clearTimeout(unitSearchTimer);
+
+                unitSearchTimer = window.setTimeout(() => {
+                    unitSearchText = unitSearch.value.trim().toLowerCase();
+                    updateFilters();
+                }, 120);
+            });
+        }
+
+        if (globalSearch) {
+            globalSearch.addEventListener("input", () => {
+                window.clearTimeout(globalSearchTimer);
+
+                globalSearchTimer = window.setTimeout(() => {
+                    globalSearchText = globalSearch.value.trim().toLowerCase();
+                    updateFilters();
+                }, 120);
+            });
+        }
+
+        if (clearFilters) {
+            clearFilters.addEventListener("click", () => {
+                activeFilters.equipment = "all";
+                activeFilters.status = "all";
+                activeFilters.unit = "all";
+                activeFilters.severity = "all";
+                unitSearchText = "";
+                globalSearchText = "";
+
+                if (unitSearch) {
+                    unitSearch.value = "";
+                }
+
+                if (globalSearch) {
+                    globalSearch.value = "";
+                }
+
+                updateFilters();
+            });
+        }
+
+        function sanitizeCsvValue(value) {
+            const text = String(value ?? "").replace(/\r?\n/g, " ");
+            const protectedText = /^[=+\-@]/.test(text) ? `'${text}` : text;
+
+            return `"${protectedText.replace(/"/g, '""')}"`;
+        }
+
+        function downloadCsv() {
+            const visibleItems = getSortedRows().filter(rowMatches);
+            const headers = [
+                "Data",
+                "Código",
+                "Unidade",
+                "Status",
+                "Host",
+                "Equipamento",
+                "Incidente",
+                "Severidade",
+                "Tempo offline",
+                "Resolvido em",
+                "Evento",
+            ];
+            const lines = [
+                headers.map(sanitizeCsvValue).join(";"),
+                ...visibleItems.map((item) => [
+                    item.row.children[0].textContent.trim(),
+                    item.unitCode,
+                    item.unit,
+                    item.status,
+                    item.host,
+                    item.equipment,
+                    item.incident,
+                    item.severity,
+                    item.ageLabel,
+                    item.resolvedAt,
+                    item.eventid,
+                ].map(sanitizeCsvValue).join(";")),
+            ];
+            const blob = new Blob(
+                ["\ufeff", lines.join("\n")],
+                { type: "text/csv;charset=utf-8" }
+            );
+            const link = document.createElement("a");
+
+            link.href = URL.createObjectURL(blob);
+            link.download = `zabbix_filtrado_${visibleItems.length}.csv`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
+
+        if (downloadFiltered) {
+            downloadFiltered.addEventListener("click", downloadCsv);
+        }
+
+        updateFilters();
+
+        document.addEventListener("click", (event) => {
+            const button = event.target.closest("[data-details]");
+
+            if (!button) {
+                return;
+            }
+
+            const fields = [
+                ["Data de abertura", button.dataset.date],
+                ["Resolvido em", button.dataset.resolvedAt],
+                ["Status", button.dataset.status],
+                ["Código da unidade", button.dataset.unitCode],
+                ["Unidade", button.dataset.unit],
+                ["Host", button.dataset.host],
+                ["Equipamento", button.dataset.equipment],
+                ["Incidente", button.dataset.incident],
+                ["Severidade", button.dataset.severity],
+                ["Tempo offline", button.dataset.ageLabel],
+                ["Evento", button.dataset.eventid],
+            ];
+
+            dialogBody.replaceChildren();
+
+            fields.forEach(([label, value]) => {
+                const labelElement = document.createElement("div");
+                const valueElement = document.createElement("div");
+
+                labelElement.className = "modal-label";
+                valueElement.className = "modal-value";
+                labelElement.textContent = label;
+                valueElement.textContent = value || "-";
+
+                dialogBody.append(labelElement, valueElement);
+            });
+
+            dialog.showModal();
         });
 
         document.querySelector("[data-modal-close]").addEventListener("click", () => {
             dialog.close();
         });
+
+        if (zabbixDialog && zabbixOpenButton && zabbixCloseButton) {
+            zabbixOpenButton.addEventListener("click", () => {
+                zabbixDialog.showModal();
+            });
+
+            zabbixCloseButton.addEventListener("click", () => {
+                zabbixDialog.close();
+            });
+        }
+
+        if (confeaDialog && confeaOpenButton && confeaCloseButton) {
+            confeaOpenButton.addEventListener("click", () => {
+                confeaDialog.showModal();
+            });
+
+            confeaCloseButton.addEventListener("click", () => {
+                confeaDialog.close();
+            });
+        }
     </script>
 </body>
 </html>
