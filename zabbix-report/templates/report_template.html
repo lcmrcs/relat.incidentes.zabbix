@@ -312,7 +312,7 @@
 
         .filter-grid {
             display: grid;
-            grid-template-columns: minmax(160px, 0.8fr) minmax(260px, 1.35fr) minmax(200px, 1fr) minmax(180px, 0.9fr) minmax(190px, 0.9fr);
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
             gap: 16px;
             align-items: start;
         }
@@ -1094,7 +1094,9 @@
                 </button>
             </div>
 
+            {% set has_status_filter = summary.status | length > 1 %}
             <div class="filter-grid">
+                {% if has_status_filter %}
                 <div class="filter-group">
                     <p class="filter-label"><span class="filter-step">1</span>Situação</p>
                     <div class="filter-options">
@@ -1110,9 +1112,10 @@
                         {% endfor %}
                     </div>
                 </div>
+                {% endif %}
 
                 <div class="filter-group">
-                    <p class="filter-label"><span class="filter-step">2</span>Unidade escolar</p>
+                    <p class="filter-label"><span class="filter-step">{{ 2 if has_status_filter else 1 }}</span>Unidade escolar</p>
                     <input
                         class="unit-search"
                         id="unit-search"
@@ -1135,7 +1138,7 @@
                 </div>
 
                 <div class="filter-group">
-                    <p class="filter-label"><span class="filter-step">3</span>Equipamento</p>
+                    <p class="filter-label"><span class="filter-step">{{ 3 if has_status_filter else 2 }}</span>Equipamento</p>
                     <div class="filter-options">
                         <button class="filter-button active" type="button" data-equipment-filter="all">
                             <span>Tudo</span>
@@ -1151,7 +1154,7 @@
                 </div>
 
                 <div class="filter-group">
-                    <p class="filter-label"><span class="filter-step">4</span>Severidade</p>
+                    <p class="filter-label"><span class="filter-step">{{ 4 if has_status_filter else 3 }}</span>Severidade</p>
                     <div class="filter-options">
                         <button class="filter-button active" type="button" data-severity-filter="all">
                             <span>Tudo</span>
@@ -1167,7 +1170,7 @@
                 </div>
 
                 <div class="filter-group">
-                    <p class="filter-label"><span class="filter-step">5</span>Tempo offline</p>
+                    <p class="filter-label"><span class="filter-step">{{ 5 if has_status_filter else 4 }}</span>Tempo offline</p>
                     <div class="filter-options">
                         <button class="filter-button active" type="button" data-age-filter="all">
                             <span>Tudo</span>
