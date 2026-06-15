@@ -142,6 +142,10 @@ def build_report_summary(incidents):
         item["equipment"]
         for item in incidents
     )
+    incident_counter = Counter(
+        item["incident"]
+        for item in incidents
+    )
     host_counter = Counter(
         item["host"]
         for item in incidents
@@ -215,5 +219,6 @@ def build_report_summary(incidents):
         "severity": format_counter(severity_counter),
         "equipment": format_counter(equipment_counter, EQUIPMENT_ORDER),
         "top_equipment": format_counter(equipment_counter)[:8],
+        "top_incident_types": format_counter(incident_counter)[:8],
         "top_hosts": format_counter(host_counter)[:8],
     }

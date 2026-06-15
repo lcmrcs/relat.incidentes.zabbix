@@ -1015,6 +1015,21 @@
             </article>
 
             <article class="panel">
+                <h2>Tipos de Incidente</h2>
+                <ul class="metric-list">
+                    {% for item in summary.top_incident_types %}
+                    <li class="metric-row">
+                        <button class="metric-action" type="button" data-quick-search="{{ item.name }}">
+                            <span class="metric-name" title="{{ item.name }}">{{ item.name }}</span>
+                            <span class="metric-total">{{ item.total }} | {{ item.percent }}%</span>
+                        </button>
+                        <span class="bar"><span style="width: {{ item.percent }}%;"></span></span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </article>
+
+            <article class="panel">
                 <h2>Hosts com Mais Incidentes</h2>
                 <ul class="metric-list">
                     {% for item in summary.top_hosts %}
