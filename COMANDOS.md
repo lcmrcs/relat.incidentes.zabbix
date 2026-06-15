@@ -1,21 +1,22 @@
-# Comandos do Projeto
+# Guia Operacional do Projeto Zabbix
 
-Este arquivo serve como guia rapido para executar, testar e atualizar o projeto
-de relatorio de incidentes do Zabbix.
+Este guia mostra os comandos principais para executar, gerar relatorios,
+abrir arquivos, validar alteracoes e atualizar o GitHub.
 
-Os comandos estao organizados na ordem mais comum de uso.
+Use este arquivo como referencia rapida quando quiser puxar um relatorio novo
+ou fazer ajustes pequenos no projeto.
 
 ## 1. Entrar na pasta do projeto
 
-Use este comando antes de executar qualquer outro comando do projeto.
+Execute sempre antes dos outros comandos:
 
 ```bash
 cd /mnt/c/Users/chip/Documents/relat.incidentes.zabbix
 ```
 
 Funcao:
-- Leva o terminal para a pasta principal do projeto.
-- Garante que os caminhos dos arquivos sejam encontrados corretamente.
+- Coloca o terminal na pasta principal do projeto.
+- Evita erro de caminho ao executar scripts.
 
 ## 2. Ativar o ambiente virtual
 
@@ -24,232 +25,406 @@ source zabbix-report/venv/bin/activate
 ```
 
 Funcao:
-- Ativa o ambiente Python do projeto.
-- Faz o terminal usar as bibliotecas instaladas dentro da pasta `venv`.
-- Evita misturar dependencias deste projeto com outras instalacoes do Python.
+- Ativa o Python isolado do projeto.
+- Faz o terminal usar as bibliotecas instaladas na `venv`.
 
-Depois de ativar, o terminal geralmente mostra algo como:
+Sinal de que deu certo:
 
 ```text
 (venv)
 ```
 
-## 3. Testar conexao com a API do Zabbix
+Para sair da venv:
+
+```bash
+deactivate
+```
+
+## 3. Testar conexao com o Zabbix
 
 ```bash
 python zabbix-report/test_zabbix_api.py
 ```
 
-Funcao:
-- Verifica se o arquivo `.env` esta configurado.
-- Testa se a URL do Zabbix esta acessivel.
-- Testa se o token da API esta funcionando.
-- Mostra alguns hosts encontrados no Zabbix.
+Use quando:
+- O relatorio falhar.
+- O token do Zabbix for alterado.
+- A API parecer lenta ou indisponivel.
+- Voce quiser confirmar que o `.env` esta correto.
 
-Use este comando quando:
-- Alterar o `.env`.
-- Suspeitar de problema de conexao.
-- Quiser confirmar se o Zabbix esta respondendo antes de gerar relatorios.
+## 4. Comando principal do relatorio atual
 
-## 4. Ver ajuda do gerador de relatorio
+Este e o comando mais importante do projeto:
 
 ```bash
-python zabbix-report/zabbix_report.py --help
+python zabbix-report/zabbix_report.py --periodo historico --status abertos
 ```
 
 Funcao:
-- Mostra as opcoes disponiveis no script de relatorio.
-- Ajuda a lembrar como usar argumentos como `--periodo`.
+- Busca todos os incidentes ainda abertos.
+- Ignora incidentes ja resolvidos.
+- Gera HTML, PDF e Excel atualizados.
+- Mostra o estado operacional atual do Zabbix.
 
-## 5. Gerar relatorio com periodo padrao
+Arquivos gerados:
 
-```bash
-python zabbix-report/zabbix_report.py
+```text
+zabbix-report/reports/
 ```
 
-Funcao:
-- Gera o relatorio usando o periodo padrao configurado no script.
-- Atualmente o padrao e `7d`, ou seja, ultimos 7 dias.
-- Cria arquivos HTML, PDF e Excel na pasta `zabbix-report/reports`.
+Formatos:
+- `.html`: relatorio interativo com filtros.
+- `.pdf`: relatorio formal para envio.
+- `.xlsx`: planilha com os dados.
 
-## 6. Gerar relatorio das ultimas 24 horas
+## 5. Gerar relatorio das ultimas 24h
 
 ```bash
 python zabbix-report/zabbix_report.py --periodo 24h
 ```
 
 Funcao:
-- Busca eventos de problema das ultimas 24 horas.
-- Gera arquivos com o sufixo `_24h`.
+- Busca eventos das ultimas 24 horas.
+- Inclui abertos e resolvidos, salvo se voce usar `--status abertos`.
 
-Exemplo de arquivo gerado:
+Somente abertos das ultimas 24h:
 
-```text
-zabbix-report/reports/report_2026-06-12_24h.html
+```bash
+python zabbix-report/zabbix_report.py --periodo 24h --status abertos
 ```
 
-## 7. Gerar relatorio de 2 dias
+## 6. Gerar relatorios por outros periodos
 
 ```bash
 python zabbix-report/zabbix_report.py --periodo 2d
-```
-
-Funcao:
-- Busca eventos de problema dos ultimos 2 dias.
-- Util para analisar um intervalo maior que 24 horas sem chegar em uma semana.
-
-## 8. Gerar relatorio de 5 dias
-
-```bash
 python zabbix-report/zabbix_report.py --periodo 5d
-```
-
-Funcao:
-- Busca eventos de problema dos ultimos 5 dias.
-- Util para acompanhar incidentes acumulados durante a semana.
-
-## 9. Gerar relatorio de 7 dias
-
-```bash
 python zabbix-report/zabbix_report.py --periodo 7d
+python zabbix-report/zabbix_report.py --periodo 30d
 ```
 
 Funcao:
-- Busca eventos de problema dos ultimos 7 dias.
-- Equivale ao periodo semanal.
+- Busca eventos dentro do intervalo informado.
+- `h` significa horas.
+- `d` significa dias.
 
-## 10. Gerar relatorio desde uma data especifica
+## 7. Gerar relatorio desde uma data especifica
 
 ```bash
-python zabbix-report/zabbix_report.py --desde 2026-01-01
+python zabbix-report/zabbix_report.py --desde 2026-06-01
 ```
 
 Funcao:
-- Busca eventos de problema desde a data informada ate o momento atual.
+- Busca eventos desde a data informada ate agora.
 - Use o formato `AAAA-MM-DD`.
-- E mais seguro que buscar o historico completo quando o Zabbix tem muitos dados.
+- E util quando o historico completo estiver pesado.
 
-## 11. Gerar relatorio do historico completo
+## 8. Abrir o HTML gerado
+
+Abra pelo Explorer:
+
+```text
+C:\Users\chip\Documents\relat.incidentes.zabbix\zabbix-report\reports
+```
+
+Ou pelo terminal, ajustando o nome do arquivo:
 
 ```bash
-python zabbix-report/zabbix_report.py --periodo historico
+cmd.exe /c start "" "C:\Users\chip\Documents\relat.incidentes.zabbix\zabbix-report\reports\report_2026-06-15_historico_abertos.html"
+```
+
+## 9. O que existe no HTML
+
+O HTML atual possui:
+- Resumo executivo.
+- Filtro por unidade escolar.
+- Filtro por equipamento.
+- Filtro por severidade.
+- Filtro por tempo offline.
+- Prioridade operacional.
+- Tipos de incidente consolidados.
+- Hosts com mais incidentes.
+- Unidades mais afetadas.
+- Janela separada para Servidor Zabbix.
+- Janela separada para CONFEA VPN.
+- Exportacao CSV dos dados filtrados.
+
+## 10. Tipos de incidente consolidados
+
+O painel "Tipos de Incidente" nao deve contar cada texto tecnico isolado do
+Zabbix. Ele consolida familias de problemas.
+
+Exemplos:
+- `Unavailable by ICMP ping`
+- `High ICMP ping response time`
+- `High ICMP ping loss`
+- `No SNMP data collection`
+- `Temperature above threshold`
+- `High bandwidth usage`
+- `Ethernet lower speed`
+- `Interface down`
+
+Arquivo onde isso e ajustado:
+
+```text
+zabbix-report/classifiers.py
 ```
 
 Funcao:
-- Busca eventos de problema desde o registro mais antigo disponivel no Zabbix
-  ate o momento atual.
 
-Atencao:
-- Este comando pode demorar bastante.
-- Pode gerar arquivos HTML, PDF e Excel muito grandes.
-- Use primeiro `--desde` se quiser controlar melhor o tamanho do relatorio.
+```python
+def classify_incident_type(incident):
+```
 
-Para buscar o historico completo contando apenas incidentes abertos:
+Quando aparecer um novo texto do Zabbix que deveria entrar em uma familia
+existente, adicione uma regra nessa funcao.
 
-```bash
-python zabbix-report/zabbix_report.py --periodo historico --status abertos
+## 11. Classificacao de equipamentos
+
+Arquivo:
+
+```text
+zabbix-report/classifiers.py
 ```
 
 Funcao:
-- Busca o historico disponivel no Zabbix.
-- Remove eventos ja resolvidos do relatorio.
-- Mostra somente eventos/incidentes que continuam abertos.
+
+```python
+def classify_equipment(host):
+```
+
+Ordem operacional usada no filtro:
+- Mikrotik
+- Switch
+- NVR
+- Central de Alarme
+- Terminal Facial
+- Portal Detector de Metal
+- Camera
 
 Observacao:
-- Este e o comando recomendado para o relatorio operacional atual.
-- O HTML foi organizado para acompanhar incidentes abertos, com filtros por
-  unidade escolar, equipamento, severidade, tempo offline e prioridade.
-- Como todos os registros deste modo estao abertos, o filtro de situacao fica
-  oculto automaticamente para evitar duplicidade entre `Tudo` e `Aberto`.
+- O painel "Equipamentos Mais Afetados" ordena por maior volume.
+- O filtro "Equipamento" segue a ordem operacional acima.
 
-## 12. Ver arquivos modificados no Git
+## 12. Arquivos principais do projeto
+
+```text
+zabbix-report/zabbix_report.py
+```
+
+Coordena o fluxo principal: consulta Zabbix, processa dados, gera Excel, HTML e
+PDF.
+
+```text
+zabbix-report/zabbix_api.py
+```
+
+Centraliza chamadas para a API do Zabbix.
+
+```text
+zabbix-report/classifiers.py
+```
+
+Guarda regras de classificacao de unidade, equipamento e tipo de incidente.
+
+```text
+zabbix-report/summary.py
+```
+
+Calcula totais, rankings, indicadores, tempo offline e listas do resumo.
+
+```text
+zabbix-report/templates/report_template.html
+```
+
+Controla o visual e a interatividade do HTML.
+
+```text
+zabbix-report/pdf_report.py
+```
+
+Gera o PDF operacional.
+
+```text
+COMANDOS.md
+```
+
+Este guia.
+
+## 13. Validar codigo depois de alterar
+
+Sempre que mexer em Python:
+
+```bash
+python -m py_compile zabbix-report/*.py
+```
+
+Verificar espacos problemáticos no Git:
+
+```bash
+git diff --check
+```
+
+Ver resumo das mudancas:
+
+```bash
+git diff --stat
+```
+
+## 14. Ver arquivos alterados
 
 ```bash
 git status
 ```
 
 Funcao:
-- Mostra quais arquivos foram alterados.
-- Mostra quais arquivos estao prontos para commit.
-- Ajuda a evitar subir arquivos errados para o GitHub.
+- Mostra arquivos modificados.
+- Mostra arquivos novos.
+- Mostra commits locais ainda nao enviados.
 
-## 13. Preparar arquivos para commit
+## 15. Criar commit
+
+Antes:
+
+```bash
+git status
+```
+
+Adicionar arquivos:
 
 ```bash
 git add .
 ```
 
-Funcao:
-- Adiciona todas as alteracoes atuais para o proximo commit.
-
-Atencao:
-- Antes de usar `git add .`, rode `git status`.
-- Confira se nao existem arquivos gerados grandes, temporarios ou secretos.
-
-Para adicionar arquivos especificos:
+Criar commit:
 
 ```bash
-git add zabbix-report/zabbix_report.py
-git add zabbix-report/templates/report_template.html
+git commit -m "mensagem clara do que mudou"
 ```
 
-## 14. Criar commit
+Exemplos:
 
 ```bash
-git commit -m "descreva aqui o que foi alterado"
+git commit -m "feat: adiciona ranking de tipos de incidente"
+git commit -m "fix: consolida tipos de incidente no ranking"
+git commit -m "docs: atualiza guia operacional"
 ```
 
-Funcao:
-- Salva um ponto no historico do projeto.
-- Registra as alteracoes preparadas com `git add`.
-
-Exemplo:
-
-```bash
-git commit -m "feat: melhora filtros do relatorio Zabbix"
-```
-
-## 15. Enviar alteracoes para o GitHub
+## 16. Enviar para o GitHub
 
 ```bash
 git push origin main
 ```
 
-Funcao:
-- Envia os commits locais para o repositorio no GitHub.
-
-Quando pedir usuario:
+Se pedir usuario:
 
 ```text
 lcmrcs
 ```
 
-Quando pedir senha:
+Se pedir senha:
 
 ```text
 cole o token do GitHub
 ```
 
 Observacao:
-- O GitHub nao usa mais senha normal para `git push`.
-- Use um Personal Access Token.
+- O GitHub nao aceita mais senha normal.
+- Use Personal Access Token.
+- Nunca cole token em arquivo do projeto.
 
-## 16. Fluxo rapido do dia a dia
+## 17. Fazer pacote para supervisor
 
-Quando quiser testar e gerar um relatorio, use:
+Arquivos recomendados:
+- PDF: versao formal.
+- HTML: versao interativa.
+- XLSX: dados brutos.
+
+Pasta usada anteriormente:
+
+```text
+entrega_supervisor/
+```
+
+Essa pasta fica fora do Git pelo `.gitignore` da raiz.
+
+## 18. Se o script ficar lento
+
+Use um periodo menor:
+
+```bash
+python zabbix-report/zabbix_report.py --periodo 24h
+```
+
+Ou use uma data inicial:
+
+```bash
+python zabbix-report/zabbix_report.py --desde 2026-06-01
+```
+
+Para o estado operacional atual, prefira:
+
+```bash
+python zabbix-report/zabbix_report.py --periodo historico --status abertos
+```
+
+## 19. Se der timeout
+
+Tente nesta ordem:
+
+```bash
+python zabbix-report/test_zabbix_api.py
+python zabbix-report/zabbix_report.py --periodo 24h
+python zabbix-report/zabbix_report.py --desde 2026-06-01 --status abertos
+python zabbix-report/zabbix_report.py --periodo historico --status abertos
+```
+
+Se continuar falhando:
+- Verifique internet/VPN.
+- Verifique URL e token no `.env`.
+- Aguarde alguns minutos e tente novamente.
+
+## 20. Regra de seguranca
+
+Nunca envie para o GitHub:
+- `.env`
+- token do Zabbix
+- token do GitHub
+- senhas
+- arquivos temporarios
+- pacotes de entrega com dados sensiveis
+
+## 21. Fluxo rapido do dia a dia
+
+Gerar relatorio atual:
 
 ```bash
 cd /mnt/c/Users/chip/Documents/relat.incidentes.zabbix
 source zabbix-report/venv/bin/activate
-python zabbix-report/test_zabbix_api.py
 python zabbix-report/zabbix_report.py --periodo historico --status abertos
 ```
 
-Quando quiser salvar e subir alteracoes:
+Validar alteracoes:
 
 ```bash
+python -m py_compile zabbix-report/*.py
+git diff --check
 git status
+```
+
+Salvar e enviar:
+
+```bash
 git add .
-git commit -m "mensagem do commit"
+git commit -m "mensagem clara"
 git push origin main
+```
+
+## 22. Comando mais importante
+
+Se voce esquecer todo o resto, lembre deste:
+
+```bash
+cd /mnt/c/Users/chip/Documents/relat.incidentes.zabbix
+source zabbix-report/venv/bin/activate
+python zabbix-report/zabbix_report.py --periodo historico --status abertos
 ```

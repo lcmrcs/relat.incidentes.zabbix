@@ -1,0 +1,313 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 5 0 R 7 0 R 9 0 R 11 0 R 13 0 R] /Count 6 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R /F2 6 0 R /F3 7 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 3005 >>
+stream
+BT /F2 16 Tf 46.00 795.00 Td (Guia Operacional do Projeto Zabbix) Tj ET
+BT /F1 9 Tf 46.00 768.00 Td (Este guia mostra os comandos principais para executar, gerar relatorios,) Tj ET
+BT /F1 9 Tf 46.00 755.00 Td (abrir arquivos, validar alteracoes e atualizar o GitHub.) Tj ET
+BT /F1 9 Tf 46.00 737.00 Td (Use este arquivo como referencia rapida quando quiser puxar um relatorio novo) Tj ET
+BT /F1 9 Tf 46.00 724.00 Td (ou fazer ajustes pequenos no projeto.) Tj ET
+BT /F2 12 Tf 46.00 702.00 Td (1. Entrar na pasta do projeto) Tj ET
+BT /F1 9 Tf 46.00 679.00 Td (Execute sempre antes dos outros comandos:) Tj ET
+BT /F3 8 Tf 54.00 661.00 Td (cd /mnt/c/Users/chip/Documents/relat.incidentes.zabbix) Tj ET
+BT /F1 9 Tf 46.00 640.00 Td (Funcao:) Tj ET
+BT /F1 9 Tf 50.00 627.00 Td (- Coloca o terminal na pasta principal do projeto.) Tj ET
+BT /F1 9 Tf 50.00 614.00 Td (- Evita erro de caminho ao executar scripts.) Tj ET
+BT /F2 12 Tf 46.00 592.00 Td (2. Ativar o ambiente virtual) Tj ET
+BT /F3 8 Tf 54.00 569.00 Td (source zabbix-report/venv/bin/activate) Tj ET
+BT /F1 9 Tf 46.00 548.00 Td (Funcao:) Tj ET
+BT /F1 9 Tf 50.00 535.00 Td (- Ativa o Python isolado do projeto.) Tj ET
+BT /F1 9 Tf 50.00 522.00 Td (- Faz o terminal usar as bibliotecas instaladas na `venv`.) Tj ET
+BT /F1 9 Tf 46.00 504.00 Td (Sinal de que deu certo:) Tj ET
+BT /F3 8 Tf 54.00 486.00 Td (\(venv\)) Tj ET
+BT /F1 9 Tf 46.00 465.00 Td (Para sair da venv:) Tj ET
+BT /F3 8 Tf 54.00 447.00 Td (deactivate) Tj ET
+BT /F2 12 Tf 46.00 422.00 Td (3. Testar conexao com o Zabbix) Tj ET
+BT /F3 8 Tf 54.00 399.00 Td (python zabbix-report/test_zabbix_api.py) Tj ET
+BT /F1 9 Tf 46.00 378.00 Td (Use quando:) Tj ET
+BT /F1 9 Tf 50.00 365.00 Td (- O relatorio falhar.) Tj ET
+BT /F1 9 Tf 50.00 352.00 Td (- O token do Zabbix for alterado.) Tj ET
+BT /F1 9 Tf 50.00 339.00 Td (- A API parecer lenta ou indisponivel.) Tj ET
+BT /F1 9 Tf 50.00 326.00 Td (- Voce quiser confirmar que o `.env` esta correto.) Tj ET
+BT /F2 12 Tf 46.00 304.00 Td (4. Comando principal do relatorio atual) Tj ET
+BT /F1 9 Tf 46.00 281.00 Td (Este e o comando mais importante do projeto:) Tj ET
+BT /F3 8 Tf 54.00 263.00 Td (python zabbix-report/zabbix_report.py --periodo historico --status abertos) Tj ET
+BT /F1 9 Tf 46.00 242.00 Td (Funcao:) Tj ET
+BT /F1 9 Tf 50.00 229.00 Td (- Busca todos os incidentes ainda abertos.) Tj ET
+BT /F1 9 Tf 50.00 216.00 Td (- Ignora incidentes ja resolvidos.) Tj ET
+BT /F1 9 Tf 50.00 203.00 Td (- Gera HTML, PDF e Excel atualizados.) Tj ET
+BT /F1 9 Tf 50.00 190.00 Td (- Mostra o estado operacional atual do Zabbix.) Tj ET
+BT /F1 9 Tf 46.00 172.00 Td (Arquivos gerados:) Tj ET
+BT /F3 8 Tf 54.00 154.00 Td (zabbix-report/reports/) Tj ET
+BT /F1 9 Tf 46.00 133.00 Td (Formatos:) Tj ET
+BT /F1 9 Tf 50.00 120.00 Td (- `.html`: relatorio interativo com filtros.) Tj ET
+BT /F1 9 Tf 50.00 107.00 Td (- `.pdf`: relatorio formal para envio.) Tj ET
+BT /F1 9 Tf 50.00 94.00 Td (- `.xlsx`: planilha com os dados.) Tj ET
+BT /F1 8 Tf 46.00 24.00 Td (Pagina 1 de 6) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R /F2 6 0 R /F3 7 0 R >> >> /Contents 6 0 R >>
+endobj
+6 0 obj
+<< /Length 3352 >>
+stream
+BT /F2 12 Tf 46.00 791.00 Td (5. Gerar relatorio das ultimas 24h) Tj ET
+BT /F3 8 Tf 54.00 768.00 Td (python zabbix-report/zabbix_report.py --periodo 24h) Tj ET
+BT /F1 9 Tf 46.00 747.00 Td (Funcao:) Tj ET
+BT /F1 9 Tf 50.00 734.00 Td (- Busca eventos das ultimas 24 horas.) Tj ET
+BT /F1 9 Tf 50.00 721.00 Td (- Inclui abertos e resolvidos, salvo se voce usar `--status abertos`.) Tj ET
+BT /F1 9 Tf 46.00 703.00 Td (Somente abertos das ultimas 24h:) Tj ET
+BT /F3 8 Tf 54.00 685.00 Td (python zabbix-report/zabbix_report.py --periodo 24h --status abertos) Tj ET
+BT /F2 12 Tf 46.00 660.00 Td (6. Gerar relatorios por outros periodos) Tj ET
+BT /F3 8 Tf 54.00 637.00 Td (python zabbix-report/zabbix_report.py --periodo 2d) Tj ET
+BT /F3 8 Tf 54.00 624.00 Td (python zabbix-report/zabbix_report.py --periodo 5d) Tj ET
+BT /F3 8 Tf 54.00 611.00 Td (python zabbix-report/zabbix_report.py --periodo 7d) Tj ET
+BT /F3 8 Tf 54.00 598.00 Td (python zabbix-report/zabbix_report.py --periodo 30d) Tj ET
+BT /F1 9 Tf 46.00 577.00 Td (Funcao:) Tj ET
+BT /F1 9 Tf 50.00 564.00 Td (- Busca eventos dentro do intervalo informado.) Tj ET
+BT /F1 9 Tf 50.00 551.00 Td (- `h` significa horas.) Tj ET
+BT /F1 9 Tf 50.00 538.00 Td (- `d` significa dias.) Tj ET
+BT /F2 12 Tf 46.00 516.00 Td (7. Gerar relatorio desde uma data especifica) Tj ET
+BT /F3 8 Tf 54.00 493.00 Td (python zabbix-report/zabbix_report.py --desde 2026-06-01) Tj ET
+BT /F1 9 Tf 46.00 472.00 Td (Funcao:) Tj ET
+BT /F1 9 Tf 50.00 459.00 Td (- Busca eventos desde a data informada ate agora.) Tj ET
+BT /F1 9 Tf 50.00 446.00 Td (- Use o formato `AAAA-MM-DD`.) Tj ET
+BT /F1 9 Tf 50.00 433.00 Td (- E util quando o historico completo estiver pesado.) Tj ET
+BT /F2 12 Tf 46.00 411.00 Td (8. Abrir o HTML gerado) Tj ET
+BT /F1 9 Tf 46.00 388.00 Td (Abra pelo Explorer:) Tj ET
+BT /F3 8 Tf 54.00 370.00 Td (C:\\Users\\chip\\Documents\\relat.incidentes.zabbix\\zabbix-report\\reports) Tj ET
+BT /F1 9 Tf 46.00 349.00 Td (Ou pelo terminal, ajustando o nome do arquivo:) Tj ET
+BT /F3 8 Tf 54.00 331.00 Td (cmd.exe /c start "" "C:\\Users\\chip\\Documents\\relat.incidentes.zabbix\\zabbix-) Tj ET
+BT /F3 8 Tf 62.00 318.00 Td (report\\reports\\report_2026-06-15_historico_abertos.html") Tj ET
+BT /F2 12 Tf 46.00 293.00 Td (9. O que existe no HTML) Tj ET
+BT /F1 9 Tf 46.00 270.00 Td (O HTML atual possui:) Tj ET
+BT /F1 9 Tf 50.00 257.00 Td (- Resumo executivo.) Tj ET
+BT /F1 9 Tf 50.00 244.00 Td (- Filtro por unidade escolar.) Tj ET
+BT /F1 9 Tf 50.00 231.00 Td (- Filtro por equipamento.) Tj ET
+BT /F1 9 Tf 50.00 218.00 Td (- Filtro por severidade.) Tj ET
+BT /F1 9 Tf 50.00 205.00 Td (- Filtro por tempo offline.) Tj ET
+BT /F1 9 Tf 50.00 192.00 Td (- Prioridade operacional.) Tj ET
+BT /F1 9 Tf 50.00 179.00 Td (- Tipos de incidente consolidados.) Tj ET
+BT /F1 9 Tf 50.00 166.00 Td (- Hosts com mais incidentes.) Tj ET
+BT /F1 9 Tf 50.00 153.00 Td (- Unidades mais afetadas.) Tj ET
+BT /F1 9 Tf 50.00 140.00 Td (- Janela separada para Servidor Zabbix.) Tj ET
+BT /F1 9 Tf 50.00 127.00 Td (- Janela separada para CONFEA VPN.) Tj ET
+BT /F1 9 Tf 50.00 114.00 Td (- Exportacao CSV dos dados filtrados.) Tj ET
+BT /F2 12 Tf 46.00 92.00 Td (10. Tipos de incidente consolidados) Tj ET
+BT /F1 9 Tf 46.00 69.00 Td (O painel "Tipos de Incidente" nao deve contar cada texto tecnico isolado do) Tj ET
+BT /F1 8 Tf 46.00 24.00 Td (Pagina 2 de 6) Tj ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R /F2 6 0 R /F3 7 0 R >> >> /Contents 8 0 R >>
+endobj
+8 0 obj
+<< /Length 3025 >>
+stream
+BT /F1 9 Tf 46.00 795.00 Td (Zabbix. Ele consolida familias de problemas.) Tj ET
+BT /F1 9 Tf 46.00 777.00 Td (Exemplos:) Tj ET
+BT /F1 9 Tf 50.00 764.00 Td (- `Unavailable by ICMP ping`) Tj ET
+BT /F1 9 Tf 50.00 751.00 Td (- `High ICMP ping response time`) Tj ET
+BT /F1 9 Tf 50.00 738.00 Td (- `High ICMP ping loss`) Tj ET
+BT /F1 9 Tf 50.00 725.00 Td (- `No SNMP data collection`) Tj ET
+BT /F1 9 Tf 50.00 712.00 Td (- `Temperature above threshold`) Tj ET
+BT /F1 9 Tf 50.00 699.00 Td (- `High bandwidth usage`) Tj ET
+BT /F1 9 Tf 50.00 686.00 Td (- `Ethernet lower speed`) Tj ET
+BT /F1 9 Tf 50.00 673.00 Td (- `Interface down`) Tj ET
+BT /F1 9 Tf 46.00 655.00 Td (Arquivo onde isso e ajustado:) Tj ET
+BT /F3 8 Tf 54.00 637.00 Td (zabbix-report/classifiers.py) Tj ET
+BT /F1 9 Tf 46.00 616.00 Td (Funcao:) Tj ET
+BT /F3 8 Tf 54.00 598.00 Td (def classify_incident_type\(incident\):) Tj ET
+BT /F1 9 Tf 46.00 577.00 Td (Quando aparecer um novo texto do Zabbix que deveria entrar em uma familia) Tj ET
+BT /F1 9 Tf 46.00 564.00 Td (existente, adicione uma regra nessa funcao.) Tj ET
+BT /F2 12 Tf 46.00 542.00 Td (11. Classificacao de equipamentos) Tj ET
+BT /F1 9 Tf 46.00 519.00 Td (Arquivo:) Tj ET
+BT /F3 8 Tf 54.00 501.00 Td (zabbix-report/classifiers.py) Tj ET
+BT /F1 9 Tf 46.00 480.00 Td (Funcao:) Tj ET
+BT /F3 8 Tf 54.00 462.00 Td (def classify_equipment\(host\):) Tj ET
+BT /F1 9 Tf 46.00 441.00 Td (Ordem operacional usada no filtro:) Tj ET
+BT /F1 9 Tf 50.00 428.00 Td (- Mikrotik) Tj ET
+BT /F1 9 Tf 50.00 415.00 Td (- Switch) Tj ET
+BT /F1 9 Tf 50.00 402.00 Td (- NVR) Tj ET
+BT /F1 9 Tf 50.00 389.00 Td (- Central de Alarme) Tj ET
+BT /F1 9 Tf 50.00 376.00 Td (- Terminal Facial) Tj ET
+BT /F1 9 Tf 50.00 363.00 Td (- Portal Detector de Metal) Tj ET
+BT /F1 9 Tf 50.00 350.00 Td (- Camera) Tj ET
+BT /F1 9 Tf 46.00 332.00 Td (Observacao:) Tj ET
+BT /F1 9 Tf 50.00 319.00 Td (- O painel "Equipamentos Mais Afetados" ordena por maior volume.) Tj ET
+BT /F1 9 Tf 50.00 306.00 Td (- O filtro "Equipamento" segue a ordem operacional acima.) Tj ET
+BT /F2 12 Tf 46.00 284.00 Td (12. Arquivos principais do projeto) Tj ET
+BT /F3 8 Tf 54.00 261.00 Td (zabbix-report/zabbix_report.py) Tj ET
+BT /F1 9 Tf 46.00 240.00 Td (Coordena o fluxo principal: consulta Zabbix, processa dados, gera Excel, HTML e) Tj ET
+BT /F1 9 Tf 46.00 227.00 Td (PDF.) Tj ET
+BT /F3 8 Tf 54.00 209.00 Td (zabbix-report/zabbix_api.py) Tj ET
+BT /F1 9 Tf 46.00 188.00 Td (Centraliza chamadas para a API do Zabbix.) Tj ET
+BT /F3 8 Tf 54.00 170.00 Td (zabbix-report/classifiers.py) Tj ET
+BT /F1 9 Tf 46.00 149.00 Td (Guarda regras de classificacao de unidade, equipamento e tipo de incidente.) Tj ET
+BT /F3 8 Tf 54.00 131.00 Td (zabbix-report/summary.py) Tj ET
+BT /F1 9 Tf 46.00 110.00 Td (Calcula totais, rankings, indicadores, tempo offline e listas do resumo.) Tj ET
+BT /F3 8 Tf 54.00 92.00 Td (zabbix-report/templates/report_template.html) Tj ET
+BT /F1 9 Tf 46.00 71.00 Td (Controla o visual e a interatividade do HTML.) Tj ET
+BT /F1 8 Tf 46.00 24.00 Td (Pagina 3 de 6) Tj ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R /F2 6 0 R /F3 7 0 R >> >> /Contents 10 0 R >>
+endobj
+10 0 obj
+<< /Length 2381 >>
+stream
+BT /F3 8 Tf 54.00 795.00 Td (zabbix-report/pdf_report.py) Tj ET
+BT /F1 9 Tf 46.00 774.00 Td (Gera o PDF operacional.) Tj ET
+BT /F3 8 Tf 54.00 756.00 Td (COMANDOS.md) Tj ET
+BT /F1 9 Tf 46.00 735.00 Td (Este guia.) Tj ET
+BT /F2 12 Tf 46.00 713.00 Td (13. Validar codigo depois de alterar) Tj ET
+BT /F1 9 Tf 46.00 690.00 Td (Sempre que mexer em Python:) Tj ET
+BT /F3 8 Tf 54.00 672.00 Td (python -m py_compile zabbix-report/*.py) Tj ET
+BT /F1 9 Tf 46.00 651.00 Td (Verificar espacos problemáticos no Git:) Tj ET
+BT /F3 8 Tf 54.00 633.00 Td (git diff --check) Tj ET
+BT /F1 9 Tf 46.00 612.00 Td (Ver resumo das mudancas:) Tj ET
+BT /F3 8 Tf 54.00 594.00 Td (git diff --stat) Tj ET
+BT /F2 12 Tf 46.00 569.00 Td (14. Ver arquivos alterados) Tj ET
+BT /F3 8 Tf 54.00 546.00 Td (git status) Tj ET
+BT /F1 9 Tf 46.00 525.00 Td (Funcao:) Tj ET
+BT /F1 9 Tf 50.00 512.00 Td (- Mostra arquivos modificados.) Tj ET
+BT /F1 9 Tf 50.00 499.00 Td (- Mostra arquivos novos.) Tj ET
+BT /F1 9 Tf 50.00 486.00 Td (- Mostra commits locais ainda nao enviados.) Tj ET
+BT /F2 12 Tf 46.00 464.00 Td (15. Criar commit) Tj ET
+BT /F1 9 Tf 46.00 441.00 Td (Antes:) Tj ET
+BT /F3 8 Tf 54.00 423.00 Td (git status) Tj ET
+BT /F1 9 Tf 46.00 402.00 Td (Adicionar arquivos:) Tj ET
+BT /F3 8 Tf 54.00 384.00 Td (git add .) Tj ET
+BT /F1 9 Tf 46.00 363.00 Td (Criar commit:) Tj ET
+BT /F3 8 Tf 54.00 345.00 Td (git commit -m "mensagem clara do que mudou") Tj ET
+BT /F1 9 Tf 46.00 324.00 Td (Exemplos:) Tj ET
+BT /F3 8 Tf 54.00 306.00 Td (git commit -m "feat: adiciona ranking de tipos de incidente") Tj ET
+BT /F3 8 Tf 54.00 293.00 Td (git commit -m "fix: consolida tipos de incidente no ranking") Tj ET
+BT /F3 8 Tf 54.00 280.00 Td (git commit -m "docs: atualiza guia operacional") Tj ET
+BT /F2 12 Tf 46.00 255.00 Td (16. Enviar para o GitHub) Tj ET
+BT /F3 8 Tf 54.00 232.00 Td (git push origin main) Tj ET
+BT /F1 9 Tf 46.00 211.00 Td (Se pedir usuario:) Tj ET
+BT /F3 8 Tf 54.00 193.00 Td (lcmrcs) Tj ET
+BT /F1 9 Tf 46.00 172.00 Td (Se pedir senha:) Tj ET
+BT /F3 8 Tf 54.00 154.00 Td (cole o token do GitHub) Tj ET
+BT /F1 9 Tf 46.00 133.00 Td (Observacao:) Tj ET
+BT /F1 9 Tf 50.00 120.00 Td (- O GitHub nao aceita mais senha normal.) Tj ET
+BT /F1 9 Tf 50.00 107.00 Td (- Use Personal Access Token.) Tj ET
+BT /F1 9 Tf 50.00 94.00 Td (- Nunca cole token em arquivo do projeto.) Tj ET
+BT /F1 8 Tf 46.00 24.00 Td (Pagina 4 de 6) Tj ET
+endstream
+endobj
+11 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R /F2 6 0 R /F3 7 0 R >> >> /Contents 12 0 R >>
+endobj
+12 0 obj
+<< /Length 3032 >>
+stream
+BT /F2 12 Tf 46.00 791.00 Td (17. Fazer pacote para supervisor) Tj ET
+BT /F1 9 Tf 46.00 768.00 Td (Arquivos recomendados:) Tj ET
+BT /F1 9 Tf 50.00 755.00 Td (- PDF: versao formal.) Tj ET
+BT /F1 9 Tf 50.00 742.00 Td (- HTML: versao interativa.) Tj ET
+BT /F1 9 Tf 50.00 729.00 Td (- XLSX: dados brutos.) Tj ET
+BT /F1 9 Tf 46.00 711.00 Td (Pasta usada anteriormente:) Tj ET
+BT /F3 8 Tf 54.00 693.00 Td (entrega_supervisor/) Tj ET
+BT /F1 9 Tf 46.00 672.00 Td (Essa pasta fica fora do Git pelo `.gitignore` da raiz.) Tj ET
+BT /F2 12 Tf 46.00 650.00 Td (18. Se o script ficar lento) Tj ET
+BT /F1 9 Tf 46.00 627.00 Td (Use um periodo menor:) Tj ET
+BT /F3 8 Tf 54.00 609.00 Td (python zabbix-report/zabbix_report.py --periodo 24h) Tj ET
+BT /F1 9 Tf 46.00 588.00 Td (Ou use uma data inicial:) Tj ET
+BT /F3 8 Tf 54.00 570.00 Td (python zabbix-report/zabbix_report.py --desde 2026-06-01) Tj ET
+BT /F1 9 Tf 46.00 549.00 Td (Para o estado operacional atual, prefira:) Tj ET
+BT /F3 8 Tf 54.00 531.00 Td (python zabbix-report/zabbix_report.py --periodo historico --status abertos) Tj ET
+BT /F2 12 Tf 46.00 506.00 Td (19. Se der timeout) Tj ET
+BT /F1 9 Tf 46.00 483.00 Td (Tente nesta ordem:) Tj ET
+BT /F3 8 Tf 54.00 465.00 Td (python zabbix-report/test_zabbix_api.py) Tj ET
+BT /F3 8 Tf 54.00 452.00 Td (python zabbix-report/zabbix_report.py --periodo 24h) Tj ET
+BT /F3 8 Tf 54.00 439.00 Td (python zabbix-report/zabbix_report.py --desde 2026-06-01 --status abertos) Tj ET
+BT /F3 8 Tf 54.00 426.00 Td (python zabbix-report/zabbix_report.py --periodo historico --status abertos) Tj ET
+BT /F1 9 Tf 46.00 405.00 Td (Se continuar falhando:) Tj ET
+BT /F1 9 Tf 50.00 392.00 Td (- Verifique internet/VPN.) Tj ET
+BT /F1 9 Tf 50.00 379.00 Td (- Verifique URL e token no `.env`.) Tj ET
+BT /F1 9 Tf 50.00 366.00 Td (- Aguarde alguns minutos e tente novamente.) Tj ET
+BT /F2 12 Tf 46.00 344.00 Td (20. Regra de seguranca) Tj ET
+BT /F1 9 Tf 46.00 321.00 Td (Nunca envie para o GitHub:) Tj ET
+BT /F1 9 Tf 50.00 308.00 Td (- `.env`) Tj ET
+BT /F1 9 Tf 50.00 295.00 Td (- token do Zabbix) Tj ET
+BT /F1 9 Tf 50.00 282.00 Td (- token do GitHub) Tj ET
+BT /F1 9 Tf 50.00 269.00 Td (- senhas) Tj ET
+BT /F1 9 Tf 50.00 256.00 Td (- arquivos temporarios) Tj ET
+BT /F1 9 Tf 50.00 243.00 Td (- pacotes de entrega com dados sensiveis) Tj ET
+BT /F2 12 Tf 46.00 221.00 Td (21. Fluxo rapido do dia a dia) Tj ET
+BT /F1 9 Tf 46.00 198.00 Td (Gerar relatorio atual:) Tj ET
+BT /F3 8 Tf 54.00 180.00 Td (cd /mnt/c/Users/chip/Documents/relat.incidentes.zabbix) Tj ET
+BT /F3 8 Tf 54.00 167.00 Td (source zabbix-report/venv/bin/activate) Tj ET
+BT /F3 8 Tf 54.00 154.00 Td (python zabbix-report/zabbix_report.py --periodo historico --status abertos) Tj ET
+BT /F1 9 Tf 46.00 133.00 Td (Validar alteracoes:) Tj ET
+BT /F3 8 Tf 54.00 115.00 Td (python -m py_compile zabbix-report/*.py) Tj ET
+BT /F3 8 Tf 54.00 102.00 Td (git diff --check) Tj ET
+BT /F3 8 Tf 54.00 89.00 Td (git status) Tj ET
+BT /F1 9 Tf 46.00 68.00 Td (Salvar e enviar:) Tj ET
+BT /F1 8 Tf 46.00 24.00 Td (Pagina 5 de 6) Tj ET
+endstream
+endobj
+13 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R /F2 6 0 R /F3 7 0 R >> >> /Contents 14 0 R >>
+endobj
+14 0 obj
+<< /Length 642 >>
+stream
+BT /F3 8 Tf 54.00 795.00 Td (git add .) Tj ET
+BT /F3 8 Tf 54.00 782.00 Td (git commit -m "mensagem clara") Tj ET
+BT /F3 8 Tf 54.00 769.00 Td (git push origin main) Tj ET
+BT /F2 12 Tf 46.00 744.00 Td (22. Comando mais importante) Tj ET
+BT /F1 9 Tf 46.00 721.00 Td (Se voce esquecer todo o resto, lembre deste:) Tj ET
+BT /F3 8 Tf 54.00 703.00 Td (cd /mnt/c/Users/chip/Documents/relat.incidentes.zabbix) Tj ET
+BT /F3 8 Tf 54.00 690.00 Td (source zabbix-report/venv/bin/activate) Tj ET
+BT /F3 8 Tf 54.00 677.00 Td (python zabbix-report/zabbix_report.py --periodo historico --status abertos) Tj ET
+BT /F1 8 Tf 46.00 24.00 Td (Pagina 6 de 6) Tj ET
+endstream
+endobj
+15 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+16 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+17 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>
+endobj
+xref
+0 18
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000147 00000 n 
+0000000293 00000 n 
+0000003349 00000 n 
+0000003495 00000 n 
+0000006898 00000 n 
+0000007044 00000 n 
+0000010120 00000 n 
+0000010267 00000 n 
+0000012700 00000 n 
+0000012848 00000 n 
+0000015932 00000 n 
+0000016080 00000 n 
+0000016773 00000 n 
+0000016844 00000 n 
+0000016920 00000 n 
+trailer
+<< /Size 18 /Root 1 0 R >>
+startxref
+16989
+%%EOF
