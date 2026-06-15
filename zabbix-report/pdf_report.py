@@ -64,7 +64,7 @@ def wrap_text(value, max_chars):
     return lines or [""]
 
 
-def add_pdf_text(commands, x, y, text, size=8, font="F1"):
+def add_pdf_text(commands, x, y, text, size=8, font="F1", color=(0.05, 0.14, 0.22)):
     """
     Adiciona um comando de texto ao conteúdo de uma página PDF.
 
@@ -72,6 +72,16 @@ def add_pdf_text(commands, x, y, text, size=8, font="F1"):
     centraliza a sintaxe PDF para que as páginas possam chamar apenas com
     coordenadas, texto, tamanho e fonte.
     """
+
+    # Define a cor antes de cada texto. Sem isso, o PDF reutiliza a ultima cor
+    # de preenchimento usada em fundos e o texto pode ficar apagado.
+    commands.append(
+        b"%.2f %.2f %.2f rg\n" % (
+            color[0],
+            color[1],
+            color[2],
+        )
+    )
 
     # BT/ET iniciam e encerram um bloco de texto no PDF. Td posiciona o texto,
     # Tf escolhe fonte/tamanho e Tj desenha a string escapada.
@@ -208,127 +218,135 @@ def build_summary_pdf_page(summary, generated, period_label, total_pages):
     para dar uma visão rápida da quantidade e distribuição dos incidentes.
     """
 
-    # Cada item de commands é uma instrução PDF. No final elas são unidas em um
-    # único stream de conteúdo.
     commands = []
+    dark = (1, 1, 1)
+    text = (0.05, 0.14, 0.22)
+    muted = (0.26, 0.34, 0.43)
 
-    # Cabeçalho da página: título, período analisado, data de geração e paginação.
+    # Faixa superior com contraste alto para criar uma capa executiva legivel.
+    commands.append(b"0.04 0.20 0.25 rg 0 532 842 63 re f\n")
     add_pdf_text(
         commands,
         36,
-        558,
+        568,
         "Relatorio Executivo de Incidentes Zabbix",
-        17,
-        "F2"
-    )
-    add_pdf_text(
-        commands,
-        36,
-        538,
-        f"Periodo: {period_label} | Gerado em {generated} | Pagina 1 de {total_pages}",
-        9
+        18,
+        "F2",
+        dark,
     )
 
-    # Cards de indicadores principais. Cada tupla contém rótulo e valor.
+    period_lines = wrap_text(
+        f"Periodo: {period_label} | Gerado em {generated} | Pagina 1 de {total_pages}",
+        118,
+    )
+    y = 548
+
+    for line in period_lines[:2]:
+        add_pdf_text(commands, 36, y, line, 9, "F1", dark)
+        y -= 12
+
     cards = [
         ("Eventos", summary["event_total"]),
-        ("Inc. unicos", summary["unique_total"]),
+        ("Incidentes unicos", summary["unique_total"]),
         ("Unicos abertos", summary["unique_open"]),
-        ("Unicos resolv.", summary["unique_resolved"]),
-        ("Eventos repet.", summary["repeated_events"]),
+        ("Unicos resolvidos", summary["unique_resolved"]),
+        ("Eventos repetidos", summary["repeated_events"]),
         ("Media ev/inc", summary["avg_events_per_incident"]),
     ]
 
-    x = 36
-    y = 470
+    card_width = 246
+    card_height = 54
+    x_positions = [36, 298, 560]
+    y_positions = [456, 386]
 
     for index, (label, value) in enumerate(cards):
-        # Depois de três cards, inicia a segunda linha para manter o layout em
-        # duas fileiras.
-        if index == 3:
-            x = 36
-            y = 402
-
-        # Desenha fundo e borda do card diretamente com comandos PDF.
+        x = x_positions[index % 3]
+        y = y_positions[index // 3]
         commands.append(
-            b"0.93 0.95 0.97 rg %.2f %.2f 178 48 re f\n" % (x, y)
+            b"0.96 0.98 1.00 rg %.2f %.2f %.2f %.2f re f\n" % (
+                x,
+                y,
+                card_width,
+                card_height,
+            )
         )
         commands.append(
-            b"0.75 0.80 0.86 RG %.2f %.2f 178 48 re S\n" % (x, y)
+            b"0.70 0.78 0.86 RG %.2f %.2f %.2f %.2f re S\n" % (
+                x,
+                y,
+                card_width,
+                card_height,
+            )
         )
-        add_pdf_text(commands, x + 12, y + 30, label, 9, "F2")
-        add_pdf_text(commands, x + 12, y + 10, value, 18, "F2")
-        x += 192
+        add_pdf_text(commands, x + 12, y + 34, label, 9, "F2", muted)
+        add_pdf_text(commands, x + 12, y + 11, value, 20, "F2", text)
 
-    add_pdf_text(commands, 36, 346, "Distribuicao por severidade", 12, "F2")
-    y = 322
-
-    # Lista até seis severidades para manter a página executiva compacta.
-    for item in summary["severity"][:6]:
-        add_pdf_text(
-            commands,
-            48,
-            y,
-            f"{item['name']}: {item['total']} ({item['percent']}%)",
-            9
+    def draw_section(title, items, x, y, width=350, limit=7):
+        commands.append(
+            b"0.04 0.20 0.25 rg %.2f %.2f %.2f 22 re f\n" % (
+                x,
+                y,
+                width,
+            )
         )
-        y -= 18
+        add_pdf_text(commands, x + 10, y + 7, title, 10, "F2", dark)
+        cursor = y - 18
 
-    add_pdf_text(commands, 330, 346, "Equipamentos mais afetados", 12, "F2")
-    y = 322
+        for item in items[:limit]:
+            name = item["name"]
+            value = f"{item['total']} ({item['percent']}%)"
+            name_lines = wrap_text(name, 45 if width > 300 else 32)
 
-    # Mostra as categorias de equipamento com maior quantidade de incidentes.
-    for item in summary["equipment"][:8]:
-        add_pdf_text(
-            commands,
-            342,
-            y,
-            f"{item['name']}: {item['total']} ({item['percent']}%)",
-            9
-        )
-        y -= 18
+            add_pdf_text(commands, x + 10, cursor, name_lines[0], 8, "F1", text)
+            add_pdf_text(commands, x + width - 84, cursor, value, 8, "F2", text)
+            cursor -= 14
 
-    add_pdf_text(commands, 330, 210, "Unidades com mais incidentes", 12, "F2")
-    y = 186
+            for extra in name_lines[1:2]:
+                add_pdf_text(commands, x + 10, cursor, extra, 7, "F1", muted)
+                cursor -= 12
 
-    # Lista as unidades escolares mais afetadas para facilitar triagem por local.
-    for item in summary["top_units"][:6]:
-        add_pdf_text(
-            commands,
-            342,
-            y,
-            f"{item['name']}: {item['total']} ({item['percent']}%)",
-            8
-        )
-        y -= 16
+        return cursor
 
-    add_pdf_text(commands, 36, 210, "Situacao dos incidentes", 12, "F2")
-    y = 186
-
-    # Separa incidentes ainda ativos dos que ja foram resolvidos no Zabbix.
-    for item in summary["status"]:
-        add_pdf_text(
-            commands,
-            48,
-            y,
-            f"{item['name']}: {item['total']} ({item['percent']}%)",
-            9
-        )
-        y -= 18
-
-    add_pdf_text(commands, 36, 110, "Hosts com mais incidentes", 12, "F2")
-    y = 86
-
-    # Mostra os hosts mais recorrentes para orientar investigação operacional.
-    for item in summary["top_hosts"]:
-        add_pdf_text(
-            commands,
-            48,
-            y,
-            f"{item['name']}: {item['total']} ({item['percent']}%)",
-            8
-        )
-        y -= 16
+    draw_section(
+        "Tipos de incidente",
+        summary.get("top_incident_types", []),
+        36,
+        332,
+        370,
+        8,
+    )
+    draw_section(
+        "Equipamentos mais afetados",
+        summary.get("top_equipment", summary["equipment"]),
+        436,
+        332,
+        370,
+        8,
+    )
+    draw_section(
+        "Unidades com mais incidentes",
+        summary["top_units"],
+        36,
+        168,
+        370,
+        7,
+    )
+    draw_section(
+        "Severidade",
+        summary["severity"],
+        436,
+        168,
+        180,
+        6,
+    )
+    draw_section(
+        "Hosts com mais incidentes",
+        summary["top_hosts"],
+        626,
+        168,
+        180,
+        6,
+    )
 
     return b"".join(commands)
 
@@ -342,82 +360,99 @@ def build_pdf_page(rows, page_number, total_pages, generated):
     """
 
     commands = []
+    dark = (1, 1, 1)
+    text = (0.05, 0.14, 0.22)
+    muted = (0.26, 0.34, 0.43)
 
-    # Cabeçalho do detalhamento com data de geração e número da página.
+    commands.append(b"0.04 0.20 0.25 rg 0 548 842 47 re f\n")
     add_pdf_text(
         commands,
         36,
-        558,
+        573,
         "Detalhamento de Incidentes Zabbix",
-        16,
-        "F2"
+        15,
+        "F2",
+        dark,
     )
     add_pdf_text(
         commands,
         36,
-        540,
+        556,
         f"Gerado em {generated} | Pagina {page_number} de {total_pages}",
-        9
+        8,
+        "F1",
+        dark,
     )
 
     headers = [
         "Data",
         "Unidade",
-        "Resolvido",
-        "Status",
+        "Host",
         "Equipamento",
-        "Incidente",
+        "Tipo de incidente",
         "Sev.",
+        "Tempo",
         "Evento"
     ]
 
     # Cada coluna define: posição X, largura visual e limite aproximado de
     # caracteres por linha. O limite alimenta wrap_text().
     columns = [
-        (36, 76, 14),
-        (112, 120, 20),
-        (232, 76, 14),
-        (308, 62, 10),
-        (370, 94, 15),
-        (464, 190, 32),
-        (654, 54, 9),
-        (708, 76, 12),
+        (36, 70, 13),
+        (106, 160, 28),
+        (266, 146, 24),
+        (412, 92, 14),
+        (504, 142, 24),
+        (646, 52, 8),
+        (698, 58, 9),
+        (756, 54, 12),
     ]
 
-    y = 512
+    y = 520
 
     # Faixa de fundo do cabeçalho da tabela.
-    commands.append(b"0.93 0.95 0.97 rg 34 500 774 22 re f\n")
-    commands.append(b"0.75 0.80 0.86 RG 34 500 774 22 re S\n")
+    commands.append(b"0.07 0.29 0.34 rg 34 508 776 24 re f\n")
+    commands.append(b"0.04 0.20 0.25 RG 34 508 776 24 re S\n")
 
     # Escreve os nomes das colunas.
     for index, header in enumerate(headers):
         x, _, _ = columns[index]
-        add_pdf_text(commands, x, y + 2, header, 8, "F2")
+        add_pdf_text(commands, x, y, header, 8, "F2", dark)
 
-    y = 482
+    y = 490
 
-    for row in rows:
+    for row_index, row in enumerate(rows):
         # Cada célula é quebrada em linhas para impedir sobreposição entre
         # colunas quando houver nomes ou incidentes longos.
         row_lines = [
-            wrap_text(row["date"], columns[0][2]),
-            wrap_text(row["unit"], columns[1][2]),
-            wrap_text(row["resolved_at"], columns[2][2]),
-            wrap_text(row["status"], columns[3][2]),
-            wrap_text(row["equipment"], columns[4][2]),
-            wrap_text(row["incident"], columns[5][2]),
-            wrap_text(row["severity"], columns[6][2]),
-            wrap_text(row["eventid"], columns[7][2]),
+            wrap_text(row.get("date", ""), columns[0][2]),
+            wrap_text(row.get("unit", ""), columns[1][2]),
+            wrap_text(row.get("host", ""), columns[2][2]),
+            wrap_text(row.get("equipment", ""), columns[3][2]),
+            wrap_text(
+                row.get("incident_type") or row.get("incident", ""),
+                columns[4][2],
+            ),
+            wrap_text(row.get("severity", ""), columns[5][2]),
+            wrap_text(row.get("age_label", ""), columns[6][2]),
+            wrap_text(row.get("eventid", ""), columns[7][2]),
         ]
 
         # A altura da linha cresce conforme a célula com mais linhas.
-        line_count = max(len(lines) for lines in row_lines)
-        row_height = max(20, line_count * 10 + 8)
+        line_count = min(3, max(len(lines) for lines in row_lines))
+        row_height = max(24, line_count * 10 + 10)
+
+        if row_index % 2 == 0:
+            commands.append(
+                b"0.98 0.99 1.00 rg 34 %.2f 776 %.2f re f\n" % (
+                    y - row_height + 10,
+                    row_height,
+                )
+            )
 
         # Desenha a borda da linha antes de escrever os textos.
         commands.append(
-            b"0.86 0.89 0.93 RG 34 %.2f 774 %.2f re S\n" % (
+            b"0.84 0.88 0.92 RG 34 %.2f 776 %.2f re S\n" % (
                 y - row_height + 10,
                 row_height
             )
@@ -427,13 +462,16 @@ def build_pdf_page(rows, page_number, total_pages, generated):
             x, _, _ = columns[column_index]
 
             # Escreve cada linha de texto dentro da coluna atual.
-            for line_index, line in enumerate(lines):
+            for line_index, line in enumerate(lines[:3]):
+                color = muted if line_index else text
                 add_pdf_text(
                     commands,
                     x,
                     y - (line_index * 10),
                     line,
-                    7
+                    7,
+                    "F1",
+                    color,
                 )
 
         y -= row_height
@@ -452,7 +490,7 @@ def write_pdf_report(filename, incidents, generated, summary, period_label):
 
     # Divide os incidentes em páginas de detalhamento. A página executiva é
     # criada separadamente e sempre aparece primeiro.
-    rows_per_page = 18
+    rows_per_page = 14
     pages = [
         incidents[index:index + rows_per_page]
         for index in range(0, len(incidents), rows_per_page)
@@ -477,8 +515,8 @@ def write_pdf_report(filename, incidents, generated, summary, period_label):
     # Objetos fixos do PDF: catálogo e fontes Helvetica normal/negrito.
     objects = {
         1: b"<< /Type /Catalog /Pages 2 0 R >>",
-        3: b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
-        4: b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>",
+        3: b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>",
+        4: b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>",
     }
 
     page_ids = []
