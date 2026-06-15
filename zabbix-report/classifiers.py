@@ -71,6 +71,71 @@ def classify_equipment(host):
     return "Diversos"
 
 
+def classify_incident_type(incident):
+    """
+    Consolida nomes técnicos do Zabbix em famílias de incidente.
+
+    Algumas triggers carregam IP, interface, host ou texto específico da
+    unidade. Esta classificação remove esse ruído para que o ranking mostre o
+    tipo real do problema, sem fragmentar o mesmo sintoma em várias linhas.
+    """
+
+    text = str(incident or "").strip()
+    normalized = text.lower()
+
+    if not text:
+        return "Não informado"
+
+    if "no snmp data collection" in normalized:
+        return "No SNMP data collection"
+
+    if any(term in normalized for term in [
+        "unavailable by icmp ping",
+        "indisponível por ping icmp",
+        "indisponivel por ping icmp",
+        "indisponível (sem resposta ao ping)",
+        "indisponivel (sem resposta ao ping)",
+    ]):
+        return "Unavailable by ICMP ping"
+
+    if any(term in normalized for term in [
+        "high icmp ping loss",
+        "alta perda de pacotes",
+        "perda de pacotes",
+    ]):
+        return "High ICMP ping loss"
+
+    if any(term in normalized for term in [
+        "high icmp ping response time",
+        "icmp ping response time",
+        "tempo de resposta icmp",
+    ]):
+        return "High ICMP ping response time"
+
+    if any(term in normalized for term in [
+        "temperature is above warning threshold",
+        "temperatura",
+    ]):
+        return "Temperature above threshold"
+
+    if "high bandwidth usage" in normalized:
+        return "High bandwidth usage"
+
+    if any(term in normalized for term in [
+        "ethernet has changed to lower speed",
+        "lower speed",
+    ]):
+        return "Ethernet lower speed"
+
+    if any(term in normalized for term in [
+        "link down",
+        "operational status down",
+    ]):
+        return "Interface down"
+
+    return text
+
+
 def extract_school_unit(host):
     """
     Extrai a unidade escolar a partir do nome do host.

@@ -143,7 +143,7 @@ def build_report_summary(incidents):
         for item in incidents
     )
     incident_counter = Counter(
-        item["incident"]
+        item.get("incident_type", item["incident"])
         for item in incidents
     )
     host_counter = Counter(

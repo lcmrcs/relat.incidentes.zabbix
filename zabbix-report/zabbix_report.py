@@ -20,6 +20,7 @@ from classifiers import (
     SEVERITY_MAP,
     build_unit_catalog,
     classify_equipment,
+    classify_incident_type,
     classify_unit_group,
 )
 from pdf_report import write_pdf_report
@@ -236,6 +237,7 @@ def build_incidents(
             continue
 
         equipment = classify_equipment(host)
+        incident_type = classify_incident_type(incident)
         unit_code, unit = classify_unit_group(host, host_details, unit_catalog)
 
         incident_key = "|".join([
@@ -253,6 +255,7 @@ def build_incidents(
             "incident_key": incident_key,
             "equipment": equipment,
             "incident": incident,
+            "incident_type": incident_type,
             "severity": severity,
             "status": status,
             "date": date,

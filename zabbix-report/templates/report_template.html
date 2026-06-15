@@ -1019,7 +1019,7 @@
                 <ul class="metric-list">
                     {% for item in summary.top_incident_types %}
                     <li class="metric-row">
-                        <button class="metric-action" type="button" data-quick-search="{{ item.name }}">
+                        <button class="metric-action" type="button" data-quick-incident-type="{{ item.name }}">
                             <span class="metric-name" title="{{ item.name }}">{{ item.name }}</span>
                             <span class="metric-total">{{ item.total }} | {{ item.percent }}%</span>
                         </button>
@@ -1304,6 +1304,7 @@
                         data-unit-code="{{ item.unit_code or '-' }}"
                         data-host="{{ item.host }}"
                         data-incident="{{ item.incident }}"
+                        data-incident-type="{{ item.incident_type }}"
                         data-severity="{{ item.severity }}"
                         data-timestamp="{{ item.timestamp }}"
                         data-age-seconds="{{ item.age_seconds }}"
@@ -1338,6 +1339,7 @@
                                 data-host="{{ item.host }}"
                                 data-equipment="{{ item.equipment }}"
                                 data-incident="{{ item.incident }}"
+                                data-incident-type="{{ item.incident_type }}"
                                 data-severity="{{ item.severity }}"
                                 data-age-label="{{ item.age_label }}"
                                 data-eventid="{{ item.eventid }}"
@@ -1474,6 +1476,7 @@
             severity: row.dataset.severity,
             severityRank: severityRank[row.dataset.severity] ?? 0,
             incident: row.dataset.incident,
+            incidentType: row.dataset.incidentType,
             resolvedAt: row.querySelector("[data-details]")?.dataset.resolvedAt || "-",
             eventid: row.querySelector("[data-details]")?.dataset.eventid || "",
             searchText: [
@@ -1482,6 +1485,7 @@
                 row.dataset.host,
                 row.dataset.equipment,
                 row.dataset.incident,
+                row.dataset.incidentType,
                 row.dataset.severity,
                 row.dataset.status,
             ].join(" ").toLowerCase(),
@@ -1507,6 +1511,7 @@
             unit: "all",
             severity: "all",
             age: "all",
+            incidentType: "all",
         };
         const activeSort = {
             key: "date",
@@ -1599,6 +1604,9 @@
             const severityMatches =
                 filters.severity === "all" ||
                 item.severity === filters.severity;
+            const incidentTypeMatches =
+                filters.incidentType === "all" ||
+                item.incidentType === filters.incidentType;
             const ageMatches =
                 filters.age === "all" ||
                 isAgeInRange(item.ageSeconds, ageRange);
@@ -1611,6 +1619,7 @@
                 statusMatches &&
                 unitMatches &&
                 severityMatches &&
+                incidentTypeMatches &&
                 ageMatches &&
                 searchMatches
             );
@@ -1952,7 +1961,7 @@
         });
 
         document.addEventListener("click", (event) => {
-            const button = event.target.closest("[data-quick-status], [data-quick-severity], [data-quick-equipment], [data-quick-unit], [data-quick-search], [data-quick-age]");
+            const button = event.target.closest("[data-quick-status], [data-quick-severity], [data-quick-equipment], [data-quick-unit], [data-quick-search], [data-quick-age], [data-quick-incident-type]");
 
             if (!button) {
                 return;
@@ -1976,6 +1985,10 @@
 
             if (button.dataset.quickAge) {
                 activeFilters.age = button.dataset.quickAge;
+            }
+
+            if (button.dataset.quickIncidentType) {
+                activeFilters.incidentType = button.dataset.quickIncidentType;
             }
 
             if (button.dataset.quickSearch) {
@@ -2022,6 +2035,7 @@
                 activeFilters.unit = "all";
                 activeFilters.severity = "all";
                 activeFilters.age = "all";
+                activeFilters.incidentType = "all";
                 unitSearchText = "";
                 globalSearchText = "";
 
@@ -2053,6 +2067,7 @@
                 "Status",
                 "Host",
                 "Equipamento",
+                "Tipo de incidente",
                 "Incidente",
                 "Severidade",
                 "Prioridade",
@@ -2069,6 +2084,7 @@
                     item.status,
                     item.host,
                     item.equipment,
+                    item.incidentType,
                     item.incident,
                     item.severity,
                     item.priority,
@@ -2110,6 +2126,7 @@
                 ["Unidade", button.dataset.unit],
                 ["Host", button.dataset.host],
                 ["Equipamento", button.dataset.equipment],
+                ["Tipo de incidente", button.dataset.incidentType],
                 ["Incidente", button.dataset.incident],
                 ["Severidade", button.dataset.severity],
                 ["Prioridade", button.dataset.priority],
