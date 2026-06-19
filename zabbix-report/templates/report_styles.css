@@ -896,7 +896,7 @@
 
         .priority-badge.critica {
             background: #ffe3e3;
-            color: var(--open);
+            color: var(--disaster);
         }
 
         .priority-badge.alta {
@@ -905,8 +905,8 @@
         }
 
         .priority-badge.media {
-            background: #e7f5ff;
-            color: #1864ab;
+            background: #fff9db;
+            color: var(--medium);
         }
 
         .priority-badge.normal {
