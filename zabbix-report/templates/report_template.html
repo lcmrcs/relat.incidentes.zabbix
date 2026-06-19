@@ -7,14 +7,23 @@
     <style>
         :root {
             color-scheme: light;
-            --bg: #f4f6f8;
+            --bg: #eef4f3;
             --surface: #ffffff;
-            --text: #1f2933;
-            --muted: #667085;
-            --line: #d9e2ec;
-            --header: #102a43;
-            --accent: #0b7285;
-            --accent-soft: #e6fcf5;
+            --surface-soft: #f8fbfa;
+            --text: #132a32;
+            --muted: #64777d;
+            --line: #cddde0;
+            --line-soft: #e8eff0;
+            --header: #12343b;
+            --header-ink: #08242b;
+            --accent: #087f8c;
+            --accent-dark: #055e68;
+            --accent-soft: #def7f4;
+            --accent-wash: #f0fbf9;
+            --school: #2f9e44;
+            --equipment: #0b7285;
+            --incident: #5f3dc4;
+            --host: #364fc7;
             --open: #c92a2a;
             --resolved: #2b8a3e;
             --unclassified: #64748b;
@@ -23,6 +32,8 @@
             --disaster: #c92a2a;
             --high: #e67700;
             --medium: #f08c00;
+            --shadow-sm: 0 8px 22px rgb(8 36 43 / 0.08);
+            --shadow-md: 0 16px 38px rgb(8 36 43 / 0.12);
         }
 
         * {
@@ -31,70 +42,171 @@
 
         body {
             margin: 0;
-            background: var(--bg);
+            background:
+                linear-gradient(180deg, #dcebea 0, var(--bg) 210px, var(--bg) 100%);
             color: var(--text);
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: Inter, "Segoe UI", Arial, Helvetica, sans-serif;
             line-height: 1.5;
         }
 
         main {
-            width: min(1180px, calc(100% - 32px));
+            width: min(1400px, calc(100% - 32px));
             margin: 32px auto;
         }
 
         .report-header {
             background: var(--header);
             color: #ffffff;
-            padding: 28px;
+            border: 1px solid rgb(255 255 255 / 0.08);
             border-radius: 8px;
-            margin-bottom: 18px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 20px;
+            overflow: hidden;
+            padding: 0;
+        }
+
+        .report-header::before {
+            display: block;
+            height: 6px;
+            background: var(--accent);
+            content: "";
+        }
+
+        .report-header::after {
+            display: block;
+            height: 1px;
+            background: rgb(255 255 255 / 0.08);
+            content: "";
+        }
+
+        .report-header > * {
+            margin-right: 28px;
+            margin-left: 28px;
         }
 
         h1 {
-            margin: 0 0 8px;
-            font-size: 28px;
+            margin-top: 24px;
+            margin-bottom: 10px;
+            font-size: clamp(26px, 3vw, 38px);
             line-height: 1.2;
+            letter-spacing: 0;
+        }
+
+        h1::before {
+            display: block;
+            width: fit-content;
+            margin-bottom: 10px;
+            border: 1px solid rgb(255 255 255 / 0.18);
+            border-radius: 999px;
+            background: rgb(255 255 255 / 0.08);
+            color: #bdebea;
+            content: "MONITORAMENTO ZABBIX";
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0;
+            padding: 4px 9px;
         }
 
         .meta {
-            margin: 0 0 4px;
-            color: #bcccdc;
+            display: inline-flex;
+            align-items: center;
+            min-height: 30px;
+            margin-top: 0;
+            margin-bottom: 24px;
+            margin-right: 8px;
+            border: 1px solid rgb(255 255 255 / 0.14);
+            border-radius: 999px;
+            background: rgb(255 255 255 / 0.06);
+            color: #d4e4e6;
+            font-size: 13px;
+            padding: 4px 12px;
         }
 
         .summary {
             display: grid;
             grid-template-columns: minmax(220px, 0.8fr) minmax(300px, 1fr) minmax(360px, 1.4fr);
-            gap: 12px;
-            margin-bottom: 20px;
+            gap: 14px;
+            margin-bottom: 22px;
         }
 
         .summary-group {
             min-width: 0;
             background: var(--surface);
             border: 1px solid var(--line);
+            border-top: 4px solid var(--accent);
             border-radius: 8px;
-            padding: 14px;
+            box-shadow: var(--shadow-sm);
+            padding: 16px;
+        }
+
+        .summary-group:nth-child(1) {
+            border-top-color: var(--open);
+        }
+
+        .summary-group:nth-child(2) {
+            border-top-color: var(--high);
+        }
+
+        .summary-group:nth-child(3) {
+            border-top-color: var(--accent);
         }
 
         .summary-group-title {
-            margin: 0 0 12px;
-            color: #243b53;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin: 0 0 14px;
+            color: var(--header);
             font-size: 14px;
             font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .summary-group-title::before {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: var(--accent);
+            content: "";
         }
 
         .summary-group-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
             gap: 10px;
         }
 
         .summary-item {
-            background: #fbfdff;
-            border: 1px solid #edf2f7;
+            background: var(--surface-soft);
+            border: 1px solid var(--line-soft);
             border-radius: 8px;
-            min-height: 94px;
-            padding: 14px;
+            min-height: 92px;
+            padding: 13px 14px;
+        }
+
+        .summary-item:has(.summary-value.open) {
+            border-left: 4px solid var(--open);
+        }
+
+        .summary-item:has(.summary-value.resolved) {
+            border-left: 4px solid var(--resolved);
+        }
+
+        .summary-item:has(.summary-value.high) {
+            border-left: 4px solid var(--high);
+        }
+
+        .summary-item:has(.summary-value.medium) {
+            border-left: 4px solid var(--medium);
+        }
+
+        .summary-item:has(.summary-value.attention) {
+            border-left: 4px solid var(--attention);
+        }
+
+        .summary-item:has(.summary-value.information) {
+            border-left: 4px solid var(--information);
         }
 
         .summary-label {
@@ -102,7 +214,7 @@
             color: var(--muted);
             font-size: 12px;
             text-transform: uppercase;
-            letter-spacing: 0.03em;
+            letter-spacing: 0;
         }
 
         .summary-value {
@@ -145,23 +257,106 @@
         }
 
         .insights {
+            counter-reset: insight;
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: 16px;
-            margin-bottom: 20px;
+            margin-bottom: 22px;
         }
 
         .panel {
             background: var(--surface);
             border: 1px solid var(--line);
             border-radius: 8px;
+            box-shadow: var(--shadow-sm);
+            counter-increment: insight;
+            overflow: hidden;
             padding: 18px;
+            position: relative;
+        }
+
+        .panel::before {
+            display: block;
+            height: 4px;
+            margin: -18px -18px 16px;
+            background: var(--accent);
+            content: "";
+        }
+
+        .panel:nth-child(1)::before,
+        .panel:nth-child(1) .bar span {
+            background: var(--open);
+        }
+
+        .panel:nth-child(2)::before,
+        .panel:nth-child(2) .bar span {
+            background: var(--high);
+        }
+
+        .panel:nth-child(3)::before,
+        .panel:nth-child(3) .bar span {
+            background: var(--equipment);
+        }
+
+        .panel:nth-child(4)::before,
+        .panel:nth-child(4) .bar span {
+            background: var(--incident);
+        }
+
+        .panel:nth-child(5)::before,
+        .panel:nth-child(5) .bar span {
+            background: var(--host);
+        }
+
+        .panel:nth-child(6)::before,
+        .panel:nth-child(6) .bar span {
+            background: var(--school);
         }
 
         .panel h2 {
-            margin: 0 0 14px;
-            color: #243b53;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin: 0 0 16px;
+            color: var(--header);
             font-size: 16px;
+        }
+
+        .panel h2::before {
+            display: inline-grid;
+            width: 24px;
+            height: 24px;
+            place-items: center;
+            border-radius: 999px;
+            background: var(--accent);
+            color: #ffffff;
+            content: counter(insight);
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .panel:nth-child(1) h2::before {
+            background: var(--open);
+        }
+
+        .panel:nth-child(2) h2::before {
+            background: var(--high);
+        }
+
+        .panel:nth-child(3) h2::before {
+            background: var(--equipment);
+        }
+
+        .panel:nth-child(4) h2::before {
+            background: var(--incident);
+        }
+
+        .panel:nth-child(5) h2::before {
+            background: var(--host);
+        }
+
+        .panel:nth-child(6) h2::before {
+            background: var(--school);
         }
 
         .metric-list {
@@ -191,34 +386,37 @@
             color: inherit;
             cursor: pointer;
             font: inherit;
-            padding: 0;
+            border-radius: 8px;
+            padding: 4px 6px;
             text-align: left;
         }
 
+        .metric-action:hover {
+            background: var(--accent-wash);
+        }
+
         .metric-action:hover .metric-name {
-            color: var(--accent);
-            text-decoration: underline;
-            text-underline-offset: 3px;
+            color: var(--accent-dark);
         }
 
         .metric-name {
             min-width: 0;
             overflow: hidden;
-            color: #334e68;
+            color: #244850;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
 
         .metric-total {
-            color: #102a43;
+            color: var(--header-ink);
             font-weight: 700;
         }
 
         .bar {
             grid-column: 1 / -1;
-            height: 8px;
+            height: 7px;
             overflow: hidden;
-            background: #eef2f6;
+            background: #edf3f4;
             border-radius: 999px;
         }
 
@@ -231,7 +429,7 @@
 
         .section-title {
             margin: 0 0 12px;
-            color: #243b53;
+            color: var(--header);
             font-size: 18px;
         }
 
@@ -239,8 +437,9 @@
             background: var(--surface);
             border: 1px solid var(--line);
             border-radius: 8px;
-            padding: 20px;
+            box-shadow: var(--shadow-sm);
             margin-bottom: 20px;
+            padding: 20px;
         }
 
         .zabbix-panel {
@@ -252,6 +451,7 @@
             background: #fffaf0;
             border: 1px solid #f6d365;
             border-radius: 8px;
+            box-shadow: var(--shadow-sm);
             margin-bottom: 20px;
             padding: 16px 18px;
         }
@@ -316,13 +516,17 @@
 
         .filter-header h2 {
             margin: 0;
-            color: #243b53;
+            color: var(--header);
             font-size: 18px;
         }
 
         .filter-status {
+            border: 1px solid var(--line-soft);
+            border-radius: 999px;
+            background: var(--surface-soft);
             color: var(--muted);
             font-size: 14px;
+            padding: 4px 10px;
         }
 
         .filter-tools {
@@ -341,9 +545,9 @@
 
         .filter-group {
             min-width: 0;
-            border: 1px solid #edf2f7;
+            border: 1px solid var(--line-soft);
             border-radius: 8px;
-            background: #fbfdff;
+            background: var(--surface-soft);
             padding: 12px;
         }
 
@@ -352,7 +556,7 @@
             gap: 8px;
             align-items: center;
             margin: 0 0 10px;
-            color: #334e68;
+            color: var(--header);
             font-size: 13px;
             font-weight: 700;
             text-transform: uppercase;
@@ -403,7 +607,7 @@
             border: 1px solid var(--line);
             border-radius: 8px;
             background: #ffffff;
-            color: #334e68;
+            color: var(--header);
             cursor: pointer;
             font: inherit;
             font-weight: 700;
@@ -413,7 +617,7 @@
 
         .clear-button:hover {
             border-color: var(--accent);
-            color: #075563;
+            color: var(--accent-dark);
         }
 
         .download-button {
@@ -423,7 +627,7 @@
         }
 
         .download-button:hover {
-            background: #075563;
+            background: var(--accent-dark);
             color: #ffffff;
         }
 
@@ -435,9 +639,9 @@
         }
 
         .filtered-card {
-            border: 1px solid #edf2f7;
+            border: 1px solid var(--line-soft);
             border-radius: 8px;
-            background: #ffffff;
+            background: var(--surface-soft);
             padding: 12px;
         }
 
@@ -451,7 +655,7 @@
 
         .filtered-value {
             margin: 0;
-            color: #102a43;
+            color: var(--header-ink);
             font-size: 24px;
             font-weight: 700;
         }
@@ -474,7 +678,7 @@
             border: 1px solid var(--line);
             border-radius: 8px;
             background: #ffffff;
-            color: #334e68;
+            color: #244850;
             cursor: pointer;
             font: inherit;
             min-height: 40px;
@@ -493,8 +697,8 @@
         .filter-count {
             min-width: 38px;
             border-radius: 999px;
-            background: #eef2f6;
-            color: #334e68;
+            background: #eef4f5;
+            color: var(--header);
             font-size: 12px;
             font-weight: 700;
             padding: 3px 8px;
@@ -505,11 +709,11 @@
         .filter-button.active {
             border-color: var(--accent);
             background: var(--accent-soft);
-            color: #075563;
+            color: var(--accent-dark);
         }
 
         .filter-button.active {
-            box-shadow: inset 3px 0 0 var(--accent);
+            box-shadow: inset 4px 0 0 var(--accent), 0 8px 16px rgb(8 127 140 / 0.09);
         }
 
         .filter-button.active .filter-count {
@@ -523,7 +727,7 @@
 
         .filter-button.zero:not(.active) {
             color: #7b8794;
-            background: #f8fafc;
+            background: #f6f9f9;
         }
 
         .filter-button.zero:not(.active) .filter-count {
@@ -549,6 +753,7 @@
             background: var(--surface);
             border: 1px solid var(--line);
             border-radius: 8px;
+            box-shadow: var(--shadow-sm);
         }
 
         table {
@@ -560,7 +765,7 @@
         th,
         td {
             padding: 12px 14px;
-            border-bottom: 1px solid var(--line);
+            border-bottom: 1px solid var(--line-soft);
             text-align: left;
             vertical-align: top;
         }
@@ -569,11 +774,11 @@
             position: sticky;
             top: 0;
             z-index: 1;
-            background: #eef2f6;
-            color: #334e68;
+            background: #e8f1f2;
+            color: var(--header);
             font-size: 13px;
             text-transform: uppercase;
-            letter-spacing: 0.03em;
+            letter-spacing: 0;
         }
 
         .sort-button {
@@ -614,6 +819,14 @@
 
         tr:last-child td {
             border-bottom: 0;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #fbfdfd;
+        }
+
+        tbody tr:hover {
+            background: var(--accent-wash);
         }
 
         .severity {
@@ -722,6 +935,7 @@
 
         .details-button:hover {
             background: var(--accent-soft);
+            color: var(--accent-dark);
         }
 
         dialog {
@@ -741,20 +955,22 @@
             gap: 16px;
             align-items: center;
             justify-content: space-between;
-            padding: 18px 20px;
+            background: var(--header);
+            color: #ffffff;
             border-bottom: 1px solid var(--line);
+            padding: 18px 20px;
         }
 
         .modal-title {
             margin: 0;
-            color: #102a43;
+            color: #ffffff;
             font-size: 18px;
         }
 
         .modal-close {
             border: 0;
             background: transparent;
-            color: var(--muted);
+            color: #d4e4e6;
             cursor: pointer;
             font-size: 24px;
             line-height: 1;
@@ -762,13 +978,39 @@
 
         .modal-body {
             display: grid;
-            grid-template-columns: 160px 1fr;
-            gap: 10px 16px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            background: #f8fbfa;
             padding: 20px;
+        }
+
+        .modal-field {
+            min-width: 0;
+            border: 1px solid var(--line-soft);
+            border-radius: 8px;
+            background: #ffffff;
+            padding: 12px 14px;
+        }
+
+        .modal-field.wide {
+            grid-column: 1 / -1;
+        }
+
+        .modal-field.alert {
+            border-left: 4px solid var(--open);
+        }
+
+        .modal-field.time {
+            border-left: 4px solid var(--high);
+        }
+
+        .modal-field.identity {
+            border-left: 4px solid var(--accent);
         }
 
         .modal-label {
             color: var(--muted);
+            margin-bottom: 4px;
             font-size: 13px;
             font-weight: 700;
             text-transform: uppercase;
@@ -777,7 +1019,15 @@
         .modal-value {
             min-width: 0;
             overflow-wrap: anywhere;
-            color: #243b53;
+            color: var(--text);
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        @media (max-width: 620px) {
+            .modal-body {
+                grid-template-columns: 1fr;
+            }
         }
 
         .modal-table-wrap {
@@ -806,6 +1056,7 @@
             background: var(--surface);
             border: 1px solid var(--line);
             border-radius: 8px;
+            box-shadow: var(--shadow-sm);
             padding: 28px;
             text-align: center;
         }
@@ -2156,33 +2407,84 @@
             }
 
             const fields = [
-                ["Data de abertura", button.dataset.date],
-                ["Resolvido em", button.dataset.resolvedAt],
-                ["Status", button.dataset.status],
-                ["Código da unidade", button.dataset.unitCode],
-                ["Unidade", button.dataset.unit],
-                ["Host", button.dataset.host],
-                ["Equipamento", button.dataset.equipment],
-                ["Tipo de incidente", button.dataset.incidentType],
-                ["Incidente", button.dataset.incident],
-                ["Severidade", button.dataset.severity],
-                ["Prioridade", button.dataset.priority],
-                ["Tempo offline", button.dataset.ageLabel],
-                ["Evento", button.dataset.eventid],
+                {
+                    label: "Status",
+                    value: button.dataset.status,
+                    className: "alert",
+                },
+                {
+                    label: "Tempo offline",
+                    value: button.dataset.ageLabel,
+                    className: "time",
+                },
+                {
+                    label: "Data de abertura",
+                    value: button.dataset.date,
+                },
+                {
+                    label: "Evento",
+                    value: button.dataset.eventid,
+                },
+                {
+                    label: "Unidade",
+                    value: button.dataset.unit,
+                    className: "wide identity",
+                },
+                {
+                    label: "Código da unidade",
+                    value: button.dataset.unitCode,
+                },
+                {
+                    label: "Host",
+                    value: button.dataset.host,
+                    className: "wide identity",
+                },
+                {
+                    label: "Equipamento",
+                    value: button.dataset.equipment,
+                },
+                {
+                    label: "Tipo de incidente",
+                    value: button.dataset.incidentType,
+                    className: "wide",
+                },
+                {
+                    label: "Incidente",
+                    value: button.dataset.incident,
+                    className: "wide alert",
+                },
+                {
+                    label: "Severidade",
+                    value: button.dataset.severity,
+                },
+                {
+                    label: "Prioridade",
+                    value: button.dataset.priority,
+                },
             ];
+
+            if (button.dataset.resolvedAt && button.dataset.resolvedAt !== "-") {
+                fields.push({
+                    label: "Resolvido em",
+                    value: button.dataset.resolvedAt,
+                });
+            }
 
             dialogBody.replaceChildren();
 
-            fields.forEach(([label, value]) => {
+            fields.forEach(({ label, value, className }) => {
+                const fieldElement = document.createElement("div");
                 const labelElement = document.createElement("div");
                 const valueElement = document.createElement("div");
 
+                fieldElement.className = `modal-field ${className || ""}`.trim();
                 labelElement.className = "modal-label";
                 valueElement.className = "modal-value";
                 labelElement.textContent = label;
                 valueElement.textContent = value || "-";
 
-                dialogBody.append(labelElement, valueElement);
+                fieldElement.append(labelElement, valueElement);
+                dialogBody.append(fieldElement);
             });
 
             dialog.showModal();
