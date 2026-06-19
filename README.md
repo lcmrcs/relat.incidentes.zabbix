@@ -242,6 +242,40 @@ python zabbix-report/zabbix_report.py --periodo historico --status abertos --equ
 O relatório por equipamento não quebra o relatório principal. Ele gera arquivos
 separados com o nome do equipamento no nome do arquivo.
 
+## Atalho para Terminais Faciais
+
+Para facilitar o uso por outra pessoa, o projeto possui atalhos exclusivos para
+gerar apenas o relatório de `Terminal Facial`.
+
+No Windows, execute:
+
+```text
+gerar_terminais_faciais.bat
+```
+
+No Linux ou WSL, execute:
+
+```bash
+./gerar_terminais_faciais.sh
+```
+
+Esses atalhos fazem automaticamente:
+
+- validação da existência do arquivo `.env`;
+- criação da `venv`, se ela ainda não existir;
+- instalação das dependências;
+- geração do relatório histórico de abertos;
+- filtro exclusivo para `Terminal Facial`;
+- abertura do HTML mais recente gerado.
+
+Antes de usar em outro computador, a pessoa precisa:
+
+1. Ter Python instalado.
+2. Baixar ou clonar este repositório.
+3. Criar o arquivo `zabbix-report/.env`.
+4. Preencher `ZABBIX_URL` e `ZABBIX_TOKEN`.
+5. Executar o atalho correspondente ao sistema operacional.
+
 ## Saídas Geradas
 
 Para cada execução, o projeto gera:
