@@ -63,30 +63,52 @@
 
         .summary {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-template-columns: minmax(220px, 0.8fr) minmax(300px, 1fr) minmax(360px, 1.4fr);
             gap: 12px;
             margin-bottom: 20px;
         }
 
-        .summary-item {
+        .summary-group {
+            min-width: 0;
             background: var(--surface);
             border: 1px solid var(--line);
             border-radius: 8px;
-            padding: 18px;
+            padding: 14px;
+        }
+
+        .summary-group-title {
+            margin: 0 0 12px;
+            color: #243b53;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .summary-group-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+            gap: 10px;
+        }
+
+        .summary-item {
+            background: #fbfdff;
+            border: 1px solid #edf2f7;
+            border-radius: 8px;
+            min-height: 94px;
+            padding: 14px;
         }
 
         .summary-label {
             margin: 0 0 6px;
             color: var(--muted);
-            font-size: 13px;
+            font-size: 12px;
             text-transform: uppercase;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.03em;
         }
 
         .summary-value {
             margin: 0;
             color: var(--accent);
-            font-size: 30px;
+            font-size: 28px;
             font-weight: 700;
         }
 
@@ -808,6 +830,10 @@
         }
 
         @media (max-width: 900px) {
+            .summary {
+                grid-template-columns: 1fr;
+            }
+
             .insights {
                 grid-template-columns: 1fr;
             }
@@ -841,70 +867,81 @@
         </header>
 
         <section class="summary" aria-label="Resumo do relatorio">
-            <div class="summary-item">
-                <p class="summary-label">Eventos Zabbix</p>
-                <p class="summary-value">{{ summary.event_total }}</p>
+            <div class="summary-group">
+                <h2 class="summary-group-title">Operação</h2>
+                <div class="summary-group-grid">
+                    <div class="summary-item">
+                        <p class="summary-label">Incidentes abertos</p>
+                        <p class="summary-value open">{{ summary.unique_open }}</p>
+                    </div>
+                    {% if summary.unique_resolved %}
+                    <div class="summary-item">
+                        <p class="summary-label">Incidentes resolvidos</p>
+                        <p class="summary-value resolved">{{ summary.unique_resolved }}</p>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
-            <div class="summary-item">
-                <p class="summary-label">Incidentes únicos</p>
-                <p class="summary-value">{{ summary.unique_total }}</p>
+
+            <div class="summary-group">
+                <h2 class="summary-group-title">Tempo offline</h2>
+                <div class="summary-group-grid">
+                    <div class="summary-item">
+                        <p class="summary-label">Mais antigo</p>
+                        <p class="summary-value open">{{ summary.age.oldest_label }}</p>
+                    </div>
+                    <div class="summary-item">
+                        <p class="summary-label">Média de idade</p>
+                        <p class="summary-value">{{ summary.age.average_label }}</p>
+                    </div>
+                    <div class="summary-item">
+                        <p class="summary-label">Acima de 7 dias</p>
+                        <p class="summary-value high">{{ summary.age.over_7d }}</p>
+                    </div>
+                </div>
             </div>
-            <div class="summary-item">
-                <p class="summary-label">Únicos abertos</p>
-                <p class="summary-value open">{{ summary.unique_open }}</p>
+
+            <div class="summary-group">
+                <h2 class="summary-group-title">Severidade</h2>
+                <div class="summary-group-grid">
+                    {% if summary.critical %}
+                    <div class="summary-item">
+                        <p class="summary-label">Desastre</p>
+                        <p class="summary-value disaster">{{ summary.critical }}</p>
+                    </div>
+                    {% endif %}
+                    {% if summary.high %}
+                    <div class="summary-item">
+                        <p class="summary-label">Alta</p>
+                        <p class="summary-value high">{{ summary.high }}</p>
+                    </div>
+                    {% endif %}
+                    {% if summary.medium %}
+                    <div class="summary-item">
+                        <p class="summary-label">Média</p>
+                        <p class="summary-value medium">{{ summary.medium }}</p>
+                    </div>
+                    {% endif %}
+                    {% if summary.attention %}
+                    <div class="summary-item">
+                        <p class="summary-label">Atenção</p>
+                        <p class="summary-value attention">{{ summary.attention }}</p>
+                    </div>
+                    {% endif %}
+                    {% if summary.information %}
+                    <div class="summary-item">
+                        <p class="summary-label">Informação</p>
+                        <p class="summary-value information">{{ summary.information }}</p>
+                    </div>
+                    {% endif %}
+                    {% if summary.unclassified %}
+                    <div class="summary-item">
+                        <p class="summary-label">Não classificada</p>
+                        <p class="summary-value unclassified">{{ summary.unclassified }}</p>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
-            <div class="summary-item">
-                <p class="summary-label">Únicos resolvidos</p>
-                <p class="summary-value resolved">{{ summary.unique_resolved }}</p>
-            </div>
-            <div class="summary-item">
-                <p class="summary-label">Mais antigo aberto</p>
-                <p class="summary-value open">{{ summary.age.oldest_label }}</p>
-            </div>
-            <div class="summary-item">
-                <p class="summary-label">Média de idade</p>
-                <p class="summary-value">{{ summary.age.average_label }}</p>
-            </div>
-            <div class="summary-item">
-                <p class="summary-label">Acima de 7 dias</p>
-                <p class="summary-value high">{{ summary.age.over_7d }}</p>
-            </div>
-            {% if summary.unclassified %}
-            <div class="summary-item">
-                <p class="summary-label">Não classificada</p>
-                <p class="summary-value unclassified">{{ summary.unclassified }}</p>
-            </div>
-            {% endif %}
-            {% if summary.information %}
-            <div class="summary-item">
-                <p class="summary-label">Informação</p>
-                <p class="summary-value information">{{ summary.information }}</p>
-            </div>
-            {% endif %}
-            {% if summary.attention %}
-            <div class="summary-item">
-                <p class="summary-label">Atenção</p>
-                <p class="summary-value attention">{{ summary.attention }}</p>
-            </div>
-            {% endif %}
-            {% if summary.medium %}
-            <div class="summary-item">
-                <p class="summary-label">Média</p>
-                <p class="summary-value medium">{{ summary.medium }}</p>
-            </div>
-            {% endif %}
-            {% if summary.high %}
-            <div class="summary-item">
-                <p class="summary-label">Alta</p>
-                <p class="summary-value high">{{ summary.high }}</p>
-            </div>
-            {% endif %}
-            {% if summary.critical %}
-            <div class="summary-item">
-                <p class="summary-label">Desastre</p>
-                <p class="summary-value disaster">{{ summary.critical }}</p>
-            </div>
-            {% endif %}
         </section>
 
         <section class="insights" aria-label="Indicadores do relatorio">
