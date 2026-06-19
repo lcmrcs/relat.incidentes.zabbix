@@ -100,29 +100,37 @@ python zabbix-report/zabbix_report.py --periodo historico --status abertos --equ
 python zabbix-report/zabbix_report.py --periodo historico --status abertos --equipamento "Mikrotik"
 ```
 
-## 5.1. Atalho exclusivo para Terminais Faciais
+## 5.1. Atalho para relatório por equipamento
 
-Use este atalho quando outra pessoa precisar gerar somente o relatório de
-Terminais Faciais, sem decorar o comando completo.
+Use este atalho quando outra pessoa precisar gerar um relatório filtrado por
+equipamento, sem decorar o comando completo.
 
 No Windows, basta abrir:
 
 ```text
-gerar_terminais_faciais.bat
+ABRIR_RELATORIO_POR_EQUIPAMENTO.bat
 ```
 
 No Linux ou WSL:
 
 ```bash
-./gerar_terminais_faciais.sh
+./gerar_relatorio_equipamento.sh
 ```
 
 Função:
 - Verifica se existe `zabbix-report/.env`.
-- Cria a `venv`, se necessário.
+- Cria o `.env` na primeira execução, se necessário.
+- Cria uma `venv` própria do Windows, se necessário.
 - Instala as dependências do projeto.
-- Executa o relatório com `--equipamento "Terminal Facial"`.
-- Abre o HTML mais recente de Terminais Faciais.
+- Pergunta qual equipamento deve ser filtrado.
+- Executa o relatório com `--equipamento`.
+- Abre o HTML mais recente gerado.
+
+Guia simples para enviar a outra pessoa:
+
+```text
+GUIA_RAPIDO_RELATORIO_POR_EQUIPAMENTO.md
+```
 
 ## 6. Gerar relatorio das ultimas 24h
 

@@ -4,9 +4,30 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 echo "==============================================="
-echo "Relatorio Zabbix - Terminais Faciais"
+echo "Relatorio Zabbix - Por Equipamento"
 echo "==============================================="
 echo
+
+equipment="${1:-}"
+if [ -z "$equipment" ]; then
+    echo "Digite o equipamento que deseja filtrar."
+    echo
+    echo "Exemplos:"
+    echo "- Terminal Facial"
+    echo "- Câmera"
+    echo "- Mikrotik"
+    echo "- Switch"
+    echo "- NVR"
+    echo "- Central de Alarme"
+    echo "- Portal Detector de Metal"
+    echo
+    read -r -p "Equipamento: " equipment
+fi
+
+if [ -z "$equipment" ]; then
+    echo "ERRO: o equipamento nao pode ficar vazio."
+    exit 1
+fi
 
 if [ ! -f "zabbix-report/.env" ]; then
     echo "ERRO: arquivo zabbix-report/.env nao encontrado."
@@ -27,12 +48,12 @@ echo "Instalando ou atualizando dependencias..."
 python -m pip install -r "zabbix-report/requirements.txt"
 
 echo
-echo "Gerando relatorio exclusivo de Terminal Facial..."
-python "zabbix-report/zabbix_report.py" --periodo historico --status abertos --equipamento "Terminal Facial"
+echo "Gerando relatorio exclusivo de: $equipment"
+python "zabbix-report/zabbix_report.py" --periodo historico --status abertos --equipamento "$equipment"
 
 last_html="$(
     {
-        find zabbix-report/reports -maxdepth 1 -type f -name '*terminal_facial.html' -printf '%T@ %p\n' 2>/dev/null || true
+        find zabbix-report/reports -maxdepth 1 -type f -name '*.html' -printf '%T@ %p\n' 2>/dev/null || true
     } | sort -nr | head -n 1 | cut -d' ' -f2-
 )"
 
@@ -50,7 +71,7 @@ if [ -n "$last_html" ]; then
     fi
 else
     echo
-    echo "Relatorio gerado, mas nenhum HTML de Terminal Facial foi encontrado."
+    echo "Relatorio gerado, mas nenhum HTML foi encontrado."
     echo "Verifique a pasta zabbix-report/reports."
 fi
 
