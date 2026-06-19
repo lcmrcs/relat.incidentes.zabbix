@@ -77,7 +77,30 @@ Formatos:
 - `.pdf`: relatorio formal para envio.
 - `.xlsx`: planilha com os dados.
 
-## 5. Gerar relatorio das ultimas 24h
+## 5. Gerar relatorio por equipamento
+
+Use quando quiser um relatório específico de um tipo de equipamento, sem
+alterar o relatório principal.
+
+Exemplo para Terminal Facial:
+
+```bash
+python zabbix-report/zabbix_report.py --periodo historico --status abertos --equipamento "Terminal Facial"
+```
+
+Funcao:
+- Mantem apenas incidentes de Terminal Facial.
+- Gera HTML, PDF e Excel separados.
+- Adiciona o nome do equipamento no periodo e no nome do arquivo.
+
+Exemplos para outros equipamentos:
+
+```bash
+python zabbix-report/zabbix_report.py --periodo historico --status abertos --equipamento "Câmera"
+python zabbix-report/zabbix_report.py --periodo historico --status abertos --equipamento "Mikrotik"
+```
+
+## 6. Gerar relatorio das ultimas 24h
 
 ```bash
 python zabbix-report/zabbix_report.py --periodo 24h
@@ -93,7 +116,7 @@ Somente abertos das ultimas 24h:
 python zabbix-report/zabbix_report.py --periodo 24h --status abertos
 ```
 
-## 6. Gerar relatorios por outros periodos
+## 7. Gerar relatorios por outros periodos
 
 ```bash
 python zabbix-report/zabbix_report.py --periodo 2d
@@ -107,7 +130,7 @@ Funcao:
 - `h` significa horas.
 - `d` significa dias.
 
-## 7. Gerar relatorio desde uma data especifica
+## 8. Gerar relatorio desde uma data especifica
 
 ```bash
 python zabbix-report/zabbix_report.py --desde 2026-06-01
@@ -118,7 +141,7 @@ Funcao:
 - Use o formato `AAAA-MM-DD`.
 - E util quando o historico completo estiver pesado.
 
-## 8. Abrir o HTML gerado
+## 9. Abrir o HTML gerado
 
 Abra pelo Explorer:
 
@@ -132,7 +155,7 @@ Ou pelo terminal, ajustando o nome do arquivo:
 cmd.exe /c start "" "C:\Users\chip\Documents\relat.incidentes.zabbix\zabbix-report\reports\report_2026-06-15_historico_abertos.html"
 ```
 
-## 9. O que existe no HTML
+## 10. O que existe no HTML
 
 O HTML atual possui:
 - Resumo executivo.
@@ -148,7 +171,7 @@ O HTML atual possui:
 - Janela separada para CONFEA VPN.
 - Exportacao CSV dos dados filtrados.
 
-## 10. Tipos de incidente consolidados
+## 11. Tipos de incidente consolidados
 
 O painel "Tipos de Incidente" nao deve contar cada texto tecnico isolado do
 Zabbix. Ele consolida familias de problemas.
@@ -178,7 +201,7 @@ def classify_incident_type(incident):
 Quando aparecer um novo texto do Zabbix que deveria entrar em uma familia
 existente, adicione uma regra nessa funcao.
 
-## 11. Classificacao de equipamentos
+## 12. Classificacao de equipamentos
 
 Arquivo:
 
@@ -205,7 +228,7 @@ Observacao:
 - O painel "Equipamentos Mais Afetados" ordena por maior volume.
 - O filtro "Equipamento" segue a ordem operacional acima.
 
-## 12. Arquivos principais do projeto
+## 13. Arquivos principais do projeto
 
 ```text
 zabbix-report/zabbix_report.py
@@ -250,7 +273,7 @@ COMANDOS.md
 
 Este guia.
 
-## 13. Validar codigo depois de alterar
+## 14. Validar codigo depois de alterar
 
 Sempre que mexer em Python:
 
@@ -270,7 +293,7 @@ Ver resumo das mudancas:
 git diff --stat
 ```
 
-## 14. Ver arquivos alterados
+## 15. Ver arquivos alterados
 
 ```bash
 git status
@@ -281,7 +304,7 @@ Funcao:
 - Mostra arquivos novos.
 - Mostra commits locais ainda nao enviados.
 
-## 15. Criar commit
+## 16. Criar commit
 
 Antes:
 
@@ -309,7 +332,7 @@ git commit -m "fix: consolida tipos de incidente no ranking"
 git commit -m "docs: atualiza guia operacional"
 ```
 
-## 16. Enviar para o GitHub
+## 17. Enviar para o GitHub
 
 ```bash
 git push origin main
@@ -332,7 +355,7 @@ Observacao:
 - Use Personal Access Token.
 - Nunca cole token em arquivo do projeto.
 
-## 17. Fazer pacote para supervisor
+## 18. Fazer pacote para supervisor
 
 Arquivos recomendados:
 - PDF: versao formal.
@@ -347,7 +370,7 @@ entrega_supervisor/
 
 Essa pasta fica fora do Git pelo `.gitignore` da raiz.
 
-## 18. Se o script ficar lento
+## 19. Se o script ficar lento
 
 Use um periodo menor:
 
@@ -367,7 +390,7 @@ Para o estado operacional atual, prefira:
 python zabbix-report/zabbix_report.py --periodo historico --status abertos
 ```
 
-## 19. Se der timeout
+## 20. Se der timeout
 
 Tente nesta ordem:
 
@@ -383,7 +406,7 @@ Se continuar falhando:
 - Verifique URL e token no `.env`.
 - Aguarde alguns minutos e tente novamente.
 
-## 20. Regra de seguranca
+## 21. Regra de seguranca
 
 Nunca envie para o GitHub:
 - `.env`
@@ -393,7 +416,7 @@ Nunca envie para o GitHub:
 - arquivos temporarios
 - pacotes de entrega com dados sensiveis
 
-## 21. Fluxo rapido do dia a dia
+## 22. Fluxo rapido do dia a dia
 
 Gerar relatorio atual:
 
@@ -419,7 +442,7 @@ git commit -m "mensagem clara"
 git push origin main
 ```
 
-## 22. Comando mais importante
+## 23. Comando mais importante
 
 Se voce esquecer todo o resto, lembre deste:
 

@@ -8,6 +8,8 @@ em módulos separados para facilitar leitura, manutenção e testes.
 
 import argparse
 import os
+import re
+import unicodedata
 
 import pandas as pd
 
@@ -36,6 +38,21 @@ BASE_DIR = Path(__file__).resolve().parent
 ENV_FILE = BASE_DIR / ".env"
 TEMPLATES_DIR = BASE_DIR / "templates"
 REPORTS_DIR = BASE_DIR / "reports"
+
+
+def slugify(value):
+    """
+    Converte textos livres em parte segura para nome de arquivo.
+
+    Exemplo: "Terminal Facial" vira "terminal_facial".
+    """
+
+    normalized = str(value or "").strip().lower()
+    normalized = unicodedata.normalize("NFKD", normalized)
+    normalized = normalized.encode("ascii", errors="ignore").decode("ascii")
+    normalized = re.sub(r"[^a-z0-9]+", "_", normalized)
+
+    return normalized.strip("_") or "filtro"
 
 
 # ==================================================
@@ -113,6 +130,14 @@ def parse_args():
         choices=["todos", "abertos", "resolvidos"],
         default="todos",
         help="Filtra eventos por situação. Use abertos para ignorar resolvidos.",
+    )
+    parser.add_argument(
+        "--equipamento",
+        default=None,
+        help=(
+            "Filtra o relatório por tipo de equipamento. "
+            "Exemplo: --equipamento \"Terminal Facial\"."
+        ),
     )
 
     args = parser.parse_args()
@@ -296,6 +321,26 @@ def split_special_groups(incidents):
     return main_incidents, zabbix_incidents, confea_incidents
 
 
+def filter_by_equipment(incidents, equipment_name):
+    """
+    Mantém apenas incidentes do equipamento informado no argumento.
+
+    A comparação ignora maiúsculas/minúsculas e espaços extras para facilitar o
+    uso no terminal.
+    """
+
+    if not equipment_name:
+        return incidents
+
+    target = str(equipment_name).strip().lower()
+
+    return [
+        item
+        for item in incidents
+        if str(item.get("equipment", "")).strip().lower() == target
+    ]
+
+
 # ==================================================
 # EXPORTAÇÃO
 # ==================================================
@@ -419,7 +464,16 @@ def main():
     main_incidents, zabbix_incidents, confea_incidents = split_special_groups(
         incidents
     )
+    equipment_filter = str(args.equipamento).strip() if args.equipamento else ""
 
+    if equipment_filter:
+        main_incidents = filter_by_equipment(main_incidents, equipment_filter)
+        zabbix_incidents = []
+        confea_incidents = []
+        period_label = f"{period_label} | Equipamento: {equipment_filter}"
+        period_slug = f"{period_slug}_{slugify(equipment_filter)}"
+
+    scoped_incidents = main_incidents + zabbix_incidents + confea_incidents
     summary = build_report_summary(main_incidents)
     zabbix_summary = build_report_summary(zabbix_incidents)
     confea_summary = build_report_summary(confea_incidents)
@@ -433,7 +487,7 @@ def main():
 
     export_excel(
         excel_name,
-        incidents,
+        scoped_incidents,
         main_incidents,
         zabbix_incidents,
         confea_incidents,
