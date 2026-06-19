@@ -1,1 +1,23 @@
+# Entregas locais e arquivos gerados para envio.
 entrega_supervisor/
+
+# Credenciais locais.
+.env
+*.env
+zabbix-report/.env
+
+# Ambientes virtuais.
+venv/
+venv-windows/
+zabbix-report/venv/
+zabbix-report/venv-windows/
+
+# Relatórios gerados.
+zabbix-report/reports/
+
+# Caches e temporários.
+__pycache__/
+*.pyc
+.pytest_cache/
+.cache/
+*.log

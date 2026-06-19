@@ -409,6 +409,18 @@ Cuidados obrigatórios:
 - Revogue tokens antigos caso eles sejam expostos.
 - Não compartilhe relatórios com dados sensíveis sem validação.
 
+Antes de fazer commit, rode a verificação local de segredos:
+
+```bash
+python scripts/check_secrets.py
+```
+
+Também existe um guia dedicado:
+
+```text
+SEGURANCA.md
+```
+
 ## Arquivos Ignorados pelo Git
 
 Devem ficar fora do repositório:

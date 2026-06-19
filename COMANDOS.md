@@ -448,6 +448,23 @@ Nunca envie para o GitHub:
 - arquivos temporarios
 - pacotes de entrega com dados sensiveis
 
+Antes de criar um commit, rode:
+
+```bash
+python scripts/check_secrets.py
+```
+
+Funcao:
+- Procura tokens e senhas em arquivos do projeto.
+- Avisa se existir `.env` em lugar perigoso.
+- Ajuda a evitar vazamento acidental de credenciais.
+
+Guia completo:
+
+```text
+SEGURANCA.md
+```
+
 ## 22. Fluxo rapido do dia a dia
 
 Gerar relatorio atual:
