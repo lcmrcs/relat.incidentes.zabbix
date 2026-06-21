@@ -175,7 +175,7 @@
                 <h2>Severidade</h2>
                 <ul class="metric-list">
                     {% for item in summary.severity %}
-                    <li class="metric-row">
+                    <li class="metric-row severity-row severity-{{ item.name | lower | replace('ã', 'a') | replace('ç', 'c') | replace('é', 'e') | replace('í', 'i') | replace(' ', '-') }}">
                         <button class="metric-action" type="button" data-quick-severity="{{ item.name }}">
                             <span class="metric-name">{{ item.name }}</span>
                             <span class="metric-total">{{ item.total }} | {{ item.percent }}%</span>

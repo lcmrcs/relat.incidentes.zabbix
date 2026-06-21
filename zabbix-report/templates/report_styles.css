@@ -352,6 +352,30 @@
             background: var(--school);
         }
 
+        .panel:nth-child(2) .severity-row.severity-desastre .bar span {
+            background: var(--disaster);
+        }
+
+        .panel:nth-child(2) .severity-row.severity-alta .bar span {
+            background: var(--high);
+        }
+
+        .panel:nth-child(2) .severity-row.severity-media .bar span {
+            background: var(--medium);
+        }
+
+        .panel:nth-child(2) .severity-row.severity-atencao .bar span {
+            background: var(--attention);
+        }
+
+        .panel:nth-child(2) .severity-row.severity-informacao .bar span {
+            background: var(--information);
+        }
+
+        .panel:nth-child(2) .severity-row.severity-nao-classificada .bar span {
+            background: var(--unclassified);
+        }
+
         .metric-list {
             display: grid;
             gap: 10px;
