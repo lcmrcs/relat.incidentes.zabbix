@@ -302,12 +302,28 @@
 
         {% if zabbix_incidents %}
         <section class="zabbix-panel server-panel" aria-label="Eventos do servidor Zabbix">
-            <div>
+            <div class="special-panel-icon" aria-hidden="true">ZBX</div>
+            <div class="special-panel-content">
+                <span class="special-panel-kicker">Infraestrutura monitorada</span>
                 <h2>Servidor Zabbix</h2>
-                <p>Total: {{ zabbix_summary.event_total }} | Separado da lista de unidade escolar</p>
+                <p>Eventos técnicos do próprio servidor, mantidos separados das unidades escolares.</p>
+            </div>
+            <div class="special-panel-metrics" aria-label="Resumo do servidor Zabbix">
+                <div>
+                    <span>Total</span>
+                    <strong>{{ zabbix_summary.event_total }}</strong>
+                </div>
+                <div>
+                    <span>Mais antigo</span>
+                    <strong>{{ zabbix_summary.age.oldest_label }}</strong>
+                </div>
+                <div>
+                    <span>Escopo</span>
+                    <strong>Interno</strong>
+                </div>
             </div>
             <button class="zabbix-button" type="button" data-zabbix-open>
-                Abrir janela
+                Ver detalhes
             </button>
         </section>
         {% endif %}
@@ -633,7 +649,10 @@
     {% if zabbix_incidents %}
     <dialog id="zabbix-dialog" class="zabbix-modal">
         <div class="modal-header">
-            <h2 class="modal-title">Servidor Zabbix</h2>
+            <div>
+                <h2 class="modal-title">Servidor Zabbix</h2>
+                <p class="modal-subtitle">Eventos internos separados da operação das unidades escolares.</p>
+            </div>
             <button class="modal-close" type="button" data-zabbix-close aria-label="Fechar">x</button>
         </div>
         <div class="modal-summary zabbix-modal-summary">
