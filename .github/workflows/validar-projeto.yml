@@ -1,0 +1,43 @@
+name: Validar projeto
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validar:
+    name: Validar Python e seguranca
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar codigo do repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r zabbix-report/requirements.txt
+
+      - name: Verificar sintaxe dos arquivos Python
+        run: |
+          python -m py_compile \
+            zabbix-report/classifiers.py \
+            zabbix-report/gerar_documentacao_pdf.py \
+            zabbix-report/pdf_report.py \
+            zabbix-report/summary.py \
+            zabbix-report/test_zabbix_api.py \
+            zabbix-report/zabbix_api.py \
+            zabbix-report/zabbix_report.py \
+            scripts/check_secrets.py
+
+      - name: Verificar credenciais acidentais
+        run: python scripts/check_secrets.py
