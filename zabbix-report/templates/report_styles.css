@@ -23,8 +23,8 @@
             --information: #2563eb;
             --attention: #15803d;
             --disaster: #c92a2a;
-            --high: #e67700;
-            --medium: #f08c00;
+            --high: #e8590c;
+            --medium: #d6a100;
             --summary-severity: #364fc7;
             --shadow-sm: 0 8px 22px rgb(8 36 43 / 0.08);
             --shadow-md: 0 16px 38px rgb(8 36 43 / 0.12);
@@ -259,7 +259,7 @@
         }
 
         .summary-item:has(.summary-value.medium) {
-            border-left: 4px solid var(--high);
+            border-left: 4px solid var(--medium);
         }
 
         .summary-item:has(.summary-value.attention) {
