@@ -27,82 +27,35 @@
             </div>
         </header>
 
-        <section class="summary" aria-label="Resumo do relatorio">
-            <div class="summary-group">
-                <h2 class="summary-group-title">Operação</h2>
-                <div class="summary-group-grid">
-                    <div class="summary-item">
-                        <p class="summary-label">Incidentes abertos</p>
-                        <p class="summary-value open">{{ summary.unique_open }}</p>
-                    </div>
-                    {% if summary.unique_resolved %}
-                    <div class="summary-item">
-                        <p class="summary-label">Incidentes resolvidos</p>
-                        <p class="summary-value resolved">{{ summary.unique_resolved }}</p>
-                    </div>
-                    {% endif %}
-                </div>
+        <section class="summary kpi-strip" aria-label="Resumo executivo do relatorio">
+            <div class="summary-item kpi-primary">
+                <p class="summary-label">Incidentes abertos</p>
+                <p class="summary-value">{{ summary.unique_open }}</p>
             </div>
-
-            <div class="summary-group">
-                <h2 class="summary-group-title">Tempo offline</h2>
-                <div class="summary-group-grid">
-                    <div class="summary-item">
-                        <p class="summary-label">Mais antigo</p>
-                        <p class="summary-value open">{{ summary.age.oldest_label }}</p>
-                    </div>
-                    <div class="summary-item">
-                        <p class="summary-label">Média de idade</p>
-                        <p class="summary-value">{{ summary.age.average_label }}</p>
-                    </div>
-                    <div class="summary-item">
-                        <p class="summary-label">Acima de 7 dias</p>
-                        <p class="summary-value high">{{ summary.age.over_7d }}</p>
-                    </div>
-                </div>
+            <div class="summary-item">
+                <p class="summary-label">Mais antigo</p>
+                <p class="summary-value">{{ summary.age.oldest_label }}</p>
             </div>
-
-            <div class="summary-group">
-                <h2 class="summary-group-title">Severidade</h2>
-                <div class="summary-group-grid">
-                    {% if summary.critical %}
-                    <div class="summary-item">
-                        <p class="summary-label">Desastre</p>
-                        <p class="summary-value disaster">{{ summary.critical }}</p>
-                    </div>
-                    {% endif %}
-                    {% if summary.high %}
-                    <div class="summary-item">
-                        <p class="summary-label">Alta</p>
-                        <p class="summary-value high">{{ summary.high }}</p>
-                    </div>
-                    {% endif %}
-                    {% if summary.medium %}
-                    <div class="summary-item">
-                        <p class="summary-label">Média</p>
-                        <p class="summary-value medium">{{ summary.medium }}</p>
-                    </div>
-                    {% endif %}
-                    {% if summary.attention %}
-                    <div class="summary-item">
-                        <p class="summary-label">Atenção</p>
-                        <p class="summary-value attention">{{ summary.attention }}</p>
-                    </div>
-                    {% endif %}
-                    {% if summary.information %}
-                    <div class="summary-item">
-                        <p class="summary-label">Informação</p>
-                        <p class="summary-value information">{{ summary.information }}</p>
-                    </div>
-                    {% endif %}
-                    {% if summary.unclassified %}
-                    <div class="summary-item">
-                        <p class="summary-label">Não classificada</p>
-                        <p class="summary-value unclassified">{{ summary.unclassified }}</p>
-                    </div>
-                    {% endif %}
-                </div>
+            <div class="summary-item">
+                <p class="summary-label">Média de idade</p>
+                <p class="summary-value">{{ summary.age.average_label }}</p>
             </div>
+            <div class="summary-item">
+                <p class="summary-label">Acima de 7 dias</p>
+                <p class="summary-value">{{ summary.age.over_7d }}</p>
+            </div>
+            {% if summary.high %}
+            <div class="summary-item">
+                <p class="summary-label">Alta</p>
+                <p class="summary-value">{{ summary.high }}</p>
+            </div>
+            {% endif %}
+            {% if summary.attention %}
+            <div class="summary-item">
+                <p class="summary-label">Atenção</p>
+                <p class="summary-value">{{ summary.attention }}</p>
+            </div>
+            {% endif %}
         </section>
 
         <section class="visual-dashboard" aria-label="Graficos executivos do relatorio">
