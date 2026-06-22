@@ -7,6 +7,7 @@ em módulos separados para facilitar leitura, manutenção e testes.
 """
 
 import argparse
+import base64
 import os
 import re
 import unicodedata
@@ -37,6 +38,7 @@ from zabbix_api import ZabbixClient
 BASE_DIR = Path(__file__).resolve().parent
 ENV_FILE = BASE_DIR / ".env"
 TEMPLATES_DIR = BASE_DIR / "templates"
+ASSETS_DIR = BASE_DIR / "assets"
 REPORTS_DIR = BASE_DIR / "reports"
 
 
@@ -53,6 +55,23 @@ def slugify(value):
     normalized = re.sub(r"[^a-z0-9]+", "_", normalized)
 
     return normalized.strip("_") or "filtro"
+
+
+def load_logo_data_uri():
+    """
+    Carrega a logo do projeto em formato embutido para o HTML.
+
+    O relatório final precisa continuar abrindo sozinho quando for enviado por
+    e-mail ou copiado para outro computador. Por isso a imagem é transformada
+    em base64, evitando dependência de um arquivo separado ao lado do HTML.
+    """
+
+    logo_path = ASSETS_DIR / "logoTechPng.png"
+    if not logo_path.exists():
+        return None
+
+    encoded_logo = base64.b64encode(logo_path.read_bytes()).decode("ascii")
+    return f"data:image/png;base64,{encoded_logo}"
 
 
 # ==================================================
@@ -414,6 +433,7 @@ def render_html(
         zabbix_summary=zabbix_summary,
         confea_incidents=confea_incidents,
         confea_summary=confea_summary,
+        logo_data_uri=load_logo_data_uri(),
     )
 
     with open(path, "w", encoding="utf-8") as file:

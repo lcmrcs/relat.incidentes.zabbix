@@ -11,9 +11,20 @@
 <body>
     <main>
         <header class="report-header">
-            <h1>Relatorio Executivo de Incidentes Zabbix</h1>
-            <p class="meta">Gerado em {{ generated }}</p>
-            <p class="meta">Periodo analisado: {{ period }}</p>
+            <div class="report-header-content">
+                <div class="report-heading">
+                    <h1>Relatorio Executivo de Incidentes Zabbix</h1>
+                    <div class="meta-row">
+                        <p class="meta">Gerado em {{ generated }}</p>
+                        <p class="meta">Periodo analisado: {{ period }}</p>
+                    </div>
+                </div>
+                {% if logo_data_uri %}
+                <div class="brand-mark" aria-label="TechFace">
+                    <img src="{{ logo_data_uri }}" alt="TechFace">
+                </div>
+                {% endif %}
+            </div>
         </header>
 
         <section class="summary" aria-label="Resumo do relatorio">
@@ -466,9 +477,31 @@
             </div>
         </section>
 
-        <h2 class="section-title">Detalhamento dos Eventos</h2>
+        <section class="events-section" aria-label="Detalhamento dos eventos">
+            <div class="events-header">
+                <div>
+                    <h2 class="section-title">Detalhamento dos Eventos</h2>
+                    <p class="section-subtitle">
+                        Lista operacional dos incidentes filtrados no relatório.
+                    </p>
+                </div>
+                <span class="events-count">{{ summary.event_total }} registros</span>
+            </div>
+        </section>
+
         <section class="table-wrap" aria-label="Lista de incidentes">
             <table id="incidents-table">
+                <colgroup>
+                    <col class="col-date">
+                    <col class="col-code">
+                    <col class="col-unit">
+                    <col class="col-status">
+                    <col class="col-equipment">
+                    <col class="col-incident">
+                    <col class="col-severity">
+                    <col class="col-priority">
+                    <col class="col-details">
+                </colgroup>
                 <thead>
                     <tr>
                         <th><button class="sort-button" type="button" data-sort-key="date">Data</button></th>
@@ -497,16 +530,16 @@
                         data-age-seconds="{{ item.age_seconds }}"
                         data-age-label="{{ item.age_label }}"
                     >
-                        <td>{{ item.date }}</td>
-                        <td>{{ item.unit_code or "-" }}</td>
-                        <td>{{ item.unit }}</td>
+                        <td class="table-date">{{ item.date }}</td>
+                        <td class="table-code">{{ item.unit_code or "-" }}</td>
+                        <td class="table-unit">{{ item.unit }}</td>
                         <td>
                             <span class="status-badge {{ item.status | lower }}">
                                 {{ item.status }}
                             </span>
                         </td>
-                        <td>{{ item.equipment }}</td>
-                        <td>{{ item.incident }}</td>
+                        <td class="table-equipment">{{ item.equipment }}</td>
+                        <td class="table-incident">{{ item.incident }}</td>
                         <td>
                             <span class="severity {{ item.severity | lower | replace('ã', 'a') | replace('ç', 'c') | replace('é', 'e') | replace('í', 'i') | replace(' ', '-') }}">
                                 {{ item.severity }}
