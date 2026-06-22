@@ -80,6 +80,7 @@
         let globalSearchText = "";
         let unitSearchTimer = null;
         let globalSearchTimer = null;
+        let filterFeedbackTimer = null;
 
         function buildZabbixEventUrl(eventid) {
             if (!zabbixWebUrl || !eventid) {
@@ -215,6 +216,18 @@
             }
 
             return ageSeconds >= range.min && ageSeconds < range.max;
+        }
+
+        function showFilterFeedback() {
+            document.body.classList.remove("filter-feedback");
+            window.clearTimeout(filterFeedbackTimer);
+
+            window.requestAnimationFrame(() => {
+                document.body.classList.add("filter-feedback");
+                filterFeedbackTimer = window.setTimeout(() => {
+                    document.body.classList.remove("filter-feedback");
+                }, 820);
+            });
         }
 
         function getCountScope() {
@@ -567,6 +580,7 @@
             }
 
             updateFilters();
+            showFilterFeedback();
             document.getElementById("incidents-table")?.scrollIntoView({
                 behavior: "smooth",
                 block: "start",
