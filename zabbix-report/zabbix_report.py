@@ -237,6 +237,22 @@ def load_config():
     return zabbix_url, zabbix_token
 
 
+def build_zabbix_web_url(zabbix_url):
+    """
+    Converte a URL da API em URL navegável do Zabbix.
+
+    O .env guarda normalmente o endpoint JSON-RPC, como
+    /api_jsonrpc.php. Para criar links clicáveis no relatório, removemos esse
+    sufixo e usamos apenas a raiz web do Zabbix.
+    """
+
+    web_url = str(zabbix_url or "").strip()
+    if web_url.endswith("/api_jsonrpc.php"):
+        web_url = web_url[: -len("/api_jsonrpc.php")]
+
+    return web_url.rstrip("/")
+
+
 # ==================================================
 # PROCESSAMENTO DOS INCIDENTES
 # ==================================================
@@ -410,6 +426,7 @@ def render_html(
     zabbix_summary,
     confea_incidents,
     confea_summary,
+    zabbix_web_url,
 ):
     """
     Renderiza o template HTML com os dados já processados.
@@ -434,6 +451,7 @@ def render_html(
         confea_incidents=confea_incidents,
         confea_summary=confea_summary,
         logo_data_uri=load_logo_data_uri(),
+        zabbix_web_url=zabbix_web_url,
     )
 
     with open(path, "w", encoding="utf-8") as file:
@@ -451,6 +469,7 @@ def main():
 
     args = parse_args()
     zabbix_url, zabbix_token = load_config()
+    zabbix_web_url = build_zabbix_web_url(zabbix_url)
     today = datetime.now()
     start_date, period_name, period_slug = resolve_period(args, today)
     period_label = format_period_label(period_name, start_date, today)
@@ -524,6 +543,7 @@ def main():
         zabbix_summary,
         confea_incidents,
         confea_summary,
+        zabbix_web_url,
     )
     print(f"HTML gerado: {html_name}")
 

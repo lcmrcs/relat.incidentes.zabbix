@@ -74,10 +74,20 @@
             key: "date",
             direction: "desc",
         };
+        const reportConfig = window.REPORT_CONFIG || {};
+        const zabbixWebUrl = String(reportConfig.zabbixWebUrl || "").replace(/\/+$/, "");
         let unitSearchText = "";
         let globalSearchText = "";
         let unitSearchTimer = null;
         let globalSearchTimer = null;
+
+        function buildZabbixEventUrl(eventid) {
+            if (!zabbixWebUrl || !eventid) {
+                return "";
+            }
+
+            return `${zabbixWebUrl}/tr_events.php?eventid=${encodeURIComponent(eventid)}`;
+        }
 
         function parseDate(value) {
             const [datePart, timePart = "00:00"] = value.trim().split(" ");
@@ -675,27 +685,10 @@
                 return;
             }
 
+            const zabbixEventUrl = buildZabbixEventUrl(button.dataset.eventid);
             const fields = [
                 {
-                    label: "Status",
-                    value: button.dataset.status,
-                    className: "alert",
-                },
-                {
-                    label: "Tempo offline",
-                    value: button.dataset.ageLabel,
-                    className: "time",
-                },
-                {
-                    label: "Data de abertura",
-                    value: button.dataset.date,
-                },
-                {
-                    label: "Evento",
-                    value: button.dataset.eventid,
-                },
-                {
-                    label: "Unidade",
+                    label: "Unidade escolar",
                     value: button.dataset.unit,
                     className: "wide identity",
                 },
@@ -718,9 +711,12 @@
                     className: "wide",
                 },
                 {
-                    label: "Incidente",
-                    value: button.dataset.incident,
-                    className: "wide alert",
+                    label: "Data de abertura",
+                    value: button.dataset.date,
+                },
+                {
+                    label: "Evento Zabbix",
+                    value: button.dataset.eventid,
                 },
                 {
                     label: "Severidade",
@@ -741,6 +737,51 @@
 
             dialogBody.replaceChildren();
 
+            const heroElement = document.createElement("section");
+            const heroTextElement = document.createElement("div");
+            const heroEyebrowElement = document.createElement("span");
+            const heroTitleElement = document.createElement("h3");
+            const heroMetaElement = document.createElement("p");
+            const heroActionsElement = document.createElement("div");
+            const statusPill = document.createElement("span");
+            const agePill = document.createElement("span");
+            const eventPill = document.createElement("span");
+            const zabbixLink = document.createElement(zabbixEventUrl ? "a" : "span");
+            const fieldsGrid = document.createElement("div");
+
+            heroElement.className = "modal-hero";
+            heroTextElement.className = "modal-hero-text";
+            heroEyebrowElement.className = "modal-eyebrow";
+            heroTitleElement.className = "modal-hero-title";
+            heroMetaElement.className = "modal-hero-meta";
+            heroActionsElement.className = "modal-actions";
+            statusPill.className = `modal-pill status-${String(button.dataset.status || "").toLowerCase()}`;
+            agePill.className = "modal-pill";
+            eventPill.className = "modal-pill";
+            zabbixLink.className = zabbixEventUrl ? "modal-zabbix-link" : "modal-zabbix-link disabled";
+            fieldsGrid.className = "modal-fields-grid";
+
+            heroEyebrowElement.textContent = "Incidente monitorado";
+            heroTitleElement.textContent = button.dataset.incident || "Incidente sem descrição";
+            heroMetaElement.textContent = `${button.dataset.host || "-"} • ${button.dataset.unit || "-"}`;
+            statusPill.textContent = button.dataset.status || "-";
+            agePill.textContent = `Offline: ${button.dataset.ageLabel || "-"}`;
+            eventPill.textContent = `Evento: ${button.dataset.eventid || "-"}`;
+
+            if (zabbixEventUrl) {
+                zabbixLink.href = zabbixEventUrl;
+                zabbixLink.target = "_blank";
+                zabbixLink.rel = "noopener noreferrer";
+                zabbixLink.textContent = "Abrir no Zabbix";
+            } else {
+                zabbixLink.textContent = "Link indisponível";
+            }
+
+            heroActionsElement.append(statusPill, agePill, eventPill, zabbixLink);
+            heroTextElement.append(heroEyebrowElement, heroTitleElement, heroMetaElement);
+            heroElement.append(heroTextElement, heroActionsElement);
+            dialogBody.append(heroElement, fieldsGrid);
+
             fields.forEach(({ label, value, className }) => {
                 const fieldElement = document.createElement("div");
                 const labelElement = document.createElement("div");
@@ -753,7 +794,7 @@
                 valueElement.textContent = value || "-";
 
                 fieldElement.append(labelElement, valueElement);
-                dialogBody.append(fieldElement);
+                fieldsGrid.append(fieldElement);
             });
 
             dialog.showModal();

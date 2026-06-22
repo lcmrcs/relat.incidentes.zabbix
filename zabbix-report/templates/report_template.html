@@ -581,21 +581,44 @@
         </section>
         {% endif %}
     </main>
-    <dialog id="incident-dialog">
+    <dialog id="incident-dialog" class="incident-modal">
         <div class="modal-header">
             <h2 class="modal-title">Detalhes do Incidente</h2>
             <button class="modal-close" type="button" data-modal-close aria-label="Fechar">x</button>
         </div>
-        <div class="modal-body" id="incident-dialog-body"></div>
+        <div class="modal-body incident-modal-body" id="incident-dialog-body"></div>
     </dialog>
     {% if zabbix_incidents %}
-    <dialog id="zabbix-dialog">
+    <dialog id="zabbix-dialog" class="zabbix-modal">
         <div class="modal-header">
             <h2 class="modal-title">Servidor Zabbix</h2>
             <button class="modal-close" type="button" data-zabbix-close aria-label="Fechar">x</button>
         </div>
+        <div class="modal-summary zabbix-modal-summary">
+            <div>
+                <span class="modal-summary-label">Eventos</span>
+                <strong>{{ zabbix_summary.event_total }}</strong>
+            </div>
+            <div>
+                <span class="modal-summary-label">Mais antigo</span>
+                <strong>{{ zabbix_summary.age.oldest_label }}</strong>
+            </div>
+            <div>
+                <span class="modal-summary-label">Separado de</span>
+                <strong>Unidades escolares</strong>
+            </div>
+        </div>
         <div class="modal-table-wrap">
-            <table class="modal-table">
+            <table class="modal-table zabbix-modal-table">
+                <colgroup>
+                    <col class="modal-col-date">
+                    <col class="modal-col-status">
+                    <col class="modal-col-host">
+                    <col class="modal-col-incident">
+                    <col class="modal-col-severity">
+                    <col class="modal-col-age">
+                    <col class="modal-col-event">
+                </colgroup>
                 <thead>
                     <tr>
                         <th>Data</th>
@@ -610,13 +633,21 @@
                 <tbody>
                     {% for item in zabbix_incidents %}
                     <tr>
-                        <td>{{ item.date }}</td>
-                        <td>{{ item.status }}</td>
-                        <td>{{ item.host }}</td>
-                        <td title="{{ item.incident }}">{{ item.incident }}</td>
-                        <td>{{ item.severity }}</td>
-                        <td>{{ item.age_label }}</td>
-                        <td>{{ item.eventid }}</td>
+                        <td class="modal-date">{{ item.date }}</td>
+                        <td>
+                            <span class="status-badge {{ item.status | lower }}">
+                                {{ item.status }}
+                            </span>
+                        </td>
+                        <td class="modal-host">{{ item.host }}</td>
+                        <td class="modal-incident" title="{{ item.incident }}">{{ item.incident }}</td>
+                        <td>
+                            <span class="severity {{ item.severity | lower | replace('ã', 'a') | replace('ç', 'c') | replace('é', 'e') | replace('í', 'i') | replace(' ', '-') }}">
+                                {{ item.severity }}
+                            </span>
+                        </td>
+                        <td class="modal-age">{{ item.age_label }}</td>
+                        <td class="modal-event">{{ item.eventid }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -661,6 +692,9 @@
     </dialog>
     {% endif %}
     <script>
+        window.REPORT_CONFIG = {
+            zabbixWebUrl: {{ zabbix_web_url | tojson }}
+        };
 {% include "report_script.js" %}
     </script>
 </body>
