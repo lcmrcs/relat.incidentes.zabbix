@@ -93,6 +93,7 @@ outros.
 | `zabbix-report/templates/report_styles.css` | Estilos visuais do relatório HTML. |
 | `zabbix-report/templates/report_script.js` | Filtros, ordenação, modais e exportação CSV do HTML. |
 | `COMANDOS.md` | Guia rápido com os comandos usados no dia a dia. |
+| `CHANGELOG.md` | Histórico organizado das principais evoluções do projeto. |
 
 ## Requisitos
 
