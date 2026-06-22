@@ -81,6 +81,13 @@
         let unitSearchTimer = null;
         let globalSearchTimer = null;
         let filterFeedbackTimer = null;
+        let sortedRowsCache = null;
+        let sortedRowsCacheKey = "";
+        let appliedSortKey = "";
+        const ageFilterValues = Array.from(ageButtons)
+            .map((button) => button.dataset.ageFilter)
+            .filter((value) => value !== "all");
+        const ageRangeCache = new Map();
 
         function buildZabbixEventUrl(eventid) {
             if (!zabbixWebUrl || !eventid) {
@@ -157,42 +164,6 @@
             }
         });
 
-        function rowMatches(item, overrides = {}) {
-            const filters = { ...activeFilters, ...overrides };
-            const ageRange = parseAgeRange(filters.age);
-            const equipmentMatches =
-                filters.equipment === "all" ||
-                item.equipment === filters.equipment;
-            const statusMatches =
-                filters.status === "all" ||
-                item.status === filters.status;
-            const unitMatches =
-                filters.unit === "all" ||
-                item.unit === filters.unit;
-            const severityMatches =
-                filters.severity === "all" ||
-                item.severity === filters.severity;
-            const incidentTypeMatches =
-                filters.incidentType === "all" ||
-                item.incidentType === filters.incidentType;
-            const ageMatches =
-                filters.age === "all" ||
-                isAgeInRange(item.ageSeconds, ageRange);
-            const searchMatches =
-                !globalSearchText ||
-                item.searchText.includes(globalSearchText);
-
-            return (
-                equipmentMatches &&
-                statusMatches &&
-                unitMatches &&
-                severityMatches &&
-                incidentTypeMatches &&
-                ageMatches &&
-                searchMatches
-            );
-        }
-
         function addCount(map, key) {
             map.set(key, (map.get(key) || 0) + 1);
         }
@@ -202,12 +173,20 @@
                 return null;
             }
 
+            if (ageRangeCache.has(value)) {
+                return ageRangeCache.get(value);
+            }
+
             const [minValue, maxValue] = String(value).split("-");
 
-            return {
+            const range = {
                 min: Number(minValue) || 0,
                 max: maxValue ? Number(maxValue) : Infinity,
             };
+
+            ageRangeCache.set(value, range);
+
+            return range;
         }
 
         function isAgeInRange(ageSeconds, range) {
@@ -216,6 +195,45 @@
             }
 
             return ageSeconds >= range.min && ageSeconds < range.max;
+        }
+
+        function getPreparedFilters(overrides = {}) {
+            const age = overrides.age ?? activeFilters.age;
+
+            return {
+                equipment: overrides.equipment ?? activeFilters.equipment,
+                status: overrides.status ?? activeFilters.status,
+                unit: overrides.unit ?? activeFilters.unit,
+                severity: overrides.severity ?? activeFilters.severity,
+                age,
+                ageRange: parseAgeRange(age),
+                incidentType:
+                    overrides.incidentType ?? activeFilters.incidentType,
+                searchText: globalSearchText,
+            };
+        }
+
+        function rowMatchesPrepared(item, filters) {
+            return (
+                (filters.equipment === "all" ||
+                    item.equipment === filters.equipment) &&
+                (filters.status === "all" ||
+                    item.status === filters.status) &&
+                (filters.unit === "all" ||
+                    item.unit === filters.unit) &&
+                (filters.severity === "all" ||
+                    item.severity === filters.severity) &&
+                (filters.incidentType === "all" ||
+                    item.incidentType === filters.incidentType) &&
+                (filters.age === "all" ||
+                    isAgeInRange(item.ageSeconds, filters.ageRange)) &&
+                (!filters.searchText ||
+                    item.searchText.includes(filters.searchText))
+            );
+        }
+
+        function rowMatches(item, overrides = {}) {
+            return rowMatchesPrepared(item, getPreparedFilters(overrides));
         }
 
         function showFilterFeedback() {
@@ -238,37 +256,45 @@
                 severity: new Map([["all", 0]]),
                 age: new Map([["all", 0]]),
             };
-            const ageRanges = Array.from(ageButtons)
-                .map((button) => button.dataset.ageFilter)
-                .filter((value) => value !== "all");
+            const scopes = {
+                equipment: getPreparedFilters({ equipment: "all" }),
+                status: getPreparedFilters({ status: "all" }),
+                unit: getPreparedFilters({ unit: "all" }),
+                severity: getPreparedFilters({ severity: "all" }),
+                age: getPreparedFilters({ age: "all" }),
+            };
+            const ageRanges = ageFilterValues.map((value) => ({
+                value,
+                range: parseAgeRange(value),
+            }));
 
             rowData.forEach((item) => {
-                if (rowMatches(item, { equipment: "all" })) {
+                if (rowMatchesPrepared(item, scopes.equipment)) {
                     addCount(counts.equipment, "all");
                     addCount(counts.equipment, item.equipment);
                 }
 
-                if (rowMatches(item, { status: "all" })) {
+                if (rowMatchesPrepared(item, scopes.status)) {
                     addCount(counts.status, "all");
                     addCount(counts.status, item.status);
                 }
 
-                if (rowMatches(item, { unit: "all" })) {
+                if (rowMatchesPrepared(item, scopes.unit)) {
                     addCount(counts.unit, "all");
                     addCount(counts.unit, item.unit);
                 }
 
-                if (rowMatches(item, { severity: "all" })) {
+                if (rowMatchesPrepared(item, scopes.severity)) {
                     addCount(counts.severity, "all");
                     addCount(counts.severity, item.severity);
                 }
 
-                if (rowMatches(item, { age: "all" })) {
+                if (rowMatchesPrepared(item, scopes.age)) {
                     addCount(counts.age, "all");
 
-                    ageRanges.forEach((rangeValue) => {
-                        if (isAgeInRange(item.ageSeconds, parseAgeRange(rangeValue))) {
-                            addCount(counts.age, rangeValue);
+                    ageRanges.forEach(({ value, range }) => {
+                        if (isAgeInRange(item.ageSeconds, range)) {
+                            addCount(counts.age, value);
                         }
                     });
                 }
@@ -291,7 +317,11 @@
                     !label.includes(options.search);
 
                 if (counter) {
-                    counter.textContent = count;
+                    const nextText = String(count);
+
+                    if (counter.textContent !== nextText) {
+                        counter.textContent = nextText;
+                    }
                 }
 
                 button.classList.toggle(
@@ -307,18 +337,21 @@
 
         function updateFilters() {
             let visible = 0;
-            const visibleSeverityCounts = new Map();
             const visibleAges = [];
+            const visibleItems = [];
             const nowSeconds = Date.now() / 1000;
+            const filters = getPreparedFilters();
 
             rowData.forEach((item) => {
-                const matches = rowMatches(item);
+                const matches = rowMatchesPrepared(item, filters);
 
-                item.row.hidden = !matches;
+                if (item.row.hidden === matches) {
+                    item.row.hidden = !matches;
+                }
 
                 if (matches) {
                     visible += 1;
-                    addCount(visibleSeverityCounts, item.severity);
+                    visibleItems.push(item);
 
                     if (item.timestamp) {
                         visibleAges.push(Math.max(0, nowSeconds - item.timestamp));
@@ -377,22 +410,26 @@
             );
 
             if (status) {
-                status.textContent = `Exibindo: ${visible}`;
+                const nextStatus = `Exibindo: ${visible}`;
+
+                if (status.textContent !== nextStatus) {
+                    status.textContent = nextStatus;
+                }
             }
 
             if (tableEmpty) {
                 tableEmpty.hidden = visible !== 0;
             }
 
-            updateFilteredSummary(visible, visibleSeverityCounts, visibleAges);
+            updateFilteredSummary(visible, visibleItems, visibleAges);
         }
 
-        function updateFilteredSummary(total, severityCounts, ages) {
+        function updateFilteredSummary(total, visibleItems, ages) {
             const oldestAge = ages.length ? Math.max(...ages) : 0;
             const rangeUpTo3 = ages.filter((age) => age < 345600).length;
             const range4To30 = ages.filter((age) => age >= 345600 && age < 2678400).length;
             const rangeOver30 = ages.filter((age) => age >= 2678400).length;
-            const priorityHigh = getVisibleRows().filter((item) => item.priorityRank >= 2).length;
+            const priorityHigh = visibleItems.filter((item) => item.priorityRank >= 2).length;
 
             filterSummaryItems.forEach((item) => {
                 const key = item.dataset.filterSummary;
@@ -427,12 +464,14 @@
                     return;
                 }
 
-                item.textContent = severityCounts.get(key) || 0;
+                item.textContent = 0;
             });
         }
 
         function getVisibleRows() {
-            return rowData.filter(rowMatches);
+            const filters = getPreparedFilters();
+
+            return rowData.filter((item) => rowMatchesPrepared(item, filters));
         }
 
         function compareValues(first, second) {
@@ -452,6 +491,12 @@
                 return;
             }
 
+            const cacheKey = `${activeSort.key}:${activeSort.direction}`;
+
+            if (appliedSortKey === cacheKey) {
+                return;
+            }
+
             const sortedRows = getSortedRows();
             const fragment = document.createDocumentFragment();
 
@@ -460,10 +505,17 @@
             });
 
             tableBody.appendChild(fragment);
+            appliedSortKey = cacheKey;
         }
 
         function getSortedRows() {
-            return [...rowData].sort((first, second) => {
+            const cacheKey = `${activeSort.key}:${activeSort.direction}`;
+
+            if (sortedRowsCache && sortedRowsCacheKey === cacheKey) {
+                return sortedRowsCache;
+            }
+
+            sortedRowsCache = [...rowData].sort((first, second) => {
                 const result = compareValues(
                     first[activeSort.key],
                     second[activeSort.key]
@@ -471,6 +523,9 @@
 
                 return activeSort.direction === "asc" ? result : -result;
             });
+            sortedRowsCacheKey = cacheKey;
+
+            return sortedRowsCache;
         }
 
         function updateSortButtons() {
