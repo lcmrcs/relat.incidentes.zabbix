@@ -105,6 +105,95 @@
             </div>
         </section>
 
+        <section class="visual-dashboard" aria-label="Graficos executivos do relatorio">
+            <article class="chart-card chart-card-risk">
+                <div class="chart-card-heading">
+                    <span class="chart-kicker">Mapa visual</span>
+                    <h2>Severidade dos Incidentes</h2>
+                </div>
+                <div class="donut-layout">
+                    <div class="donut-chart" aria-label="Distribuição por severidade">
+                        <svg viewBox="0 0 120 120" role="img">
+                            <circle class="donut-track" cx="60" cy="60" r="42" pathLength="100"></circle>
+                            {% set severity_offset = namespace(value=25) %}
+                            {% for item in summary.severity %}
+                            <circle
+                                class="donut-segment severity-stroke-{{ item.name | lower | replace('ã', 'a') | replace('ç', 'c') | replace('é', 'e') | replace('í', 'i') | replace(' ', '-') }}"
+                                cx="60"
+                                cy="60"
+                                r="42"
+                                pathLength="100"
+                                stroke-dasharray="{{ item.percent }} {{ 100 - item.percent }}"
+                                stroke-dashoffset="{{ severity_offset.value }}"
+                            ></circle>
+                            {% set severity_offset.value = severity_offset.value - item.percent %}
+                            {% endfor %}
+                        </svg>
+                        <div class="donut-center">
+                            <strong>{{ summary.event_total }}</strong>
+                            <span>abertos</span>
+                        </div>
+                    </div>
+                    <div class="chart-legend">
+                        {% for item in summary.severity[:5] %}
+                        <button class="legend-item severity-dot-{{ item.name | lower | replace('ã', 'a') | replace('ç', 'c') | replace('é', 'e') | replace('í', 'i') | replace(' ', '-') }}" type="button" data-quick-severity="{{ item.name }}">
+                            <span>{{ item.name }}</span>
+                            <strong>{{ item.total }} | {{ item.percent }}%</strong>
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
+            </article>
+
+            <article class="chart-card chart-card-equipment">
+                <div class="chart-card-heading">
+                    <span class="chart-kicker">Concentração</span>
+                    <h2>Equipamentos em Destaque</h2>
+                </div>
+                <div class="column-chart" aria-label="Equipamentos mais afetados">
+                    {% for item in summary.top_equipment[:6] %}
+                    <button class="column-bar" type="button" data-quick-equipment="{{ item.name }}" title="{{ item.name }}">
+                        <span class="column-track">
+                            <span class="column-fill" style="height: {{ item.percent }}%;"></span>
+                        </span>
+                        <strong>{{ item.total }}</strong>
+                        <span>{{ item.name }}</span>
+                    </button>
+                    {% endfor %}
+                </div>
+            </article>
+
+            <article class="chart-card chart-card-age">
+                <div class="chart-card-heading">
+                    <span class="chart-kicker">Envelhecimento</span>
+                    <h2>Faixas de Tempo Offline</h2>
+                </div>
+                <div class="age-chart" aria-label="Faixas de idade dos incidentes">
+                    <button class="age-chip" type="button" data-quick-age="0-86400" style="--age-width: {{ (summary.age.range_24h / summary.event_total * 100) | round(1) if summary.event_total else 0 }}%;">
+                        <span>24h</span>
+                        <strong>{{ summary.age.range_24h }}</strong>
+                    </button>
+                    <button class="age-chip" type="button" data-quick-age="86400-345600" style="--age-width: {{ (summary.age.range_1_3d / summary.event_total * 100) | round(1) if summary.event_total else 0 }}%;">
+                        <span>1-3d</span>
+                        <strong>{{ summary.age.range_1_3d }}</strong>
+                    </button>
+                    <button class="age-chip" type="button" data-quick-age="345600-950400" style="--age-width: {{ (summary.age.range_4_10d / summary.event_total * 100) | round(1) if summary.event_total else 0 }}%;">
+                        <span>4-10d</span>
+                        <strong>{{ summary.age.range_4_10d }}</strong>
+                    </button>
+                    <button class="age-chip" type="button" data-quick-age="950400-2678400" style="--age-width: {{ ((summary.age.range_11_20d + summary.age.range_21_30d) / summary.event_total * 100) | round(1) if summary.event_total else 0 }}%;">
+                        <span>11-30d</span>
+                        <strong>{{ summary.age.range_11_20d + summary.age.range_21_30d }}</strong>
+                    </button>
+                    <button class="age-chip" type="button" data-quick-age="2678400-" style="--age-width: {{ ((summary.age.range_31_50d + summary.age.range_51_75d + summary.age.range_76_90d + summary.age.range_over_90d) / summary.event_total * 100) | round(1) if summary.event_total else 0 }}%;">
+                        <span>+30d</span>
+                        <strong>{{ summary.age.range_31_50d + summary.age.range_51_75d + summary.age.range_76_90d + summary.age.range_over_90d }}</strong>
+                    </button>
+                </div>
+                <p class="age-note">Mais antigo: <strong>{{ summary.age.oldest_label }}</strong> · Média: <strong>{{ summary.age.average_label }}</strong></p>
+            </article>
+        </section>
+
         <section class="insights" aria-label="Indicadores do relatorio">
             <article class="panel">
                 <h2>Tempo Offline</h2>
