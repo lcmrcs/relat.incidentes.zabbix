@@ -341,22 +341,27 @@
         {% endif %}
 
         {% if incidents %}
-        <section class="filter-panel" aria-label="Filtro por tipo de equipamento">
+        <section class="filter-panel" aria-label="Filtro do relatório">
             <div class="filter-header">
-                <h2>Filtro do Relatório</h2>
-                <span class="filter-status" id="filter-status">
-                    Exibindo: {{ summary.event_total }}
-                </span>
+                <div>
+                    <span class="filter-kicker">Refinamento operacional</span>
+                    <h2>Filtro do Relatório</h2>
+                    <p>Selecione apenas o que precisa analisar agora.</p>
+                </div>
+                <span class="filter-status" id="filter-status">Exibindo: {{ summary.event_total }}</span>
             </div>
 
             <div class="filter-tools">
-                <input
-                    class="global-search"
-                    id="global-search"
-                    type="search"
-                    placeholder="Pesquisar host, incidente, equipamento ou severidade"
-                    autocomplete="off"
-                >
+                <div class="search-shell">
+                    <span aria-hidden="true">Buscar</span>
+                    <input
+                        class="global-search"
+                        id="global-search"
+                        type="search"
+                        placeholder="Host, incidente, equipamento ou severidade"
+                        autocomplete="off"
+                    >
+                </div>
                 <button class="clear-button" type="button" id="clear-filters">
                     Limpar filtro
                 </button>
@@ -386,7 +391,7 @@
                 {% endif %}
 
                 <div class="filter-group">
-                    <p class="filter-label"><span class="filter-step">{{ 2 if has_status_filter else 1 }}</span>Unidade escolar</p>
+                    <p class="filter-label"><span class="filter-step">{{ 2 if has_status_filter else 1 }}</span>Unidade</p>
                     <input
                         class="unit-search"
                         id="unit-search"
@@ -511,26 +516,6 @@
                 <div class="filtered-card">
                     <p class="filtered-label">Prioridade alta</p>
                     <p class="filtered-value priority-high" data-filter-summary="priorityHigh">0</p>
-                </div>
-                <div class="filtered-card">
-                    <p class="filtered-label">Alta</p>
-                    <p class="filtered-value high" data-filter-summary="Alta">0</p>
-                </div>
-                <div class="filtered-card">
-                    <p class="filtered-label">Média</p>
-                    <p class="filtered-value medium" data-filter-summary="Média">0</p>
-                </div>
-                <div class="filtered-card">
-                    <p class="filtered-label">Atenção</p>
-                    <p class="filtered-value attention" data-filter-summary="Atenção">0</p>
-                </div>
-                <div class="filtered-card">
-                    <p class="filtered-label">Informação</p>
-                    <p class="filtered-value information" data-filter-summary="Informação">0</p>
-                </div>
-                <div class="filtered-card">
-                    <p class="filtered-label">Desastre</p>
-                    <p class="filtered-value disaster" data-filter-summary="Desastre">0</p>
                 </div>
             </div>
         </section>
