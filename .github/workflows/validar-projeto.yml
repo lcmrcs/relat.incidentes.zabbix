@@ -39,5 +39,8 @@ jobs:
             zabbix-report/zabbix_report.py \
             scripts/check_secrets.py
 
+      - name: Rodar testes automatizados
+        run: python -m unittest discover -s zabbix-report/tests -p "test_*.py"
+
       - name: Verificar credenciais acidentais
         run: python scripts/check_secrets.py

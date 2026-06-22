@@ -313,6 +313,17 @@ Sempre que mexer em Python:
 python -m py_compile zabbix-report/*.py
 ```
 
+Rodar os testes automatizados:
+
+```bash
+python -m unittest discover -s zabbix-report/tests -p "test_*.py"
+```
+
+Funcao:
+- Confere se as classificacoes de equipamento, unidade e tipo de incidente continuam corretas.
+- Confere se os totais, rankings e faixas de tempo offline continuam sendo calculados corretamente.
+- Ajuda a descobrir rapidamente se uma melhoria quebrou alguma regra importante do relatorio.
+
 Verificar espacos problemáticos no Git:
 
 ```bash
@@ -479,6 +490,7 @@ Validar alteracoes:
 
 ```bash
 python -m py_compile zabbix-report/*.py
+python -m unittest discover -s zabbix-report/tests -p "test_*.py"
 git diff --check
 git status
 ```
