@@ -1,4 +1,4 @@
-# Guia Rápido: Relatório por Equipamento
+# Guia Rápido: Relatório Executivo de Incidentes Zabbix por Equipamento
 
 Este guia é para quem precisa gerar um relatório filtrado por qualquer tipo de
 equipamento monitorado no Zabbix.

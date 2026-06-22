@@ -229,7 +229,7 @@ def build_summary_pdf_page(summary, generated, period_label, total_pages):
         commands,
         36,
         568,
-        "Relatorio Executivo de Incidentes Zabbix",
+        "Relatório Executivo de Incidentes Zabbix",
         18,
         "F2",
         dark,

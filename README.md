@@ -219,7 +219,7 @@ python zabbix-report/zabbix_report.py --desde 2026-06-01 --status abertos
 Esse modo é útil quando o histórico completo estiver pesado ou quando for
 necessário analisar um intervalo específico.
 
-## Gerar Relatório por Equipamento
+## Gerar Relatório Executivo de Incidentes Zabbix por Equipamento
 
 Exemplo para `Terminal Facial`:
 
@@ -242,7 +242,7 @@ python zabbix-report/zabbix_report.py --periodo historico --status abertos --equ
 O relatório por equipamento não quebra o relatório principal. Ele gera arquivos
 separados com o nome do equipamento no nome do arquivo.
 
-## Atalho para Relatório por Equipamento
+## Atalho para Relatório Executivo de Incidentes Zabbix por Equipamento
 
 Para facilitar o uso por outra pessoa, o projeto possui atalhos para gerar um
 relatório filtrado por qualquer equipamento.

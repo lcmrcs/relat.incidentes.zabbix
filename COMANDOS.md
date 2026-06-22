@@ -1,9 +1,9 @@
-# Guia Operacional do Projeto Zabbix
+# Guia Operacional do Relatório Executivo de Incidentes Zabbix
 
-Este guia mostra os comandos principais para executar, gerar relatorios,
-abrir arquivos, validar alteracoes e atualizar o GitHub.
+Este guia mostra os comandos principais para executar, gerar relatórios,
+abrir arquivos, validar alterações e atualizar o GitHub.
 
-Use este arquivo como referencia rapida quando quiser puxar um relatorio novo
+Use este arquivo como referência rápida quando quiser puxar um relatório novo
 ou fazer ajustes pequenos no projeto.
 
 ## 1. Entrar na pasta do projeto

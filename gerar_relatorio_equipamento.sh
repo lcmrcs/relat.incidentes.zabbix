@@ -4,7 +4,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 echo "==============================================="
-echo "Relatorio Zabbix - Por Equipamento"
+echo "Relatorio Executivo de Incidentes Zabbix - Por Equipamento"
 echo "==============================================="
 echo
 

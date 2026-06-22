@@ -4,7 +4,7 @@ import textwrap
 
 BASE_DIR = Path(__file__).resolve().parent
 REPORTS_DIR = BASE_DIR / "reports"
-PDF_PATH = REPORTS_DIR / "documentacao_projeto_zabbix.pdf"
+PDF_PATH = REPORTS_DIR / "documentacao_relatorio_executivo_incidentes_zabbix.pdf"
 
 PAGE_WIDTH = 595
 PAGE_HEIGHT = 842
@@ -14,7 +14,10 @@ MARGIN_BOTTOM = 52
 
 
 DOCUMENT = [
-    ("title", "Documentacao do Projeto - Relatorio de Incidente Zabbix"),
+    (
+        "title",
+        "Documentacao do Projeto - Relatorio Executivo de Incidentes Zabbix",
+    ),
     (
         "body",
         "Este documento explica a funcao dos arquivos e dos blocos principais "
