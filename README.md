@@ -1,41 +1,59 @@
 # Relatório Executivo de Incidentes Zabbix
 
-Projeto em Python para consultar incidentes do Zabbix, organizar os dados por
-unidade escolar, equipamento, severidade e tempo offline, e gerar relatórios em
-HTML interativo, PDF e Excel.
+Projeto em Python para consultar incidentes do Zabbix, organizar os dados de
+monitoramento e gerar relatórios executivos em HTML, Excel e PDF.
 
-O objetivo é transformar dados técnicos do Zabbix em uma visão operacional mais
-clara, útil para acompanhamento diário, análise de impacto e envio de
-informações para supervisão.
+O objetivo é transformar informações técnicas da API do Zabbix em uma visão
+mais clara, interativa e útil para análise operacional, acompanhamento de
+incidentes abertos e apresentação para supervisão.
+
+> Projeto em desenvolvimento contínuo.
 
 ## Visão Geral
 
-Este projeto coleta incidentes diretamente da API do Zabbix e gera um relatório
-executivo com foco nos chamados abertos. O HTML possui filtros, painéis de
-indicadores, ranking de unidades, ranking de equipamentos, tipos de incidente,
-tempo offline e janelas de detalhe por incidente.
+O projeto coleta incidentes diretamente da API JSON-RPC do Zabbix, processa os
+dados e gera um relatório focado em incidentes abertos.
 
-Além do relatório geral, também é possível gerar relatórios específicos por
-tipo de equipamento, como `Terminal Facial`, `Câmera`, `Mikrotik`, `Switch` e
-outros.
+O relatório permite analisar:
+
+- quantidade de incidentes abertos;
+- severidade dos incidentes;
+- tempo offline;
+- equipamentos mais afetados;
+- tipos de incidente mais recorrentes;
+- hosts com mais ocorrências;
+- unidades escolares mais afetadas;
+- eventos separados do Servidor Zabbix;
+- eventos separados da CONFEA VPN.
+
+Além do relatório geral, também é possível gerar relatórios filtrados por tipo
+de equipamento, como `Terminal Facial`, `Câmera`, `Mikrotik`, `Switch`, `NVR`,
+`Central de Alarme` e `Portal Detector de Metal`.
 
 ## Principais Recursos
 
 - Consulta de incidentes diretamente na API do Zabbix.
 - Relatório histórico completo de incidentes abertos.
-- Relatórios por período, como últimas 24 horas, 2 dias, 5 dias, 7 dias e 30 dias.
-- Relatório por data inicial, usando `--desde`.
-- Relatório específico por tipo de equipamento.
-- Separação de incidentes de unidades escolares.
-- Separação própria para o Servidor Zabbix.
-- Separação própria para equipamentos da CONFEA VPN.
+- Relatórios por período, como 24 horas, 2 dias, 5 dias, 7 dias e 30 dias.
+- Relatório a partir de uma data específica com `--desde`.
+- Relatório por tipo de equipamento com `--equipamento`.
 - Classificação automática de equipamentos.
-- Classificação consolidada dos tipos de incidente.
-- Indicadores de severidade, prioridade e tempo offline.
-- HTML interativo com filtros, busca, ordenação e exportação CSV.
+- Consolidação de tipos de incidente.
+- Cálculo de indicadores executivos.
+- Gráficos visuais no HTML.
+- Ranking por severidade, equipamento, host, unidade e tipo de incidente.
+- Filtro por unidade escolar, equipamento, severidade e tempo offline.
+- Busca geral por host, incidente, equipamento ou severidade.
+- Ordenação de colunas.
+- Janela de detalhes por incidente.
+- Link de abertura do incidente diretamente no Zabbix.
+- Exportação CSV dos dados filtrados no HTML.
+- Geração de planilha Excel.
 - Geração de PDF executivo.
-- Geração de planilha Excel com dados estruturados.
-- Template HTML separado em estrutura, CSS e JavaScript para facilitar manutenção.
+- Separação entre HTML, CSS e JavaScript para facilitar manutenção.
+- Uso de `.env` para proteger credenciais.
+- Verificação local de possíveis segredos antes de publicar.
+- Workflow no GitHub Actions para validação automática.
 
 ## Tecnologias Utilizadas
 
@@ -44,24 +62,30 @@ outros.
 - Pandas
 - OpenPyXL
 - Jinja2
-- Python Dotenv
+- python-dotenv
 - HTML
 - CSS
 - JavaScript
+- Git
+- GitHub
+- GitHub Actions
 
 ## Estrutura do Projeto
 
 ```text
 .
 ├── README.md
+├── CHANGELOG.md
 ├── COMANDOS.md
+├── GUIA_RAPIDO_RELATORIO_POR_EQUIPAMENTO.md
+├── SEGURANCA.md
+├── ABRIR_RELATORIO_POR_EQUIPAMENTO.bat
+├── gerar_relatorio_equipamento.bat
+├── gerar_relatorio_equipamento.sh
 ├── documentacao/
 │   └── Guia_Operacional_Zabbix.pdf
-├── entrega_supervisor/
-│   ├── Relatorio_Executivo_Incidentes_Zabbix_Atual.pdf
-│   ├── Relatorio_Executivo_Incidentes_Zabbix_Dados.xlsx
-│   ├── Relatorio_Executivo_Incidentes_Zabbix_Interativo.html
-│   └── Relatorio_Executivo_Incidentes_Zabbix_Atual.zip
+├── scripts/
+│   └── check_secrets.py
 └── zabbix-report/
     ├── .env.example
     ├── .gitignore
@@ -73,6 +97,7 @@ outros.
     ├── test_zabbix_api.py
     ├── zabbix_api.py
     ├── zabbix_report.py
+    ├── reports/
     └── templates/
         ├── report_template.html
         ├── report_styles.css
@@ -83,23 +108,24 @@ outros.
 
 | Arquivo | Função |
 | --- | --- |
-| `zabbix-report/zabbix_report.py` | Script principal. Coordena a coleta, tratamento e geração dos relatórios. |
-| `zabbix-report/zabbix_api.py` | Cliente de comunicação com a API do Zabbix. |
-| `zabbix-report/classifiers.py` | Regras de classificação de equipamento, unidade e tipo de incidente. |
-| `zabbix-report/summary.py` | Cálculo dos indicadores e rankings do relatório. |
-| `zabbix-report/pdf_report.py` | Geração do relatório em PDF. |
+| `zabbix-report/zabbix_report.py` | Script principal. Coordena coleta, tratamento e geração dos relatórios. |
+| `zabbix-report/zabbix_api.py` | Cliente responsável pela comunicação com a API do Zabbix. |
+| `zabbix-report/classifiers.py` | Regras de classificação de unidade, equipamento e tipo de incidente. |
+| `zabbix-report/summary.py` | Cálculo dos indicadores, rankings e resumos do relatório. |
+| `zabbix-report/pdf_report.py` | Geração do relatório executivo em PDF. |
 | `zabbix-report/test_zabbix_api.py` | Teste rápido de conexão com a API do Zabbix. |
 | `zabbix-report/templates/report_template.html` | Estrutura HTML/Jinja do relatório. |
 | `zabbix-report/templates/report_styles.css` | Estilos visuais do relatório HTML. |
-| `zabbix-report/templates/report_script.js` | Filtros, ordenação, modais e exportação CSV do HTML. |
-| `COMANDOS.md` | Guia rápido com os comandos usados no dia a dia. |
-| `CHANGELOG.md` | Histórico organizado das principais evoluções do projeto. |
+| `zabbix-report/templates/report_script.js` | Filtros, busca, ordenação, modais e exportação CSV. |
+| `scripts/check_secrets.py` | Verificação local de possíveis tokens, senhas e segredos. |
+| `COMANDOS.md` | Guia prático com comandos usados no dia a dia. |
+| `CHANGELOG.md` | Histórico das principais evoluções do projeto. |
 
 ## Requisitos
 
 - Python 3.7 ou superior.
 - Acesso à API do Zabbix.
-- Token de API válido no Zabbix.
+- Token válido da API do Zabbix.
 - Dependências listadas em `zabbix-report/requirements.txt`.
 
 ## Configuração Inicial
@@ -116,7 +142,7 @@ Crie o arquivo `.env` a partir do exemplo:
 cp zabbix-report/.env.example zabbix-report/.env
 ```
 
-Edite o arquivo `zabbix-report/.env` com as informações reais do seu Zabbix:
+Edite o arquivo `zabbix-report/.env` com as informações reais do seu ambiente:
 
 ```env
 ZABBIX_URL=https://seu-zabbix.example.com/api_jsonrpc.php
@@ -127,7 +153,7 @@ O arquivo `.env` real não deve ser enviado ao GitHub, pois contém credenciais.
 
 ## Instalação
 
-Crie o ambiente virtual, caso ainda não exista:
+Crie o ambiente virtual:
 
 ```bash
 python3 -m venv zabbix-report/venv
@@ -147,22 +173,22 @@ pip install -r zabbix-report/requirements.txt
 
 ## Testar Conexão com o Zabbix
 
-Antes de gerar relatórios, valide se a conexão com a API está funcionando:
+Antes de gerar relatórios, valide a conexão com a API:
 
 ```bash
 python zabbix-report/test_zabbix_api.py
 ```
 
-Esse teste ajuda a confirmar se:
+Esse teste confirma se:
 
-- O arquivo `.env` foi encontrado.
-- A URL da API está correta.
-- O token está válido.
-- O Zabbix está respondendo.
+- o arquivo `.env` foi encontrado;
+- a URL da API está correta;
+- o token está válido;
+- o Zabbix está respondendo.
 
 ## Gerar Relatório Principal
 
-Este é o comando mais usado no projeto:
+Comando mais usado no projeto:
 
 ```bash
 python zabbix-report/zabbix_report.py --periodo historico --status abertos
@@ -170,12 +196,12 @@ python zabbix-report/zabbix_report.py --periodo historico --status abertos
 
 Esse comando:
 
-- Busca o histórico completo de incidentes ainda abertos.
-- Ignora incidentes resolvidos.
-- Separa incidentes de unidades escolares.
-- Separa eventos do Servidor Zabbix.
-- Separa eventos da CONFEA VPN.
-- Gera HTML, PDF e Excel.
+- busca o histórico completo de incidentes ainda abertos;
+- ignora incidentes resolvidos;
+- separa incidentes de unidades escolares;
+- separa eventos do Servidor Zabbix;
+- separa eventos da CONFEA VPN;
+- gera HTML, PDF e Excel.
 
 Os arquivos são criados em:
 
@@ -220,7 +246,7 @@ python zabbix-report/zabbix_report.py --desde 2026-06-01 --status abertos
 Esse modo é útil quando o histórico completo estiver pesado ou quando for
 necessário analisar um intervalo específico.
 
-## Gerar Relatório Executivo de Incidentes Zabbix por Equipamento
+## Gerar Relatório por Equipamento
 
 Exemplo para `Terminal Facial`:
 
@@ -240,50 +266,37 @@ Exemplo para `Mikrotik`:
 python zabbix-report/zabbix_report.py --periodo historico --status abertos --equipamento "Mikrotik"
 ```
 
-O relatório por equipamento não quebra o relatório principal. Ele gera arquivos
+O relatório por equipamento não altera o relatório principal. Ele gera arquivos
 separados com o nome do equipamento no nome do arquivo.
 
-## Atalho para Relatório Executivo de Incidentes Zabbix por Equipamento
+## Atalhos de Execução
 
-Para facilitar o uso por outra pessoa, o projeto possui atalhos para gerar um
-relatório filtrado por qualquer equipamento.
+O projeto possui atalhos para facilitar o uso por pessoas que não querem lidar
+diretamente com comandos Python.
 
-No Windows, execute:
+No Windows:
 
 ```text
 ABRIR_RELATORIO_POR_EQUIPAMENTO.bat
 ```
 
-No Linux ou WSL, execute:
+No Linux ou WSL:
 
 ```bash
 ./gerar_relatorio_equipamento.sh
 ```
 
-O arquivo `ABRIR_RELATORIO_POR_EQUIPAMENTO.bat` é o caminho mais simples
-para usuários de Windows. Na primeira execução, se o `.env` ainda não existir,
-ele pergunta a URL da API do Zabbix e o token, cria o arquivo de configuração e
-continua a geração do relatório. Depois, ele pergunta qual equipamento deve ser
-filtrado.
+O atalho do Windows pode:
 
-Esses atalhos fazem automaticamente:
+- verificar se o `.env` existe;
+- criar a configuração inicial;
+- criar a `venv`, se necessário;
+- instalar dependências;
+- perguntar qual equipamento será filtrado;
+- gerar o relatório;
+- abrir o HTML mais recente.
 
-- validação da existência do arquivo `.env`;
-- criação de uma `venv` própria do Windows, se ela ainda não existir;
-- instalação das dependências;
-- geração do relatório histórico de abertos;
-- filtro exclusivo para o equipamento escolhido;
-- abertura do HTML mais recente gerado.
-
-Antes de usar em outro computador, a pessoa precisa:
-
-1. Ter Python instalado.
-2. Baixar ou clonar este repositório.
-3. Criar o arquivo `zabbix-report/.env`.
-4. Preencher `ZABBIX_URL` e `ZABBIX_TOKEN`.
-5. Executar o atalho correspondente ao sistema operacional.
-
-Também existe um guia específico para esse uso:
+Também existe um guia específico para esse fluxo:
 
 ```text
 GUIA_RAPIDO_RELATORIO_POR_EQUIPAMENTO.md
@@ -291,42 +304,41 @@ GUIA_RAPIDO_RELATORIO_POR_EQUIPAMENTO.md
 
 ## Saídas Geradas
 
-Para cada execução, o projeto gera:
+Para cada execução, o projeto gera arquivos semelhantes a:
 
 ```text
-report_AAAA-MM-DD_periodo.xlsx
 report_AAAA-MM-DD_periodo.html
 report_AAAA-MM-DD_periodo.pdf
+report_AAAA-MM-DD_periodo.xlsx
 ```
 
-Cada formato tem uma finalidade:
+Finalidade de cada formato:
 
-- `.html`: relatório interativo para análise, busca e filtros.
-- `.pdf`: relatório formal para envio e apresentação.
+- `.html`: relatório interativo para análise, filtros e busca.
+- `.pdf`: versão formal para apresentação e envio.
 - `.xlsx`: planilha para análise detalhada dos dados.
 
 ## O Que Existe no HTML
 
-O relatório HTML possui:
+O relatório HTML contém:
 
-- Resumo executivo.
-- Indicadores de incidentes abertos.
-- Métricas de tempo offline.
-- Distribuição por severidade.
-- Ranking de equipamentos mais afetados.
-- Ranking de tipos de incidente.
-- Ranking de hosts com mais incidentes.
-- Ranking de unidades mais afetadas.
-- Filtro por unidade escolar.
-- Filtro por equipamento.
-- Filtro por severidade.
-- Filtro por tempo offline.
-- Busca geral.
-- Ordenação de colunas.
-- Janela de detalhes por incidente.
-- Exportação CSV dos dados filtrados.
-- Janela separada para Servidor Zabbix.
-- Janela separada para CONFEA VPN.
+- cabeçalho executivo;
+- indicadores principais;
+- gráficos de severidade, equipamento e tempo offline;
+- ranking de equipamentos mais afetados;
+- ranking de tipos de incidente;
+- ranking de hosts com mais incidentes;
+- ranking de unidades mais afetadas;
+- filtro por unidade escolar;
+- filtro por equipamento;
+- filtro por severidade;
+- filtro por tempo offline;
+- busca geral;
+- ordenação por colunas;
+- janela de detalhes por incidente;
+- exportação CSV dos dados filtrados;
+- janela separada para Servidor Zabbix;
+- janela separada para CONFEA VPN.
 
 ## Classificação de Equipamentos
 
@@ -336,7 +348,7 @@ A classificação de equipamentos fica em:
 zabbix-report/classifiers.py
 ```
 
-A ordem operacional usada no relatório é:
+Ordem operacional usada no relatório:
 
 1. Mikrotik
 2. Switch
@@ -349,14 +361,14 @@ A ordem operacional usada no relatório é:
 9. Servidor
 10. Outros
 
-Essa ordem ajuda a manter o filtro do HTML previsível e organizado.
+Essa ordem mantém filtros, rankings e telas de análise mais previsíveis.
 
 ## Tipos de Incidente
 
-O projeto consolida textos técnicos do Zabbix em famílias de incidente, evitando
-que pequenas variações gerem várias categorias diferentes.
+O projeto consolida textos técnicos do Zabbix em famílias de incidente. Isso
+evita que pequenas variações criem categorias duplicadas.
 
-Exemplos:
+Exemplos de famílias:
 
 - `Unavailable by ICMP ping`
 - `High ICMP ping response time`
@@ -367,7 +379,7 @@ Exemplos:
 - `Temperature above threshold`
 - `High bandwidth usage`
 
-As regras ficam na função:
+A regra principal fica em:
 
 ```python
 classify_incident_type(incident)
@@ -379,25 +391,17 @@ Arquivo:
 zabbix-report/classifiers.py
 ```
 
-## Unidades Escolares
+## Unidades Escolares, Servidor Zabbix e CONFEA VPN
 
-O relatório usa as informações vindas do Zabbix para identificar unidades
-escolares. A organização considera o código da unidade, como `1011`, `1012`,
-`1091`, entre outros.
+O relatório organiza os incidentes em grupos diferentes para evitar mistura de
+contextos operacionais.
 
-Quando o host pertence a uma unidade escolar, ele entra no relatório principal.
-Quando o host é o `0000-SRV Zabbix server`, ele fica separado em uma janela
-própria do Servidor Zabbix.
-
-## Servidor Zabbix e CONFEA VPN
-
-O projeto trata alguns grupos de forma separada:
-
-- `Servidor Zabbix`: eventos do próprio servidor de monitoramento.
+- `Unidades escolares`: incidentes dos equipamentos associados às unidades.
+- `Servidor Zabbix`: eventos técnicos do próprio servidor de monitoramento.
 - `CONFEA VPN`: servidores monitorados por ping através de VPN.
 
-Essa separação evita misturar eventos internos ou externos com incidentes das
-unidades escolares.
+Essa separação deixa a análise mais fiel, porque eventos internos ou externos
+não são misturados com incidentes das unidades escolares.
 
 ## Segurança
 
@@ -409,8 +413,9 @@ Cuidados obrigatórios:
 - Gere tokens com permissões mínimas necessárias.
 - Revogue tokens antigos caso eles sejam expostos.
 - Não compartilhe relatórios com dados sensíveis sem validação.
+- Para imagens públicas, use dados fictícios ou sanitizados.
 
-Antes de fazer commit, rode a verificação local de segredos:
+Antes de fazer commit ou publicar o projeto, rode:
 
 ```bash
 python scripts/check_secrets.py
@@ -429,9 +434,10 @@ Devem ficar fora do repositório:
 - `.env`
 - `venv/`
 - `reports/`
-- caches do Python
-- arquivos temporários
-- credenciais locais
+- caches do Python;
+- arquivos temporários;
+- credenciais locais;
+- entregas locais com dados sensíveis.
 
 Isso mantém o repositório mais leve e seguro.
 
@@ -439,7 +445,7 @@ Isso mantém o repositório mais leve e seguro.
 
 1. Entrar na pasta do projeto.
 2. Ativar a `venv`.
-3. Testar a conexão, se necessário.
+3. Testar a conexão com o Zabbix, se necessário.
 4. Gerar o relatório desejado.
 5. Abrir o HTML em `zabbix-report/reports/`.
 6. Conferir filtros, rankings e detalhes.
@@ -457,28 +463,36 @@ python zabbix-report/zabbix_report.py --periodo historico --status abertos
 
 Ao adicionar ou ajustar regras:
 
-- Use `classifiers.py` para novas classificações.
-- Use `summary.py` para novos indicadores.
-- Use `report_styles.css` para ajustes visuais.
-- Use `report_script.js` para filtros e interações do HTML.
-- Use `pdf_report.py` para melhorias no PDF.
+- use `classifiers.py` para novas classificações;
+- use `summary.py` para novos indicadores;
+- use `report_styles.css` para ajustes visuais;
+- use `report_script.js` para filtros e interações do HTML;
+- use `pdf_report.py` para melhorias no PDF;
+- mantenha `zabbix_report.py` como coordenador do fluxo principal.
 
-Evite colocar toda a lógica em `zabbix_report.py`. Esse arquivo deve continuar
-funcionando como coordenador do fluxo.
+Evite concentrar toda a lógica em um único arquivo. A separação atual facilita
+manutenção, testes e evolução do projeto.
+
+## GitHub Actions
+
+O repositório possui workflow de validação automática. Ele ajuda a identificar
+problemas básicos antes que alterações sejam consolidadas no GitHub.
+
+Esse workflow não substitui testes completos, mas funciona como uma camada de
+segurança para manter o projeto organizado.
 
 ## Roadmap
 
 Melhorias previstas:
 
 - Aprimorar o PDF executivo.
-- Adicionar gráficos no HTML.
-- Melhorar o README continuamente.
-- Adicionar screenshots do relatório.
-- Adicionar testes automatizados.
+- Adicionar testes automatizados mais completos.
 - Melhorar performance do HTML para grandes volumes.
 - Criar rotina de geração agendada.
 - Criar uma versão executável futuramente.
+- Melhorar a experiência de instalação para outros usuários.
 - Revisar periodicamente segurança de tokens e credenciais.
+- Criar mais exemplos públicos com dados fictícios e sanitizados.
 
 ## Observação Importante
 
@@ -495,8 +509,8 @@ Abra sempre o arquivo `.html` gerado dentro da pasta `reports/`.
 
 ## Status do Projeto
 
-O projeto já gera relatórios funcionais em HTML, PDF e Excel, com filtros
-interativos e separação operacional dos principais grupos de incidentes.
+O projeto já gera relatórios funcionais em HTML, PDF e Excel, com filtros,
+gráficos, rankings e separação operacional dos principais grupos de incidentes.
 
-Ele segue em evolução contínua, com foco em clareza, confiabilidade e utilidade
-para acompanhamento técnico e executivo.
+Ele segue em evolução contínua, com foco em clareza, confiabilidade, segurança
+e utilidade para acompanhamento técnico e executivo.
