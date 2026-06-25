@@ -31,6 +31,7 @@ Este arquivo registra mudanças relevantes de forma simples, para facilitar acom
 - Modo escuro, com maior integração visual entre cabeçalho, barra de ações, KPIs e gráficos.
 - Acabamento dos microcomponentes, com barras de rolagem personalizadas e botão de fechar redesenhado.
 - Padronização visual do cabeçalho "Detalhes" na tabela e refinamento do botão de fechar dos modais.
+- Contraste do modo escuro em faixas de tempo, filtros, rankings e tabela.
 - Hierarquia visual do relatório HTML.
 - Acabamento dos cards, filtros, tabela e modais.
 - Leitura da tabela operacional, com destaque visual para prioridades altas.

@@ -2727,8 +2727,11 @@
         body.theme-dark .modal-subtitle,
         body.theme-dark .age-note,
         body.theme-dark .metric-name,
+        body.theme-dark .filter-label,
+        body.theme-dark .filter-button span:first-child,
+        body.theme-dark .age-chip span,
         body.theme-dark .column-bar > span:last-child {
-            color: var(--muted);
+            color: #b9d5d9;
         }
 
         body.theme-dark .summary-value,
@@ -2740,11 +2743,46 @@
         body.theme-dark .metric-total,
         body.theme-dark .column-bar strong,
         body.theme-dark .age-chip strong,
+        body.theme-dark .age-note strong,
         body.theme-dark .table-date,
         body.theme-dark .table-unit,
         body.theme-dark .table-incident,
+        body.theme-dark .table-equipment,
+        body.theme-dark .filter-count,
         body.theme-dark .modal-summary strong {
             color: var(--text);
+        }
+
+        body.theme-dark .age-chip {
+            background:
+                linear-gradient(90deg, rgb(32 196 205 / 0.12), rgb(16 42 49 / 0.92) 58%);
+        }
+
+        body.theme-dark .age-chip:hover,
+        body.theme-dark .filter-button:hover,
+        body.theme-dark .filter-button.active {
+            color: #e9fbfb;
+        }
+
+        body.theme-dark .filter-button.zero:not(.active),
+        body.theme-dark .filter-button.zero:not(.active) span:first-child {
+            color: #8fb7bd;
+        }
+
+        body.theme-dark .filter-button.zero:not(.active) {
+            background: #0f2a31;
+            border-color: rgb(118 216 222 / 0.14);
+        }
+
+        body.theme-dark .filter-button.zero:not(.active) .filter-count {
+            background: rgb(118 216 222 / 0.10);
+            color: #b9d5d9;
+        }
+
+        body.theme-dark .metric-action:hover .metric-name,
+        body.theme-dark .filter-button.active span:first-child,
+        body.theme-dark .filter-button:hover span:first-child {
+            color: #efffff;
         }
 
         body.theme-dark tbody tr:hover,
