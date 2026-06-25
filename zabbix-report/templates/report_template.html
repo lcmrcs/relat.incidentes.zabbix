@@ -27,6 +27,30 @@
             </div>
         </header>
 
+        <nav class="report-toolbar" aria-label="Ações do relatório">
+            <div class="toolbar-group">
+                <button class="toolbar-button primary" type="button" data-presentation-toggle>
+                    Modo apresentação
+                </button>
+                <button class="toolbar-button" type="button" data-theme-toggle>
+                    Tema escuro
+                </button>
+            </div>
+            <div class="toolbar-group">
+                {% if incidents %}
+                <button class="toolbar-button" type="button" data-scroll-target=".filter-panel">
+                    Filtros
+                </button>
+                <button class="toolbar-button" type="button" data-scroll-target=".events-section">
+                    Tabela
+                </button>
+                {% endif %}
+                <button class="toolbar-button" type="button" data-scroll-target=".visual-dashboard">
+                    Gráficos
+                </button>
+            </div>
+        </nav>
+
         <section class="summary kpi-strip" aria-label="Resumo executivo do relatorio">
             <div class="summary-item kpi-primary">
                 <p class="summary-label">Incidentes abertos</p>

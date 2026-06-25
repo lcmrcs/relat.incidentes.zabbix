@@ -14,6 +14,22 @@ Este arquivo registra mudanças relevantes de forma simples, para facilitar acom
 - Avaliar uma versão executável para uso em computadores sem conhecimento técnico.
 - Melhorar a experiência de instalação e execução para outros usuários.
 
+## 2026-06-25
+
+### Adicionado
+
+- Barra de ações no topo do relatório HTML.
+- Modo apresentação para destacar indicadores, gráficos e rankings executivos.
+- Alternância entre tema claro e tema escuro.
+- Atalhos rápidos para navegar entre gráficos, filtros e tabela.
+
+### Melhorado
+
+- Hierarquia visual do relatório HTML.
+- Acabamento dos cards, filtros, tabela e modais.
+- Leitura da tabela operacional, com destaque visual para prioridades altas.
+- Experiência visual geral do relatório, mantendo a identidade em ciano e tons escuros.
+
 ## 2026-06-22
 
 ### Adicionado

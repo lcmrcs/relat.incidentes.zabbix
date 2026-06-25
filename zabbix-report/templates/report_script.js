@@ -62,6 +62,9 @@
         const confeaDialog = document.getElementById("confea-dialog");
         const confeaOpenButton = document.querySelector("[data-confea-open]");
         const confeaCloseButton = document.querySelector("[data-confea-close]");
+        const themeToggle = document.querySelector("[data-theme-toggle]");
+        const presentationToggle = document.querySelector("[data-presentation-toggle]");
+        const scrollButtons = document.querySelectorAll("[data-scroll-target]");
         const activeFilters = {
             equipment: "all",
             status: "all",
@@ -84,10 +87,87 @@
         let sortedRowsCache = null;
         let sortedRowsCacheKey = "";
         let appliedSortKey = "";
+        function getStoredPreference(key, fallback = "") {
+            try {
+                return window.localStorage?.getItem(key) || fallback;
+            } catch {
+                return fallback;
+            }
+        }
+
+        function setStoredPreference(key, value) {
+            try {
+                window.localStorage?.setItem(key, value);
+            } catch {
+                // O relatório continua funcional mesmo se o navegador bloquear storage.
+            }
+        }
+
+        const savedTheme = getStoredPreference("zabbix-report-theme", "light");
+        const savedPresentation =
+            getStoredPreference("zabbix-report-presentation") === "true";
         const ageFilterValues = Array.from(ageButtons)
             .map((button) => button.dataset.ageFilter)
             .filter((value) => value !== "all");
         const ageRangeCache = new Map();
+
+        function setTheme(theme) {
+            const isDark = theme === "dark";
+
+            document.body.classList.toggle("theme-dark", isDark);
+
+            if (themeToggle) {
+                themeToggle.textContent = isDark ? "Tema claro" : "Tema escuro";
+                themeToggle.classList.toggle("active", isDark);
+            }
+
+            setStoredPreference("zabbix-report-theme", isDark ? "dark" : "light");
+        }
+
+        function setPresentationMode(enabled) {
+            document.body.classList.toggle("presentation-mode", enabled);
+
+            if (presentationToggle) {
+                presentationToggle.textContent = enabled ? "Modo completo" : "Modo apresentação";
+                presentationToggle.classList.toggle("active", enabled);
+            }
+
+            setStoredPreference("zabbix-report-presentation", String(enabled));
+        }
+
+        setTheme(savedTheme);
+        setPresentationMode(savedPresentation);
+
+        if (themeToggle) {
+            themeToggle.addEventListener("click", () => {
+                setTheme(document.body.classList.contains("theme-dark") ? "light" : "dark");
+            });
+        }
+
+        if (presentationToggle) {
+            presentationToggle.addEventListener("click", () => {
+                setPresentationMode(!document.body.classList.contains("presentation-mode"));
+            });
+        }
+
+        scrollButtons.forEach((button) => {
+            button.addEventListener("click", () => {
+                const target = document.querySelector(button.dataset.scrollTarget);
+
+                if (!target) {
+                    return;
+                }
+
+                if (document.body.classList.contains("presentation-mode")) {
+                    setPresentationMode(false);
+                }
+
+                target.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                });
+            });
+        });
 
         function buildZabbixEventUrl(eventid) {
             if (!zabbixWebUrl || !eventid) {
