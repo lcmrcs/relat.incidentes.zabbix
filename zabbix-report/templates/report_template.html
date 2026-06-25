@@ -18,6 +18,20 @@
                         <p class="meta">Gerado em {{ generated }}</p>
                         <p class="meta">Periodo analisado: {{ period }}</p>
                     </div>
+                    <div class="hero-signal-grid" aria-label="Sinais executivos do relatório">
+                        <div class="hero-signal hero-signal-open">
+                            <span>Incidentes abertos</span>
+                            <strong>{{ summary.unique_open }}</strong>
+                        </div>
+                        <div class="hero-signal">
+                            <span>Mais antigo</span>
+                            <strong>{{ summary.age.oldest_label }}</strong>
+                        </div>
+                        <div class="hero-signal">
+                            <span>Severidade alta</span>
+                            <strong>{{ summary.high }}</strong>
+                        </div>
+                    </div>
                 </div>
                 {% if logo_data_uri %}
                 <div class="brand-mark" aria-label="TechFace">
@@ -32,8 +46,9 @@
                 <button class="toolbar-button primary" type="button" data-presentation-toggle>
                     Modo apresentação
                 </button>
-                <button class="toolbar-button" type="button" data-theme-toggle>
-                    Tema escuro
+                <button class="toolbar-button theme-toggle" type="button" data-theme-toggle aria-label="Alternar luminosidade do relatório">
+                    <span class="theme-symbol" data-theme-symbol aria-hidden="true">☾</span>
+                    <span data-theme-label>Modo lunar</span>
                 </button>
             </div>
             <div class="toolbar-group">

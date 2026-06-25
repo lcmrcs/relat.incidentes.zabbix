@@ -25,6 +25,9 @@ Este arquivo registra mudanças relevantes de forma simples, para facilitar acom
 
 ### Melhorado
 
+- Cabeçalho do HTML, com composição visual mais ousada e indicadores executivos no próprio hero.
+- Controle de tema, trocando o texto simples por "Modo lunar" e "Modo solar".
+- Modo escuro, com maior integração visual entre cabeçalho, barra de ações, KPIs e gráficos.
 - Hierarquia visual do relatório HTML.
 - Acabamento dos cards, filtros, tabela e modais.
 - Leitura da tabela operacional, com destaque visual para prioridades altas.

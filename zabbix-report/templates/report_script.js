@@ -117,7 +117,17 @@
             document.body.classList.toggle("theme-dark", isDark);
 
             if (themeToggle) {
-                themeToggle.textContent = isDark ? "Tema claro" : "Tema escuro";
+                const symbol = themeToggle.querySelector("[data-theme-symbol]");
+                const label = themeToggle.querySelector("[data-theme-label]");
+
+                if (symbol) {
+                    symbol.textContent = isDark ? "☀" : "☾";
+                }
+
+                if (label) {
+                    label.textContent = isDark ? "Modo solar" : "Modo lunar";
+                }
+
                 themeToggle.classList.toggle("active", isDark);
             }
 
