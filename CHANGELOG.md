@@ -26,6 +26,7 @@ Este arquivo registra mudanças relevantes de forma simples, para facilitar acom
 ### Melhorado
 
 - Cabeçalho do HTML, com composição visual mais ousada e indicadores executivos no próprio hero.
+- Aplicação da nova logo da Techface no cabeçalho, com destaque visual e integração ao hero.
 - Controle de tema, trocando o texto simples por "Modo lunar" e "Modo solar".
 - Modo escuro, com maior integração visual entre cabeçalho, barra de ações, KPIs e gráficos.
 - Hierarquia visual do relatório HTML.
