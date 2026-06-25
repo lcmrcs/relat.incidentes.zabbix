@@ -185,12 +185,12 @@
             width: min(430px, 34vw);
             min-height: 246px;
             margin-right: 6px;
-            padding: 10px 0 10px 34px;
+            padding: 10px 0;
         }
 
         .brand-mark::before {
             position: absolute;
-            inset: 14px auto 14px 0;
+            inset: 14px auto 14px -3px;
             width: 3px;
             border-radius: 999px;
             background:
@@ -201,7 +201,7 @@
 
         .brand-mark::after {
             position: absolute;
-            inset: 0 -22px 0 28px;
+            inset: 0 -22px 0 12px;
             border: 1px solid rgb(32 196 205 / 0.10);
             border-width: 0 1px 0 0;
             content: "";
@@ -221,7 +221,6 @@
                 drop-shadow(0 0 34px rgb(32 196 205 / 0.22));
             object-fit: contain;
             opacity: 0.98;
-            transform: rotate(-1.25deg);
         }
 
         h1 {
@@ -385,24 +384,25 @@
         .theme-symbol {
             position: relative;
             display: inline-grid;
-            width: 22px;
-            height: 22px;
+            width: 24px;
+            height: 24px;
             place-items: center;
             border-radius: 999px;
             background: #12343b;
             color: transparent;
             font-size: 14px;
             line-height: 1;
+            overflow: hidden;
             box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12);
         }
 
         .theme-symbol::before {
             display: block;
-            width: 11px;
-            height: 11px;
+            width: 10px;
+            height: 10px;
             border-radius: 999px;
             background: #dff7f5;
-            box-shadow: -4px 0 0 #12343b inset;
+            box-shadow: -3px 0 0 #12343b inset;
             content: "";
         }
 
@@ -2639,16 +2639,18 @@
         body.theme-dark .theme-symbol {
             background: #fff4bf;
             color: transparent;
-            box-shadow: 0 0 18px rgb(255 212 59 / 0.18);
+            box-shadow:
+                inset 0 0 0 1px rgb(108 74 0 / 0.14),
+                0 0 14px rgb(255 212 59 / 0.14);
         }
 
         body.theme-dark .theme-symbol::before {
-            width: 10px;
-            height: 10px;
+            width: 9px;
+            height: 9px;
             background: #f59f00;
             box-shadow:
-                0 0 0 3px rgb(245 159 0 / 0.18),
-                0 0 12px rgb(255 212 59 / 0.55);
+                0 0 0 2px rgb(245 159 0 / 0.16),
+                0 0 0 5px rgb(245 159 0 / 0.08);
         }
 
         body.theme-dark .hero-signal {
