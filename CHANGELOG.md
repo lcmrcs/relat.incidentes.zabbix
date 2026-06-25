@@ -29,6 +29,7 @@ Este arquivo registra mudanças relevantes de forma simples, para facilitar acom
 - Aplicação da nova logo da Techface no cabeçalho, com destaque visual e integração ao hero.
 - Controle de tema, trocando o texto simples por "Modo lunar" e "Modo solar".
 - Modo escuro, com maior integração visual entre cabeçalho, barra de ações, KPIs e gráficos.
+- Acabamento dos microcomponentes, com barras de rolagem personalizadas e botão de fechar redesenhado.
 - Hierarquia visual do relatório HTML.
 - Acabamento dos cards, filtros, tabela e modais.
 - Leitura da tabela operacional, com destaque visual para prioridades altas.
