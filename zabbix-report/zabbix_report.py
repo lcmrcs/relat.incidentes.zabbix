@@ -74,6 +74,64 @@ def load_logo_data_uri():
     return f"data:image/png;base64,{encoded_logo}"
 
 
+def cleanup_old_reports(current_base_name, keep_count=1):
+    """
+    Remove conjuntos antigos de relatórios gerados automaticamente.
+
+    Cada execução cria um trio de arquivos com o mesmo nome base:
+    .html, .pdf e .xlsx. Para evitar acumular arquivos antigos em
+    zabbix-report/reports/, esta função mantém apenas os conjuntos mais
+    recentes e apaga os anteriores.
+    """
+
+    try:
+        keep_count = int(keep_count)
+    except (TypeError, ValueError):
+        keep_count = 1
+
+    keep_count = max(1, keep_count)
+    report_groups = {}
+
+    for path in REPORTS_DIR.glob("report_*"):
+        if path.suffix.lower() not in {".html", ".pdf", ".xlsx"}:
+            continue
+
+        report_groups.setdefault(path.stem, []).append(path)
+
+    if current_base_name not in report_groups:
+        report_groups[current_base_name] = []
+
+    def group_mtime(item):
+        _, paths = item
+        if not paths:
+            return 0
+        return max(path.stat().st_mtime for path in paths if path.exists())
+
+    ordered_groups = sorted(
+        report_groups.items(),
+        key=group_mtime,
+        reverse=True,
+    )
+    keep_names = {current_base_name}
+
+    for name, _ in ordered_groups:
+        if len(keep_names) >= keep_count:
+            break
+        keep_names.add(name)
+    removed = []
+
+    for name, paths in report_groups.items():
+        if name in keep_names:
+            continue
+
+        for path in paths:
+            if path.exists():
+                path.unlink()
+                removed.append(path)
+
+    return removed
+
+
 # ==================================================
 # ARGUMENTOS E PERÍODO
 # ==================================================
@@ -158,11 +216,24 @@ def parse_args():
             "Exemplo: --equipamento \"Terminal Facial\"."
         ),
     )
+    parser.add_argument(
+        "--manter-relatorios",
+        type=int,
+        default=1,
+        help=(
+            "Quantidade de conjuntos antigos que devem permanecer na pasta "
+            "reports. Padrão: 1, mantendo apenas o relatório mais recente."
+        ),
+    )
 
     args = parser.parse_args()
 
     if args.dias is not None and args.dias <= 0:
         print("ERRO: o argumento --dias precisa ser maior que zero.")
+        raise SystemExit(1)
+
+    if args.manter_relatorios <= 0:
+        print("ERRO: o argumento --manter-relatorios precisa ser maior que zero.")
         raise SystemExit(1)
 
     return args
@@ -555,6 +626,17 @@ def main():
         period_label,
     )
     print(f"PDF gerado: {pdf_name}")
+
+    removed_reports = cleanup_old_reports(
+        base_name,
+        keep_count=args.manter_relatorios,
+    )
+
+    if removed_reports:
+        print(
+            "Relatórios antigos removidos: "
+            f"{len(removed_reports)} arquivo(s)."
+        )
 
     print("\nRELATÓRIOS GERADOS COM SUCESSO")
     print("--------------------------------")

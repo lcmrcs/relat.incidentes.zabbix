@@ -209,6 +209,15 @@ Os arquivos são criados em:
 zabbix-report/reports/
 ```
 
+Por padrão, o script mantém apenas o conjunto mais recente de relatórios nessa
+pasta. Isso evita acúmulo de arquivos antigos ou desatualizados.
+
+Para manter mais execuções, use:
+
+```bash
+python zabbix-report/zabbix_report.py --periodo historico --status abertos --manter-relatorios 3
+```
+
 ## Gerar Relatório por Período
 
 Últimas 24 horas:
@@ -317,6 +326,9 @@ Finalidade de cada formato:
 - `.html`: relatório interativo para análise, filtros e busca.
 - `.pdf`: versão formal para apresentação e envio.
 - `.xlsx`: planilha para análise detalhada dos dados.
+
+Como a pasta `reports/` é uma área de saída gerada automaticamente, relatórios
+antigos são removidos conforme a política definida por `--manter-relatorios`.
 
 ## O Que Existe no HTML
 

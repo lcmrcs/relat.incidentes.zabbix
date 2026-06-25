@@ -65,6 +65,8 @@ Funcao:
 - Ignora incidentes ja resolvidos.
 - Gera HTML, PDF e Excel atualizados.
 - Mostra o estado operacional atual do Zabbix.
+- Remove relatórios antigos da pasta `reports/`, mantendo por padrão apenas o
+  conjunto mais recente.
 
 Arquivos gerados:
 
@@ -76,6 +78,17 @@ Formatos:
 - `.html`: relatorio interativo com filtros.
 - `.pdf`: relatorio formal para envio.
 - `.xlsx`: planilha com os dados.
+
+Para guardar mais de um conjunto de relatórios, use:
+
+```bash
+python zabbix-report/zabbix_report.py --periodo historico --status abertos --manter-relatorios 3
+```
+
+Funcao:
+- Mantem os 3 conjuntos mais recentes em `zabbix-report/reports/`.
+- Evita que a pasta acumule relatórios antigos demais.
+- Use apenas quando precisar comparar relatórios de execuções anteriores.
 
 ## 5. Gerar relatorio por equipamento
 
