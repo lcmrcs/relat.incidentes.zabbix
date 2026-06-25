@@ -1882,6 +1882,17 @@
             text-transform: inherit;
         }
 
+        .static-heading {
+            display: inline-flex;
+            align-items: center;
+            min-height: 16px;
+            color: inherit;
+            font: inherit;
+            font-weight: 800;
+            letter-spacing: inherit;
+            text-transform: inherit;
+        }
+
         .sort-button::after {
             content: "";
             width: 0;
@@ -2956,17 +2967,20 @@
 
         .modal-close {
             display: grid;
-            width: 42px;
-            height: 42px;
+            width: 46px;
+            height: 46px;
             place-items: center;
-            border: 1px solid rgb(255 255 255 / 0.26);
-            border-radius: 14px;
+            border: 1px solid rgb(118 216 222 / 0.38);
+            border-radius: 15px;
             background:
-                radial-gradient(circle at 32% 22%, rgb(255 255 255 / 0.28), transparent 32%),
-                linear-gradient(145deg, rgb(255 255 255 / 0.16), rgb(255 255 255 / 0.06));
+                linear-gradient(135deg, rgb(32 196 205 / 0.20), transparent 42%),
+                linear-gradient(145deg, rgb(255 255 255 / 0.12), rgb(7 39 46 / 0.44));
             box-shadow:
                 inset 0 1px 0 rgb(255 255 255 / 0.18),
-                0 12px 24px rgb(0 0 0 / 0.16);
+                inset 0 -10px 18px rgb(0 0 0 / 0.10),
+                0 14px 28px rgb(0 0 0 / 0.18),
+                0 0 0 4px rgb(32 196 205 / 0.08);
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
             font-size: 20px;
             overflow: hidden;
             transition:
@@ -2979,11 +2993,13 @@
         .modal-close::before,
         .modal-close::after {
             position: absolute;
-            width: 15px;
+            width: 17px;
             height: 2px;
             border-radius: 999px;
-            background: #e8fbfb;
-            box-shadow: 0 0 10px rgb(32 196 205 / 0.36);
+            background: #efffff;
+            box-shadow:
+                0 0 8px rgb(255 255 255 / 0.34),
+                0 0 14px rgb(32 196 205 / 0.48);
             content: "";
         }
 
@@ -2996,14 +3012,16 @@
         }
 
         .modal-close:hover {
-            border-color: rgb(32 196 205 / 0.58);
+            border-color: rgb(118 216 222 / 0.72);
             background:
-                radial-gradient(circle at 32% 22%, rgb(255 255 255 / 0.34), transparent 34%),
-                linear-gradient(145deg, rgb(32 196 205 / 0.24), rgb(255 255 255 / 0.08));
+                linear-gradient(135deg, rgb(32 196 205 / 0.32), transparent 42%),
+                linear-gradient(145deg, rgb(255 255 255 / 0.16), rgb(8 127 140 / 0.22));
             box-shadow:
                 inset 0 1px 0 rgb(255 255 255 / 0.20),
-                0 14px 28px rgb(0 0 0 / 0.20),
-                0 0 22px rgb(32 196 205 / 0.22);
+                inset 0 -10px 18px rgb(0 0 0 / 0.10),
+                0 16px 30px rgb(0 0 0 / 0.22),
+                0 0 0 4px rgb(32 196 205 / 0.12),
+                0 0 28px rgb(32 196 205 / 0.28);
             transform: translateY(-1px);
         }
 
