@@ -1492,18 +1492,16 @@
             position: relative;
             z-index: 1;
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 8px;
-            align-self: start;
+            grid-template-columns: minmax(280px, 1fr) auto auto;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 12px;
         }
 
         .filter-layout {
             position: relative;
             z-index: 1;
-            display: grid;
-            grid-template-columns: minmax(250px, 0.58fr) minmax(0, 1.42fr);
-            gap: 14px;
-            align-items: start;
+            display: block;
         }
 
         .search-shell {
@@ -1540,8 +1538,8 @@
             position: relative;
             z-index: 1;
             display: grid;
-            grid-template-columns: minmax(220px, 1.1fr) minmax(190px, 0.9fr) minmax(190px, 0.9fr);
-            gap: 10px;
+            grid-template-columns: minmax(250px, 1.2fr) repeat(3, minmax(180px, 1fr));
+            gap: 12px;
             align-items: start;
         }
 
@@ -1668,7 +1666,7 @@
             display: grid;
             grid-template-columns: repeat(6, minmax(118px, 1fr));
             gap: 8px;
-            margin: 14px 0 0;
+            margin: 0 0 14px;
         }
 
         .filtered-card {
@@ -3003,20 +3001,8 @@
             max-height: 72vh;
         }
 
-        .filter-layout {
-            grid-template-columns: minmax(250px, 0.54fr) minmax(0, 1.46fr);
-        }
-
         .filter-grid {
-            grid-template-columns: minmax(220px, 1.1fr) repeat(2, minmax(180px, 0.9fr));
-        }
-
-        .filter-group-unit {
-            grid-row: span 2;
-        }
-
-        .filter-group-age {
-            grid-row: span 2;
+            grid-template-columns: minmax(250px, 1.2fr) repeat(3, minmax(180px, 1fr));
         }
 
         .filtered-card {

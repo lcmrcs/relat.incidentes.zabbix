@@ -393,26 +393,53 @@
             </div>
 
             {% set has_status_filter = summary.status | length > 1 %}
-            <div class="filter-layout">
-                <div class="filter-tools">
-                    <div class="search-shell">
-                        <span aria-hidden="true">Buscar</span>
-                        <input
-                            class="global-search"
-                            id="global-search"
-                            type="search"
-                            placeholder="Host, incidente, equipamento ou severidade"
-                            autocomplete="off"
-                        >
-                    </div>
-                    <button class="clear-button" type="button" id="clear-filters">
-                        Limpar filtro
-                    </button>
-                    <button class="clear-button download-button" type="button" id="download-filtered">
-                        Baixar CSV
-                    </button>
+            <div class="filter-tools">
+                <div class="search-shell">
+                    <span aria-hidden="true">Buscar</span>
+                    <input
+                        class="global-search"
+                        id="global-search"
+                        type="search"
+                        placeholder="Host, incidente, equipamento ou severidade"
+                        autocomplete="off"
+                    >
                 </div>
+                <button class="clear-button" type="button" id="clear-filters">
+                    Limpar filtro
+                </button>
+                <button class="clear-button download-button" type="button" id="download-filtered">
+                    Baixar CSV
+                </button>
+            </div>
 
+            <div class="filtered-summary" aria-label="Resumo do filtro aplicado">
+                <div class="filtered-card">
+                    <p class="filtered-label">Resultado</p>
+                    <p class="filtered-value" data-filter-summary="total">{{ summary.event_total }}</p>
+                </div>
+                <div class="filtered-card">
+                    <p class="filtered-label">Mais antigo</p>
+                    <p class="filtered-value open" data-filter-summary="oldest">-</p>
+                </div>
+                <div class="filtered-card">
+                    <p class="filtered-label">Até 3 dias</p>
+                    <p class="filtered-value information" data-filter-summary="rangeUpTo3">0</p>
+                </div>
+                <div class="filtered-card">
+                    <p class="filtered-label">4 a 30 dias</p>
+                    <p class="filtered-value high" data-filter-summary="range4To30">0</p>
+                </div>
+                <div class="filtered-card">
+                    <p class="filtered-label">+30 dias</p>
+                    <p class="filtered-value open" data-filter-summary="rangeOver30">0</p>
+                </div>
+                <div class="filtered-card">
+                    <p class="filtered-label">Prioridade alta</p>
+                    <p class="filtered-value priority-high" data-filter-summary="priorityHigh">0</p>
+                </div>
+            </div>
+
+            <div class="filter-layout">
                 <div class="filter-grid">
                     {% if has_status_filter %}
                     <div class="filter-group">
@@ -535,32 +562,6 @@
                 </div>
             </div>
 
-            <div class="filtered-summary" aria-label="Resumo do filtro aplicado">
-                <div class="filtered-card">
-                    <p class="filtered-label">Resultado</p>
-                    <p class="filtered-value" data-filter-summary="total">{{ summary.event_total }}</p>
-                </div>
-                <div class="filtered-card">
-                    <p class="filtered-label">Mais antigo</p>
-                    <p class="filtered-value open" data-filter-summary="oldest">-</p>
-                </div>
-                <div class="filtered-card">
-                    <p class="filtered-label">Até 3 dias</p>
-                    <p class="filtered-value information" data-filter-summary="rangeUpTo3">0</p>
-                </div>
-                <div class="filtered-card">
-                    <p class="filtered-label">4 a 30 dias</p>
-                    <p class="filtered-value high" data-filter-summary="range4To30">0</p>
-                </div>
-                <div class="filtered-card">
-                    <p class="filtered-label">+30 dias</p>
-                    <p class="filtered-value open" data-filter-summary="rangeOver30">0</p>
-                </div>
-                <div class="filtered-card">
-                    <p class="filtered-label">Prioridade alta</p>
-                    <p class="filtered-value priority-high" data-filter-summary="priorityHigh">0</p>
-                </div>
-            </div>
         </section>
 
         <section class="events-section" aria-label="Detalhamento dos eventos">
