@@ -34,6 +34,7 @@ Este arquivo registra mudanças relevantes de forma simples, para facilitar acom
 - Contraste do modo escuro em faixas de tempo, filtros, rankings e tabela.
 - Legibilidade dos contadores dos filtros no modo escuro e ajuste dos ícones de modo lunar/solar.
 - Substituição do texto "ZBX" por uma marca visual vermelha do Zabbix no painel do servidor.
+- Contraste da tabela do modal "Servidor Zabbix" no modo escuro.
 - Hierarquia visual do relatório HTML.
 - Acabamento dos cards, filtros, tabela e modais.
 - Leitura da tabela operacional, com destaque visual para prioridades altas.

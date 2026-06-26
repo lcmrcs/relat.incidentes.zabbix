@@ -2862,6 +2862,39 @@
             stroke: #183840;
         }
 
+        body.theme-dark .zabbix-modal-table {
+            border-color: rgb(118 216 222 / 0.20);
+            background: #102a31;
+        }
+
+        body.theme-dark .zabbix-modal-table th {
+            background: #08242b;
+            border-bottom-color: rgb(118 216 222 / 0.18);
+            color: #ffffff;
+        }
+
+        body.theme-dark .zabbix-modal-table td {
+            border-bottom-color: rgb(118 216 222 / 0.12);
+            color: #d7edf0;
+        }
+
+        body.theme-dark .zabbix-modal-table td:nth-child(1),
+        body.theme-dark .zabbix-modal-table td:nth-child(3),
+        body.theme-dark .zabbix-modal-table td:nth-child(4),
+        body.theme-dark .zabbix-modal-table td:nth-child(6),
+        body.theme-dark .zabbix-modal-table td:nth-child(7) {
+            color: #efffff;
+            font-weight: 800;
+        }
+
+        body.theme-dark .zabbix-modal-table tbody tr:nth-child(even) {
+            background: #12343b;
+        }
+
+        body.theme-dark .zabbix-modal-table tbody tr:hover {
+            background: #164751;
+        }
+
         body.theme-dark dialog {
             background: #0d2329;
             border-color: rgb(118 216 222 / 0.24);
