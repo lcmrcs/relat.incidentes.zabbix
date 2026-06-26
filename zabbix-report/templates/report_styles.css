@@ -361,10 +361,10 @@
 
         .theme-symbol {
             position: relative;
-            display: inline-grid;
+            display: inline-block;
+            flex: 0 0 20px;
             width: 20px;
             height: 20px;
-            place-items: center;
             border-radius: 999px;
             background: #12343b;
             color: transparent;
@@ -375,18 +375,29 @@
         }
 
         .theme-symbol::before {
+            position: absolute;
+            top: 50%;
+            left: 50%;
             display: block;
-            width: 12px;
-            height: 12px;
+            width: 13px;
+            height: 13px;
             border-radius: 999px;
             background: #dff7f5;
-            box-shadow: -4px 0 0 #12343b inset;
             content: "";
+            transform: translate(-50%, -50%);
         }
 
         .theme-symbol::after {
-            display: none;
+            position: absolute;
+            top: 42%;
+            left: 56%;
+            display: block;
+            width: 11px;
+            height: 11px;
+            border-radius: 999px;
+            background: #12343b;
             content: "";
+            transform: translate(-50%, -50%);
         }
 
         .toolbar-button.active {
@@ -2678,7 +2689,8 @@
         }
 
         body.theme-dark .theme-symbol {
-            background: #fff4bf;
+            background:
+                radial-gradient(circle at center, #f59f00 0 31%, #ffd43b 32% 46%, #fff4bf 47% 100%);
             color: transparent;
             box-shadow:
                 inset 0 0 0 1px rgb(108 74 0 / 0.14),
@@ -2686,22 +2698,27 @@
         }
 
         body.theme-dark .theme-symbol::before {
-            width: 7px;
-            height: 7px;
+            width: 8px;
+            height: 8px;
             background: #f59f00;
             box-shadow:
-                0 0 0 3px rgb(245 159 0 / 0.14);
+                0 0 0 4px rgb(255 212 59 / 0.24),
+                0 0 0 8px rgb(255 244 191 / 0.48);
+            transform: translate(-50%, -50%);
         }
 
         body.theme-dark .theme-symbol::after {
-            position: absolute;
+            top: 50%;
+            left: 50%;
             display: block;
-            width: 12px;
-            height: 12px;
+            width: 18px;
+            height: 18px;
             border-radius: 999px;
             border: 1px solid rgb(245 159 0 / 0.34);
+            background: transparent;
             box-shadow: inset 0 0 0 1px rgb(255 212 59 / 0.12);
             pointer-events: none;
+            transform: translate(-50%, -50%);
         }
 
         body.theme-dark .hero-signal {
