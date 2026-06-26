@@ -36,6 +36,7 @@ Este arquivo registra mudanças relevantes de forma simples, para facilitar acom
 - Substituição do texto "ZBX" por uma marca visual vermelha do Zabbix no painel do servidor.
 - Contraste da tabela do modal "Servidor Zabbix" no modo escuro.
 - Organização compacta do filtro do relatório, com busca no topo, resultados próximos e filtros principais lado a lado.
+- Cards do cabeçalho atualizados para destacar geração, período analisado e autoria do Network Operations Center.
 - Hierarquia visual do relatório HTML.
 - Acabamento dos cards, filtros, tabela e modais.
 - Leitura da tabela operacional, com destaque visual para prioridades altas.

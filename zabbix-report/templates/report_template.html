@@ -15,21 +15,22 @@
                 <div class="report-heading">
                     <h1>Relatório Executivo de Incidentes Zabbix</h1>
                     <div class="meta-row">
-                        <p class="meta">Gerado em {{ generated }}</p>
-                        <p class="meta">Periodo analisado: {{ period }}</p>
+                        <p class="meta">Monitoramento operacional</p>
+                        <p class="meta">Incidentes em aberto</p>
                     </div>
+                    {% set compact_period = period.split(":")[0].split("|")[0].strip() %}
                     <div class="hero-signal-grid" aria-label="Sinais executivos do relatório">
-                        <div class="hero-signal hero-signal-open">
-                            <span>Incidentes abertos</span>
-                            <strong>{{ summary.unique_open }}</strong>
+                        <div class="hero-signal">
+                            <span>Gerado em</span>
+                            <strong>{{ generated }}</strong>
                         </div>
                         <div class="hero-signal">
-                            <span>Mais antigo</span>
-                            <strong>{{ summary.age.oldest_label }}</strong>
+                            <span>Período analisado</span>
+                            <strong>{{ compact_period }}</strong>
                         </div>
                         <div class="hero-signal">
-                            <span>Severidade alta</span>
-                            <strong>{{ summary.high }}</strong>
+                            <span>Produzido por</span>
+                            <strong>Network Operations Center</strong>
                         </div>
                     </div>
                 </div>
