@@ -171,12 +171,6 @@
             min-width: 0;
         }
 
-        .meta-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px 10px;
-        }
-
         .brand-mark {
             position: relative;
             display: grid;
@@ -281,10 +275,6 @@
             transform: skewX(-18deg);
         }
 
-        .hero-signal-open {
-            border-left-color: #ff6b6b;
-        }
-
         .hero-signal span {
             display: block;
             margin-bottom: 3px;
@@ -300,19 +290,6 @@
             font-size: clamp(18px, 1.55vw, 25px);
             line-height: 1.18;
             overflow-wrap: anywhere;
-        }
-
-        .meta {
-            display: inline-flex;
-            align-items: center;
-            min-height: 30px;
-            margin: 0;
-            border: 1px solid rgb(255 255 255 / 0.14);
-            border-radius: 999px;
-            background: rgb(255 255 255 / 0.06);
-            color: #d4e4e6;
-            font-size: 13px;
-            padding: 4px 12px;
         }
 
         .report-toolbar {
