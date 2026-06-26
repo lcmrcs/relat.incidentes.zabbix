@@ -384,8 +384,8 @@
         .theme-symbol {
             position: relative;
             display: inline-grid;
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
             place-items: center;
             border-radius: 999px;
             background: #12343b;
@@ -398,11 +398,16 @@
 
         .theme-symbol::before {
             display: block;
-            width: 10px;
-            height: 10px;
+            width: 12px;
+            height: 12px;
             border-radius: 999px;
             background: #dff7f5;
-            box-shadow: -3px 0 0 #12343b inset;
+            box-shadow: -4px 0 0 #12343b inset;
+            content: "";
+        }
+
+        .theme-symbol::after {
+            display: none;
             content: "";
         }
 
@@ -1303,6 +1308,40 @@
             box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08);
         }
 
+        .zabbix-logo-mark {
+            position: relative;
+            overflow: hidden;
+            border-color: rgb(255 255 255 / 0.28);
+            border-radius: 13px;
+            background:
+                linear-gradient(145deg, #f0202c 0%, #d71924 58%, #b80f1a 100%);
+            box-shadow:
+                0 14px 28px rgb(128 0 12 / 0.28),
+                0 0 0 4px rgb(255 255 255 / 0.08),
+                inset 0 1px 0 rgb(255 255 255 / 0.22);
+        }
+
+        .zabbix-logo-mark::after {
+            position: absolute;
+            inset: -34px -20px auto auto;
+            width: 70px;
+            height: 70px;
+            border-radius: 999px;
+            background: rgb(255 255 255 / 0.14);
+            content: "";
+        }
+
+        .zabbix-logo-mark span {
+            position: relative;
+            z-index: 1;
+            color: #ffffff;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 43px;
+            font-weight: 900;
+            line-height: 1;
+            text-shadow: 0 2px 6px rgb(98 0 8 / 0.25);
+        }
+
         .special-panel-content {
             min-width: 0;
         }
@@ -1690,13 +1729,14 @@
         }
 
         .filter-count {
-            min-width: 38px;
+            min-width: 42px;
             border-radius: 999px;
             background: #eef4f5;
             color: var(--header);
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 700;
-            padding: 3px 8px;
+            line-height: 1.2;
+            padding: 4px 8px;
             text-align: center;
         }
 
@@ -2656,12 +2696,22 @@
         }
 
         body.theme-dark .theme-symbol::before {
-            width: 9px;
-            height: 9px;
+            width: 7px;
+            height: 7px;
             background: #f59f00;
             box-shadow:
-                0 0 0 2px rgb(245 159 0 / 0.16),
-                0 0 0 5px rgb(245 159 0 / 0.08);
+                0 0 0 3px rgb(245 159 0 / 0.14);
+        }
+
+        body.theme-dark .theme-symbol::after {
+            position: absolute;
+            display: block;
+            width: 12px;
+            height: 12px;
+            border-radius: 999px;
+            border: 1px solid rgb(245 159 0 / 0.34);
+            box-shadow: inset 0 0 0 1px rgb(255 212 59 / 0.12);
+            pointer-events: none;
         }
 
         body.theme-dark .hero-signal {
@@ -2748,9 +2798,21 @@
         body.theme-dark .table-unit,
         body.theme-dark .table-incident,
         body.theme-dark .table-equipment,
-        body.theme-dark .filter-count,
         body.theme-dark .modal-summary strong {
             color: var(--text);
+        }
+
+        body.theme-dark .filter-count {
+            background: #eff7f8;
+            color: #0d3942 !important;
+            font-weight: 900;
+            text-shadow: none;
+        }
+
+        body.theme-dark .filter-button.active .filter-count,
+        body.theme-dark .filter-button:hover .filter-count {
+            background: #f7ffff;
+            color: #062e36 !important;
         }
 
         body.theme-dark .age-chip {

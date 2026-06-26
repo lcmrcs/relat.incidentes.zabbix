@@ -32,6 +32,8 @@ Este arquivo registra mudanças relevantes de forma simples, para facilitar acom
 - Acabamento dos microcomponentes, com barras de rolagem personalizadas e botão de fechar redesenhado.
 - Padronização visual do cabeçalho "Detalhes" na tabela e refinamento do botão de fechar dos modais.
 - Contraste do modo escuro em faixas de tempo, filtros, rankings e tabela.
+- Legibilidade dos contadores dos filtros no modo escuro e ajuste dos ícones de modo lunar/solar.
+- Substituição do texto "ZBX" por uma marca visual vermelha do Zabbix no painel do servidor.
 - Hierarquia visual do relatório HTML.
 - Acabamento dos cards, filtros, tabela e modais.
 - Leitura da tabela operacional, com destaque visual para prioridades altas.
