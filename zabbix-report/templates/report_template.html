@@ -392,143 +392,145 @@
                 <span class="filter-status" id="filter-status">Exibindo: {{ summary.event_total }}</span>
             </div>
 
-            <div class="filter-tools">
-                <div class="search-shell">
-                    <span aria-hidden="true">Buscar</span>
-                    <input
-                        class="global-search"
-                        id="global-search"
-                        type="search"
-                        placeholder="Host, incidente, equipamento ou severidade"
-                        autocomplete="off"
-                    >
-                </div>
-                <button class="clear-button" type="button" id="clear-filters">
-                    Limpar filtro
-                </button>
-                <button class="clear-button download-button" type="button" id="download-filtered">
-                    Baixar CSV
-                </button>
-            </div>
-
             {% set has_status_filter = summary.status | length > 1 %}
-            <div class="filter-grid">
-                {% if has_status_filter %}
-                <div class="filter-group">
-                    <p class="filter-label"><span class="filter-step">1</span>Situação</p>
-                    <div class="filter-options">
-                        <button class="filter-button active" type="button" data-status-filter="all">
-                            <span>Tudo</span>
-                            <span class="filter-count">{{ summary.event_total }}</span>
-                        </button>
-                        {% for item in summary.status %}
-                        <button class="filter-button" type="button" data-status-filter="{{ item.name }}">
-                            <span>{{ item.name }}</span>
-                            <span class="filter-count">{{ item.total }}</span>
-                        </button>
-                        {% endfor %}
+            <div class="filter-layout">
+                <div class="filter-tools">
+                    <div class="search-shell">
+                        <span aria-hidden="true">Buscar</span>
+                        <input
+                            class="global-search"
+                            id="global-search"
+                            type="search"
+                            placeholder="Host, incidente, equipamento ou severidade"
+                            autocomplete="off"
+                        >
                     </div>
-                </div>
-                {% endif %}
-
-                <div class="filter-group">
-                    <p class="filter-label"><span class="filter-step">{{ 2 if has_status_filter else 1 }}</span>Unidade</p>
-                    <input
-                        class="unit-search"
-                        id="unit-search"
-                        type="search"
-                        placeholder="Pesquisar código ou nome da unidade"
-                        autocomplete="off"
-                    >
-                    <div class="filter-options unit-scroll">
-                        <button class="filter-button active" type="button" data-unit-filter="all">
-                            <span>Tudo</span>
-                            <span class="filter-count">{{ summary.event_total }}</span>
-                        </button>
-                        {% for item in summary.units %}
-                        <button class="filter-button" type="button" data-unit-filter="{{ item.name }}">
-                            <span title="{{ item.name }}">{{ item.name }}</span>
-                            <span class="filter-count">{{ item.total }}</span>
-                        </button>
-                        {% endfor %}
-                    </div>
+                    <button class="clear-button" type="button" id="clear-filters">
+                        Limpar filtro
+                    </button>
+                    <button class="clear-button download-button" type="button" id="download-filtered">
+                        Baixar CSV
+                    </button>
                 </div>
 
-                <div class="filter-group">
-                    <p class="filter-label"><span class="filter-step">{{ 3 if has_status_filter else 2 }}</span>Equipamento</p>
-                    <div class="filter-options">
-                        <button class="filter-button active" type="button" data-equipment-filter="all">
-                            <span>Tudo</span>
-                            <span class="filter-count">{{ summary.event_total }}</span>
-                        </button>
-                        {% for item in summary.equipment %}
-                        <button class="filter-button" type="button" data-equipment-filter="{{ item.name }}">
-                            <span>{{ item.name }}</span>
-                            <span class="filter-count">{{ item.total }}</span>
-                        </button>
-                        {% endfor %}
+                <div class="filter-grid">
+                    {% if has_status_filter %}
+                    <div class="filter-group">
+                        <p class="filter-label"><span class="filter-step">1</span>Situação</p>
+                        <div class="filter-options">
+                            <button class="filter-button active" type="button" data-status-filter="all">
+                                <span>Tudo</span>
+                                <span class="filter-count">{{ summary.event_total }}</span>
+                            </button>
+                            {% for item in summary.status %}
+                            <button class="filter-button" type="button" data-status-filter="{{ item.name }}">
+                                <span>{{ item.name }}</span>
+                                <span class="filter-count">{{ item.total }}</span>
+                            </button>
+                            {% endfor %}
+                        </div>
                     </div>
-                </div>
+                    {% endif %}
 
-                <div class="filter-group">
-                    <p class="filter-label"><span class="filter-step">{{ 4 if has_status_filter else 3 }}</span>Severidade</p>
-                    <div class="filter-options">
-                        <button class="filter-button active" type="button" data-severity-filter="all">
-                            <span>Tudo</span>
-                            <span class="filter-count">{{ summary.event_total }}</span>
-                        </button>
-                        {% for item in summary.severity %}
-                        <button class="filter-button" type="button" data-severity-filter="{{ item.name }}">
-                            <span>{{ item.name }}</span>
-                            <span class="filter-count">{{ item.total }}</span>
-                        </button>
-                        {% endfor %}
+                    <div class="filter-group filter-group-unit">
+                        <p class="filter-label"><span class="filter-step">{{ 2 if has_status_filter else 1 }}</span>Unidade</p>
+                        <input
+                            class="unit-search"
+                            id="unit-search"
+                            type="search"
+                            placeholder="Pesquisar código ou nome da unidade"
+                            autocomplete="off"
+                        >
+                        <div class="filter-options unit-scroll">
+                            <button class="filter-button active" type="button" data-unit-filter="all">
+                                <span>Tudo</span>
+                                <span class="filter-count">{{ summary.event_total }}</span>
+                            </button>
+                            {% for item in summary.units %}
+                            <button class="filter-button" type="button" data-unit-filter="{{ item.name }}">
+                                <span title="{{ item.name }}">{{ item.name }}</span>
+                                <span class="filter-count">{{ item.total }}</span>
+                            </button>
+                            {% endfor %}
+                        </div>
                     </div>
-                </div>
 
-                <div class="filter-group">
-                    <p class="filter-label"><span class="filter-step">{{ 5 if has_status_filter else 4 }}</span>Tempo offline</p>
-                    <div class="filter-options">
-                        <button class="filter-button active" type="button" data-age-filter="all">
-                            <span>Tudo</span>
-                            <span class="filter-count">{{ summary.event_total }}</span>
-                        </button>
-                        <button class="filter-button" type="button" data-age-filter="0-86400">
-                            <span>Últimas 24h</span>
-                            <span class="filter-count">0</span>
-                        </button>
-                        <button class="filter-button" type="button" data-age-filter="86400-345600">
-                            <span>1 a 3 dias</span>
-                            <span class="filter-count">0</span>
-                        </button>
-                        <button class="filter-button" type="button" data-age-filter="345600-950400">
-                            <span>4 a 10 dias</span>
-                            <span class="filter-count">0</span>
-                        </button>
-                        <button class="filter-button" type="button" data-age-filter="950400-1814400">
-                            <span>11 a 20 dias</span>
-                            <span class="filter-count">0</span>
-                        </button>
-                        <button class="filter-button" type="button" data-age-filter="1814400-2678400">
-                            <span>21 a 30 dias</span>
-                            <span class="filter-count">0</span>
-                        </button>
-                        <button class="filter-button" type="button" data-age-filter="2678400-4406400">
-                            <span>31 a 50 dias</span>
-                            <span class="filter-count">0</span>
-                        </button>
-                        <button class="filter-button" type="button" data-age-filter="4406400-6566400">
-                            <span>51 a 75 dias</span>
-                            <span class="filter-count">0</span>
-                        </button>
-                        <button class="filter-button" type="button" data-age-filter="6566400-7862400">
-                            <span>76 a 90 dias</span>
-                            <span class="filter-count">0</span>
-                        </button>
-                        <button class="filter-button" type="button" data-age-filter="7862400-">
-                            <span>+90 dias</span>
-                            <span class="filter-count">0</span>
-                        </button>
+                    <div class="filter-group">
+                        <p class="filter-label"><span class="filter-step">{{ 3 if has_status_filter else 2 }}</span>Equipamento</p>
+                        <div class="filter-options">
+                            <button class="filter-button active" type="button" data-equipment-filter="all">
+                                <span>Tudo</span>
+                                <span class="filter-count">{{ summary.event_total }}</span>
+                            </button>
+                            {% for item in summary.equipment %}
+                            <button class="filter-button" type="button" data-equipment-filter="{{ item.name }}">
+                                <span>{{ item.name }}</span>
+                                <span class="filter-count">{{ item.total }}</span>
+                            </button>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <p class="filter-label"><span class="filter-step">{{ 4 if has_status_filter else 3 }}</span>Severidade</p>
+                        <div class="filter-options">
+                            <button class="filter-button active" type="button" data-severity-filter="all">
+                                <span>Tudo</span>
+                                <span class="filter-count">{{ summary.event_total }}</span>
+                            </button>
+                            {% for item in summary.severity %}
+                            <button class="filter-button" type="button" data-severity-filter="{{ item.name }}">
+                                <span>{{ item.name }}</span>
+                                <span class="filter-count">{{ item.total }}</span>
+                            </button>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="filter-group filter-group-age">
+                        <p class="filter-label"><span class="filter-step">{{ 5 if has_status_filter else 4 }}</span>Tempo offline</p>
+                        <div class="filter-options">
+                            <button class="filter-button active" type="button" data-age-filter="all">
+                                <span>Tudo</span>
+                                <span class="filter-count">{{ summary.event_total }}</span>
+                            </button>
+                            <button class="filter-button" type="button" data-age-filter="0-86400">
+                                <span>Últimas 24h</span>
+                                <span class="filter-count">0</span>
+                            </button>
+                            <button class="filter-button" type="button" data-age-filter="86400-345600">
+                                <span>1 a 3 dias</span>
+                                <span class="filter-count">0</span>
+                            </button>
+                            <button class="filter-button" type="button" data-age-filter="345600-950400">
+                                <span>4 a 10 dias</span>
+                                <span class="filter-count">0</span>
+                            </button>
+                            <button class="filter-button" type="button" data-age-filter="950400-1814400">
+                                <span>11 a 20 dias</span>
+                                <span class="filter-count">0</span>
+                            </button>
+                            <button class="filter-button" type="button" data-age-filter="1814400-2678400">
+                                <span>21 a 30 dias</span>
+                                <span class="filter-count">0</span>
+                            </button>
+                            <button class="filter-button" type="button" data-age-filter="2678400-4406400">
+                                <span>31 a 50 dias</span>
+                                <span class="filter-count">0</span>
+                            </button>
+                            <button class="filter-button" type="button" data-age-filter="4406400-6566400">
+                                <span>51 a 75 dias</span>
+                                <span class="filter-count">0</span>
+                            </button>
+                            <button class="filter-button" type="button" data-age-filter="6566400-7862400">
+                                <span>76 a 90 dias</span>
+                                <span class="filter-count">0</span>
+                            </button>
+                            <button class="filter-button" type="button" data-age-filter="7862400-">
+                                <span>+90 dias</span>
+                                <span class="filter-count">0</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
