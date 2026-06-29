@@ -60,6 +60,9 @@
                 <button class="toolbar-button" type="button" data-scroll-target=".visual-dashboard">
                     Gráficos
                 </button>
+                <button class="toolbar-button" type="button" data-scroll-target=".executive-intelligence">
+                    Inteligência
+                </button>
             </div>
         </nav>
 
@@ -181,6 +184,84 @@
                 </div>
                 <p class="age-note">Mais antigo: <strong>{{ summary.age.oldest_label }}</strong> · Média: <strong>{{ summary.age.average_label }}</strong></p>
             </article>
+        </section>
+
+        <section class="executive-intelligence" aria-label="Inteligência executiva do relatório">
+            <div class="executive-heading">
+                <span class="chart-kicker">Inteligência operacional</span>
+                <h2>Prioridade, Reincidência e Envelhecimento</h2>
+                <p>
+                    Leitura executiva baseada em severidade, tempo offline e repetição dos sintomas no ambiente monitorado.
+                </p>
+            </div>
+
+            <div class="intelligence-grid">
+                <article class="intelligence-card intelligence-card-wide">
+                    <div class="intelligence-card-heading">
+                        <span>Comparativo por janela</span>
+                        <strong>{{ summary.period_comparison.leading_label }}</strong>
+                    </div>
+                    <div class="period-radar" aria-label="Comparativo de incidentes por janela de tempo">
+                        {% for item in summary.period_comparison.ranges %}
+                        <div class="period-radar-row">
+                            <div>
+                                <span>{{ item.label }}</span>
+                                <strong>{{ item.total }}</strong>
+                            </div>
+                            <span class="period-track">
+                                <span style="width: {{ item.percent }}%;"></span>
+                            </span>
+                            <small>{{ item.percent }}% · {{ item.high }} alta/desastre</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </article>
+
+                <article class="intelligence-card">
+                    <div class="intelligence-card-heading">
+                        <span>Fila executiva</span>
+                        <strong>{{ summary.priority.critical + summary.priority.high }}</strong>
+                    </div>
+                    <p class="intelligence-note">
+                        {{ summary.priority.critical }} crítico · {{ summary.priority.high }} alto · score médio {{ summary.priority.average_score }}
+                    </p>
+                    <div class="priority-stack" aria-label="Incidentes mais prioritários">
+                        {% for item in summary.priority.top[:5] %}
+                        <button class="priority-tile priority-tile-{{ item.class }}" type="button" data-quick-search="{{ item.host }}">
+                            <span class="priority-score">{{ item.score }}</span>
+                            <span>
+                                <strong>{{ item.label }}</strong>
+                                <small title="{{ item.host }}">{{ item.host }}</small>
+                            </span>
+                        </button>
+                        {% endfor %}
+                    </div>
+                </article>
+
+                <article class="intelligence-card">
+                    <div class="intelligence-card-heading">
+                        <span>Reincidência</span>
+                        <strong>{{ summary.recurrence.affected_hosts }}</strong>
+                    </div>
+                    <p class="intelligence-note">
+                        Hosts com repetição do mesmo tipo de incidente no recorte atual.
+                    </p>
+                    <div class="recurrence-list" aria-label="Hosts reincidentes">
+                        {% for item in summary.recurrence.top[:5] %}
+                        <button class="recurrence-item" type="button" data-quick-search="{{ item.host }}">
+                            <span>
+                                <strong title="{{ item.host }}">{{ item.host }}</strong>
+                                <small title="{{ item.incident_type }}">{{ item.incident_type }}</small>
+                            </span>
+                            <em>{{ item.total }}x</em>
+                        </button>
+                        {% endfor %}
+                        {% if not summary.recurrence.top %}
+                        <span class="empty-insight">Nenhuma reincidência relevante neste recorte.</span>
+                        {% endif %}
+                    </div>
+                </article>
+            </div>
         </section>
 
         <section class="insights" aria-label="Indicadores do relatorio">

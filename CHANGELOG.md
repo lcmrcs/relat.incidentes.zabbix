@@ -18,6 +18,8 @@ Este arquivo registra mudanças relevantes de forma simples, para facilitar acom
 
 ### Adicionado
 
+- Camada de inteligência executiva com comparativo por janelas de tempo,
+  reincidência operacional e score de prioridade.
 - Barra de ações no topo do relatório HTML.
 - Modo apresentação para destacar indicadores, gráficos e rankings executivos.
 - Alternância entre tema claro e tema escuro.
@@ -25,6 +27,10 @@ Este arquivo registra mudanças relevantes de forma simples, para facilitar acom
 
 ### Melhorado
 
+- Exportação Excel, com aba de resumo executivo, rankings, filtros, tabelas,
+  gráficos e cores por severidade/status.
+- PDF executivo, com capa visual mais próxima do HTML e indicadores focados em
+  incidentes abertos.
 - Cabeçalho do HTML, com composição visual mais ousada e indicadores executivos no próprio hero.
 - Aplicação da nova logo da Techface no cabeçalho, com destaque visual e integração ao hero.
 - Controle de tema, trocando o texto simples por "Modo lunar" e "Modo solar".

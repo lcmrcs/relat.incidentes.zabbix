@@ -219,78 +219,163 @@ def build_summary_pdf_page(summary, generated, period_label, total_pages):
     """
 
     commands = []
-    dark = (1, 1, 1)
+    white = (1, 1, 1)
+    cyan = (0.03, 0.50, 0.55)
     text = (0.05, 0.14, 0.22)
     muted = (0.26, 0.34, 0.43)
 
-    # Faixa superior com contraste alto para criar uma capa executiva legivel.
-    commands.append(b"0.04 0.20 0.25 rg 0 532 842 63 re f\n")
+    # Capa inspirada no HTML: fundo escuro, marca operacional e cards executivos.
+    commands.append(b"0.04 0.20 0.25 rg 0 392 842 203 re f\n")
+    commands.append(b"0.03 0.50 0.55 rg 0 588 842 7 re f\n")
+    commands.append(b"0.05 0.33 0.38 rg 616 392 226 203 re f\n")
+    commands.append(b"0.03 0.50 0.55 RG 34 402 774 174 re S\n")
+
     add_pdf_text(
         commands,
         36,
-        568,
+        552,
         "Relatório Executivo de Incidentes Zabbix",
-        18,
+        24,
         "F2",
-        dark,
+        white,
+    )
+    add_pdf_text(
+        commands,
+        38,
+        573,
+        "MONITORAMENTO ZABBIX",
+        8,
+        "F2",
+        (0.74, 0.92, 0.91),
     )
 
-    period_lines = wrap_text(
-        f"Periodo: {period_label} | Gerado em {generated} | Pagina 1 de {total_pages}",
-        118,
-    )
-    y = 548
-
-    for line in period_lines[:2]:
-        add_pdf_text(commands, 36, y, line, 9, "F1", dark)
-        y -= 12
-
-    cards = [
-        ("Eventos", summary["event_total"]),
-        ("Incidentes unicos", summary["unique_total"]),
-        ("Unicos abertos", summary["unique_open"]),
-        ("Unicos resolvidos", summary["unique_resolved"]),
-        ("Eventos repetidos", summary["repeated_events"]),
-        ("Media ev/inc", summary["avg_events_per_incident"]),
+    compact_period = str(period_label).split(":")[0].split("|")[0].strip()
+    hero_cards = [
+        ("GERADO EM", generated),
+        ("PERÍODO", compact_period),
+        ("PRODUZIDO POR", "Network Operations Center"),
     ]
+    hero_width = 238
+    hero_y = 430
 
-    card_width = 246
-    card_height = 54
-    x_positions = [36, 298, 560]
-    y_positions = [456, 386]
-
-    for index, (label, value) in enumerate(cards):
-        x = x_positions[index % 3]
-        y = y_positions[index // 3]
+    for index, (label, value) in enumerate(hero_cards):
+        x = 44 + (index * 254)
         commands.append(
-            b"0.96 0.98 1.00 rg %.2f %.2f %.2f %.2f re f\n" % (
+            b"0.08 0.31 0.35 rg %.2f %.2f %.2f 56 re f\n" % (
                 x,
-                y,
-                card_width,
-                card_height,
+                hero_y,
+                hero_width,
             )
         )
         commands.append(
-            b"0.70 0.78 0.86 RG %.2f %.2f %.2f %.2f re S\n" % (
+            b"0.15 0.66 0.70 RG %.2f %.2f %.2f 56 re S\n" % (
                 x,
-                y,
-                card_width,
-                card_height,
+                hero_y,
+                hero_width,
             )
         )
-        add_pdf_text(commands, x + 12, y + 34, label, 9, "F2", muted)
-        add_pdf_text(commands, x + 12, y + 11, value, 20, "F2", text)
+        add_pdf_text(commands, x + 12, hero_y + 35, label, 8, "F2", (0.66, 0.86, 0.87))
+        add_pdf_text(commands, x + 12, hero_y + 14, value, 13, "F2", white)
 
-    def draw_section(title, items, x, y, width=350, limit=7):
+    def draw_metric_group(title, items, x, y, width, accent):
         commands.append(
-            b"0.04 0.20 0.25 rg %.2f %.2f %.2f 22 re f\n" % (
+            b"%.2f %.2f %.2f rg %.2f %.2f %.2f 118 re f\n" % (
+                0.97,
+                0.99,
+                0.99,
                 x,
                 y,
                 width,
             )
         )
-        add_pdf_text(commands, x + 10, y + 7, title, 10, "F2", dark)
-        cursor = y - 18
+        commands.append(
+            b"%.2f %.2f %.2f RG %.2f %.2f %.2f 118 re S\n" % (
+                accent[0],
+                accent[1],
+                accent[2],
+                x,
+                y,
+                width,
+            )
+        )
+        add_pdf_text(commands, x + 12, y + 96, title, 10, "F2", text)
+
+        card_width = (width - 36) / max(1, len(items))
+
+        for index, (label, value) in enumerate(items):
+            card_x = x + 12 + (index * (card_width + 6))
+            commands.append(
+                b"0.94 0.98 0.98 rg %.2f %.2f %.2f 58 re f\n" % (
+                    card_x,
+                    y + 22,
+                    card_width,
+                )
+            )
+            commands.append(
+                b"%.2f %.2f %.2f RG %.2f %.2f %.2f 58 re S\n" % (
+                    accent[0],
+                    accent[1],
+                    accent[2],
+                    card_x,
+                    y + 22,
+                    card_width,
+                )
+            )
+            add_pdf_text(commands, card_x + 8, y + 59, label, 7, "F2", muted)
+            add_pdf_text(commands, card_x + 8, y + 35, value, 16, "F2", accent)
+
+    age = summary["age"]
+    draw_metric_group(
+        "OPERAÇÃO",
+        [("INCIDENTES ABERTOS", summary["unique_open"])],
+        36,
+        258,
+        180,
+        (0.79, 0.13, 0.18),
+    )
+    draw_metric_group(
+        "TEMPO OFFLINE",
+        [
+            ("MAIS ANTIGO", age["oldest_label"]),
+            ("MÉDIA DE IDADE", age["average_label"]),
+            ("ACIMA DE 7 DIAS", age["over_7d"]),
+        ],
+        228,
+        258,
+        300,
+        (0.92, 0.43, 0.00),
+    )
+    draw_metric_group(
+        "SEVERIDADE",
+        [
+            ("ALTA", summary["high"]),
+            ("MÉDIA", summary["medium"]),
+            ("ATENÇÃO", summary["attention"]),
+            ("INFORMAÇÃO", summary["information"]),
+        ],
+        540,
+        258,
+        266,
+        cyan,
+    )
+
+    def draw_section(title, items, x, y, width=350, limit=7):
+        commands.append(
+            b"0.04 0.20 0.25 rg %.2f %.2f %.2f 24 re f\n" % (
+                x,
+                y,
+                width,
+            )
+        )
+        commands.append(
+            b"0.03 0.50 0.55 rg %.2f %.2f %.2f 3 re f\n" % (
+                x,
+                y + 21,
+                width,
+            )
+        )
+        add_pdf_text(commands, x + 10, y + 8, title, 10, "F2", white)
+        cursor = y - 17
 
         for item in items[:limit]:
             name = item["name"]
@@ -299,6 +384,13 @@ def build_summary_pdf_page(summary, generated, period_label, total_pages):
 
             add_pdf_text(commands, x + 10, cursor, name_lines[0], 8, "F1", text)
             add_pdf_text(commands, x + width - 84, cursor, value, 8, "F2", text)
+            commands.append(
+                b"0.90 0.95 0.96 RG %.2f %.2f %.2f 0.5 re S\n" % (
+                    x + 10,
+                    cursor - 5,
+                    width - 20,
+                )
+            )
             cursor -= 14
 
             for extra in name_lines[1:2]:
@@ -311,7 +403,7 @@ def build_summary_pdf_page(summary, generated, period_label, total_pages):
         "Tipos de incidente",
         summary.get("top_incident_types", []),
         36,
-        332,
+        214,
         370,
         8,
     )
@@ -319,7 +411,7 @@ def build_summary_pdf_page(summary, generated, period_label, total_pages):
         "Equipamentos mais afetados",
         summary.get("top_equipment", summary["equipment"]),
         436,
-        332,
+        214,
         370,
         8,
     )
@@ -327,25 +419,51 @@ def build_summary_pdf_page(summary, generated, period_label, total_pages):
         "Unidades com mais incidentes",
         summary["top_units"],
         36,
-        168,
+        54,
         370,
         7,
     )
+    priority_items = [
+        {
+            "name": f"{item['label']} · {item['host']}",
+            "total": item["score"],
+            "percent": item["score"],
+        }
+        for item in summary.get("priority", {}).get("top", [])[:6]
+    ]
+    recurrence_items = [
+        {
+            "name": f"{item['host']} · {item['incident_type']}",
+            "total": item["total"],
+            "percent": item["percent"],
+        }
+        for item in summary.get("recurrence", {}).get("top", [])[:6]
+    ]
     draw_section(
-        "Severidade",
-        summary["severity"],
+        "Fila de prioridade",
+        priority_items,
         436,
-        168,
+        54,
         180,
         6,
     )
     draw_section(
-        "Hosts com mais incidentes",
-        summary["top_hosts"],
+        "Reincidencia",
+        recurrence_items,
         626,
-        168,
+        54,
         180,
         6,
+    )
+
+    add_pdf_text(
+        commands,
+        36,
+        20,
+        f"Página 1 de {total_pages}",
+        8,
+        "F1",
+        muted,
     )
 
     return b"".join(commands)

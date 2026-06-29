@@ -17,6 +17,10 @@ import pandas as pd
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+from openpyxl.chart import BarChart, DoughnutChart, Reference
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.table import Table, TableStyleInfo
 from pathlib import Path
 
 from classifiers import (
@@ -40,6 +44,29 @@ ENV_FILE = BASE_DIR / ".env"
 TEMPLATES_DIR = BASE_DIR / "templates"
 ASSETS_DIR = BASE_DIR / "assets"
 REPORTS_DIR = BASE_DIR / "reports"
+
+EXCEL_COLUMNS = [
+    ("date", "Data de abertura"),
+    ("unit_code", "Código da unidade"),
+    ("unit", "Unidade"),
+    ("host", "Host"),
+    ("equipment", "Equipamento"),
+    ("incident_type", "Tipo de incidente"),
+    ("incident", "Incidente"),
+    ("severity", "Severidade"),
+    ("status", "Status"),
+    ("age_label", "Tempo offline"),
+    ("eventid", "Evento Zabbix"),
+]
+
+EXCEL_SEVERITY_COLORS = {
+    "Desastre": "7F1D1D",
+    "Alta": "EA580C",
+    "Média": "D97706",
+    "Atenção": "15803D",
+    "Informação": "2563EB",
+    "Não classificada": "64748B",
+}
 
 
 def slugify(value):
@@ -451,7 +478,343 @@ def filter_by_equipment(incidents, equipment_name):
 # EXPORTAÇÃO
 # ==================================================
 
-def export_excel(path, all_incidents, main_incidents, zabbix_incidents, confea_incidents):
+def incidents_to_excel_frame(incidents):
+    """
+    Converte incidentes em DataFrame com nomes amigáveis para o Excel.
+
+    A lista de colunas é fixa para manter a planilha previsível mesmo quando
+    alguma execução não retorna incidentes.
+    """
+
+    rows = []
+
+    for item in incidents:
+        rows.append({
+            label: item.get(key, "")
+            for key, label in EXCEL_COLUMNS
+        })
+
+    return pd.DataFrame(rows, columns=[label for _, label in EXCEL_COLUMNS])
+
+
+def counter_to_excel_frame(items):
+    """
+    Transforma rankings do resumo em uma tabela simples para o Excel.
+    """
+
+    return pd.DataFrame(
+        [
+            {
+                "Nome": item["name"],
+                "Total": item["total"],
+                "Percentual": item["percent"],
+            }
+            for item in items
+        ],
+        columns=["Nome", "Total", "Percentual"],
+    )
+
+
+def build_excel_summary_rows(summary, generated, period_label):
+    """
+    Monta os blocos textuais da aba Resumo Executivo.
+    """
+
+    age = summary["age"]
+
+    return [
+        ("Relatório Executivo de Incidentes Zabbix", ""),
+        ("Gerado em", generated),
+        ("Período analisado", period_label),
+        ("Produzido por", "Network Operations Center"),
+        ("", ""),
+        ("Incidentes abertos", summary["unique_open"]),
+        ("Mais antigo aberto", age["oldest_label"]),
+        ("Média de idade", age["average_label"]),
+        ("Acima de 7 dias", age["over_7d"]),
+        ("Score médio de prioridade", summary["priority"]["average_score"]),
+        ("Fila crítica", summary["priority"]["critical"]),
+        ("Fila alta", summary["priority"]["high"]),
+        ("Hosts reincidentes", summary["recurrence"]["affected_hosts"]),
+        ("", ""),
+        ("Alta", summary["high"]),
+        ("Média", summary["medium"]),
+        ("Atenção", summary["attention"]),
+        ("Informação", summary["information"]),
+        ("Desastre", summary["critical"]),
+    ]
+
+
+def build_excel_intelligence_frames(summary):
+    """
+    Monta tabelas executivas de comparativo, reincidência e prioridade.
+    """
+
+    comparison = pd.DataFrame(
+        [
+            {
+                "Faixa": item["label"],
+                "Total": item["total"],
+                "Percentual": item["percent"],
+                "Alta/Desastre": item["high"],
+            }
+            for item in summary["period_comparison"]["ranges"]
+        ],
+        columns=["Faixa", "Total", "Percentual", "Alta/Desastre"],
+    )
+    recurrence = pd.DataFrame(
+        [
+            {
+                "Host": item["host"],
+                "Unidade": item["unit"],
+                "Equipamento": item["equipment"],
+                "Tipo de incidente": item["incident_type"],
+                "Ocorrências": item["total"],
+                "Score": item["score"],
+            }
+            for item in summary["recurrence"]["top"]
+        ],
+        columns=[
+            "Host",
+            "Unidade",
+            "Equipamento",
+            "Tipo de incidente",
+            "Ocorrências",
+            "Score",
+        ],
+    )
+    priority = pd.DataFrame(
+        [
+            {
+                "Score": item["score"],
+                "Prioridade": item["label"],
+                "Host": item["host"],
+                "Unidade": item["unit"],
+                "Equipamento": item["equipment"],
+                "Tipo de incidente": item["incident_type"],
+                "Severidade": item["severity"],
+                "Tempo offline": item["age_label"],
+                "Evento": item["eventid"],
+            }
+            for item in summary["priority"]["top"]
+        ],
+        columns=[
+            "Score",
+            "Prioridade",
+            "Host",
+            "Unidade",
+            "Equipamento",
+            "Tipo de incidente",
+            "Severidade",
+            "Tempo offline",
+            "Evento",
+        ],
+    )
+
+    return [
+        ("Comparativo por janela", comparison),
+        ("Reincidência operacional", recurrence),
+        ("Fila executiva de prioridade", priority),
+    ]
+
+
+def style_excel_workbook(writer):
+    """
+    Aplica acabamento visual, filtros e congelamento em todas as abas.
+
+    A formatação fica no final para que os dados sejam exportados primeiro pelo
+    pandas e depois refinados com openpyxl.
+    """
+
+    workbook = writer.book
+    header_fill = PatternFill("solid", fgColor="073B43")
+    accent_fill = PatternFill("solid", fgColor="E8FAF8")
+    dark_fill = PatternFill("solid", fgColor="062A30")
+    soft_fill = PatternFill("solid", fgColor="F6FBFB")
+    border_color = "BFD8DC"
+    thin_border = Border(
+        left=Side(style="thin", color=border_color),
+        right=Side(style="thin", color=border_color),
+        top=Side(style="thin", color=border_color),
+        bottom=Side(style="thin", color=border_color),
+    )
+
+    for sheet_index, worksheet in enumerate(workbook.worksheets):
+        worksheet.sheet_view.showGridLines = False
+        worksheet.freeze_panes = "A2"
+
+        if worksheet.max_row > 1 and worksheet.max_column > 1:
+            worksheet.auto_filter.ref = worksheet.dimensions
+
+        for cell in worksheet[1]:
+            cell.fill = header_fill
+            cell.font = Font(color="FFFFFF", bold=True)
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+            cell.border = thin_border
+
+        for row in worksheet.iter_rows(min_row=2):
+            for cell in row:
+                cell.alignment = Alignment(vertical="top", wrap_text=True)
+                cell.border = thin_border
+                if cell.row % 2 == 0:
+                    cell.fill = soft_fill
+
+        for column_cells in worksheet.columns:
+            column_letter = get_column_letter(column_cells[0].column)
+            max_length = max(
+                len(str(cell.value or ""))
+                for cell in column_cells[:80]
+            )
+            worksheet.column_dimensions[column_letter].width = min(
+                max(max_length + 3, 13),
+                42,
+            )
+
+        if (
+            worksheet.title not in {"Resumo Executivo", "Rankings", "Inteligência"}
+            and worksheet.max_row > 1
+        ):
+            table_ref = worksheet.dimensions
+            table_name = f"Tabela{sheet_index + 1}"
+            table = Table(displayName=table_name, ref=table_ref)
+            table.tableStyleInfo = TableStyleInfo(
+                name="TableStyleMedium2",
+                showFirstColumn=False,
+                showLastColumn=False,
+                showRowStripes=True,
+                showColumnStripes=False,
+            )
+            worksheet.add_table(table)
+
+            headers = [cell.value for cell in worksheet[1]]
+            severity_index = headers.index("Severidade") + 1 if "Severidade" in headers else None
+            status_index = headers.index("Status") + 1 if "Status" in headers else None
+
+            for row in worksheet.iter_rows(min_row=2):
+                if severity_index:
+                    severity_cell = row[severity_index - 1]
+                    color = EXCEL_SEVERITY_COLORS.get(str(severity_cell.value), "64748B")
+                    severity_cell.fill = PatternFill("solid", fgColor=color)
+                    severity_cell.font = Font(color="FFFFFF", bold=True)
+                    severity_cell.alignment = Alignment(horizontal="center")
+
+                if status_index:
+                    status_cell = row[status_index - 1]
+                    if status_cell.value == "Aberto":
+                        status_cell.fill = PatternFill("solid", fgColor="FEE2E2")
+                        status_cell.font = Font(color="B91C1C", bold=True)
+                    elif status_cell.value == "Resolvido":
+                        status_cell.fill = PatternFill("solid", fgColor="DCFCE7")
+                        status_cell.font = Font(color="166534", bold=True)
+
+        worksheet.row_dimensions[1].height = 24
+
+    summary_sheet = workbook["Resumo Executivo"]
+    summary_sheet.freeze_panes = None
+    summary_sheet.column_dimensions["A"].width = 32
+    summary_sheet.column_dimensions["B"].width = 44
+    summary_sheet["A1"].fill = dark_fill
+    summary_sheet["B1"].fill = dark_fill
+    summary_sheet["A1"].font = Font(color="FFFFFF", bold=True, size=16)
+    summary_sheet["B1"].font = Font(color="FFFFFF", bold=True, size=16)
+
+    for row_number in range(2, 20):
+        summary_sheet[f"A{row_number}"].font = Font(color="455A64", bold=True)
+        summary_sheet[f"B{row_number}"].font = Font(color="073B43", bold=True)
+        summary_sheet[f"A{row_number}"].fill = accent_fill
+        summary_sheet[f"B{row_number}"].fill = accent_fill
+
+    summary_sheet.sheet_properties.tabColor = "087F8C"
+
+    for worksheet in workbook.worksheets:
+        if worksheet.title == "Unidades":
+            worksheet.sheet_properties.tabColor = "087F8C"
+        elif worksheet.title == "Servidor Zabbix":
+            worksheet.sheet_properties.tabColor = "DC2626"
+        elif worksheet.title == "CONFEA VPN":
+            worksheet.sheet_properties.tabColor = "7C3AED"
+        elif worksheet.title == "Todos":
+            worksheet.sheet_properties.tabColor = "0F766E"
+
+    if "Rankings" in workbook.sheetnames:
+        rankings_sheet = workbook["Rankings"]
+        rankings_sheet.sheet_properties.tabColor = "0E7490"
+
+    if "Inteligência" in workbook.sheetnames:
+        intelligence_sheet = workbook["Inteligência"]
+        intelligence_sheet.sheet_properties.tabColor = "12343B"
+
+        for row in intelligence_sheet.iter_rows():
+            first_cell = row[0]
+            if first_cell.value and all(cell.value in (None, "") for cell in row[1:]):
+                first_cell.fill = dark_fill
+                first_cell.font = Font(color="FFFFFF", bold=True)
+
+
+def add_excel_charts(writer):
+    """
+    Cria gráficos simples na aba de resumo a partir da aba Rankings.
+    """
+
+    workbook = writer.book
+
+    if "Rankings" not in workbook.sheetnames:
+        return
+
+    summary_sheet = workbook["Resumo Executivo"]
+    rankings_sheet = workbook["Rankings"]
+
+    if rankings_sheet.max_row < 3:
+        return
+
+    chart = DoughnutChart()
+    chart.title = "Severidade"
+    labels = Reference(rankings_sheet, min_col=1, min_row=2, max_row=6)
+    data = Reference(rankings_sheet, min_col=2, min_row=1, max_row=6)
+    chart.add_data(data, titles_from_data=True)
+    chart.set_categories(labels)
+    chart.holeSize = 58
+    chart.height = 7
+    chart.width = 9
+    summary_sheet.add_chart(chart, "D2")
+
+    equipment_start = 10
+    equipment_end = min(rankings_sheet.max_row, equipment_start + 7)
+
+    if equipment_end > equipment_start:
+        bar_chart = BarChart()
+        bar_chart.title = "Equipamentos mais afetados"
+        bar_chart.y_axis.title = "Incidentes"
+        bar_chart.x_axis.title = "Equipamento"
+        labels = Reference(
+            rankings_sheet,
+            min_col=1,
+            min_row=equipment_start + 1,
+            max_row=equipment_end,
+        )
+        data = Reference(
+            rankings_sheet,
+            min_col=2,
+            min_row=equipment_start,
+            max_row=equipment_end,
+        )
+        bar_chart.add_data(data, titles_from_data=True)
+        bar_chart.set_categories(labels)
+        bar_chart.height = 7
+        bar_chart.width = 12
+        summary_sheet.add_chart(bar_chart, "D18")
+
+
+def export_excel(
+    path,
+    all_incidents,
+    main_incidents,
+    zabbix_incidents,
+    confea_incidents,
+    summary,
+    generated,
+    period_label,
+):
     """
     Gera a planilha Excel com abas separadas por finalidade.
 
@@ -459,32 +822,88 @@ def export_excel(path, all_incidents, main_incidents, zabbix_incidents, confea_i
     isolam infraestrutura especial. A aba Todos preserva a visão completa.
     """
 
-    with pd.ExcelWriter(path) as writer:
-        pd.DataFrame(main_incidents).to_excel(
+    with pd.ExcelWriter(path, engine="openpyxl") as writer:
+        pd.DataFrame(
+            build_excel_summary_rows(summary, generated, period_label),
+            columns=["Indicador", "Valor"],
+        ).to_excel(
+            writer,
+            sheet_name="Resumo Executivo",
+            index=False,
+        )
+
+        rankings_frames = [
+            ("Severidade", counter_to_excel_frame(summary["severity"])),
+            ("Equipamentos", counter_to_excel_frame(summary["top_equipment"])),
+            ("Tipos de incidente", counter_to_excel_frame(summary["top_incident_types"])),
+            ("Unidades", counter_to_excel_frame(summary["top_units"])),
+            ("Hosts", counter_to_excel_frame(summary["top_hosts"])),
+        ]
+        start_row = 0
+
+        for title, frame in rankings_frames:
+            pd.DataFrame([[title, "", ""]], columns=["Nome", "Total", "Percentual"]).to_excel(
+                writer,
+                sheet_name="Rankings",
+                index=False,
+                header=start_row == 0,
+                startrow=start_row,
+            )
+            frame.to_excel(
+                writer,
+                sheet_name="Rankings",
+                index=False,
+                header=False,
+                startrow=start_row + 1,
+            )
+            start_row += len(frame) + 4
+
+        start_row = 0
+
+        for title, frame in build_excel_intelligence_frames(summary):
+            pd.DataFrame([[title]], columns=["Indicador"]).to_excel(
+                writer,
+                sheet_name="Inteligência",
+                index=False,
+                header=False,
+                startrow=start_row,
+            )
+            frame.to_excel(
+                writer,
+                sheet_name="Inteligência",
+                index=False,
+                startrow=start_row + 1,
+            )
+            start_row += len(frame) + 4
+
+        incidents_to_excel_frame(main_incidents).to_excel(
             writer,
             sheet_name="Unidades",
             index=False,
         )
 
         if zabbix_incidents:
-            pd.DataFrame(zabbix_incidents).to_excel(
+            incidents_to_excel_frame(zabbix_incidents).to_excel(
                 writer,
                 sheet_name="Servidor Zabbix",
                 index=False,
             )
 
         if confea_incidents:
-            pd.DataFrame(confea_incidents).to_excel(
+            incidents_to_excel_frame(confea_incidents).to_excel(
                 writer,
                 sheet_name="CONFEA VPN",
                 index=False,
             )
 
-        pd.DataFrame(all_incidents).to_excel(
+        incidents_to_excel_frame(all_incidents).to_excel(
             writer,
             sheet_name="Todos",
             index=False,
         )
+
+        style_excel_workbook(writer)
+        add_excel_charts(writer)
 
 
 def render_html(
@@ -601,6 +1020,9 @@ def main():
         main_incidents,
         zabbix_incidents,
         confea_incidents,
+        summary,
+        generated,
+        period_label,
     )
     print(f"Excel gerado: {excel_name}")
 

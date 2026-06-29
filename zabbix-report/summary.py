@@ -11,6 +11,23 @@ from datetime import datetime
 from classifiers import EQUIPMENT_ORDER
 
 
+SEVERITY_SCORE = {
+    "Não classificada": 5,
+    "Informação": 10,
+    "Atenção": 25,
+    "Média": 42,
+    "Alta": 66,
+    "Desastre": 90,
+}
+
+PRIORITY_LEVELS = [
+    (85, "Crítica", "critica"),
+    (65, "Alta", "alta"),
+    (38, "Média", "media"),
+    (0, "Normal", "normal"),
+]
+
+
 def format_age(seconds):
     """
     Converte segundos em texto curto de idade do incidente.
@@ -33,6 +50,58 @@ def format_age(seconds):
         return f"{hours}h {minutes}min"
 
     return f"{minutes}min"
+
+
+def priority_level(score):
+    """
+    Classifica um score numérico em uma faixa executiva de prioridade.
+
+    O score combina severidade, idade e reincidência. A faixa facilita a leitura
+    para gestão sem esconder a pontuação técnica.
+    """
+
+    for minimum, label, class_name in PRIORITY_LEVELS:
+        if score >= minimum:
+            return {
+                "label": label,
+                "class": class_name,
+                "score": min(100, round(score)),
+            }
+
+    return {
+        "label": "Normal",
+        "class": "normal",
+        "score": min(100, round(score)),
+    }
+
+
+def calculate_priority_score(incident, recurrence_count=1):
+    """
+    Calcula a urgência operacional de um incidente.
+
+    A pontuação não substitui a severidade do Zabbix; ela cria uma leitura
+    executiva combinando severidade, tempo offline e recorrência no mesmo host.
+    """
+
+    severity_score = SEVERITY_SCORE.get(incident.get("severity"), 8)
+    age_seconds = max(0, incident.get("age_seconds", 0) or 0)
+
+    if age_seconds >= 90 * 86400:
+        age_score = 30
+    elif age_seconds >= 30 * 86400:
+        age_score = 24
+    elif age_seconds >= 7 * 86400:
+        age_score = 18
+    elif age_seconds >= 3 * 86400:
+        age_score = 12
+    elif age_seconds >= 86400:
+        age_score = 7
+    else:
+        age_score = 0
+
+    recurrence_score = min(18, max(0, recurrence_count - 1) * 6)
+
+    return min(100, severity_score + age_score + recurrence_score)
 
 
 def build_age_summary(incidents):
@@ -104,6 +173,154 @@ def build_age_summary(incidents):
     }
 
 
+def build_period_comparison(incidents, total):
+    """
+    Compara a concentração dos incidentes por faixas executivas de idade.
+
+    Sem histórico persistido, este comparativo mostra onde o passivo operacional
+    está concentrado: incidentes novos, recentes, envelhecidos e críticos.
+    """
+
+    ranges = [
+        ("Últimas 24h", 0, 86400),
+        ("1 a 3 dias", 86400, 345600),
+        ("4 a 10 dias", 345600, 950400),
+        ("11 a 30 dias", 950400, 2678400),
+        ("+30 dias", 2678400, None),
+    ]
+    comparison = []
+
+    for label, start, end in ranges:
+        items = [
+            item
+            for item in incidents
+            if item.get("age_seconds", 0) >= start
+            and (end is None or item.get("age_seconds", 0) < end)
+        ]
+        high_count = sum(
+            1
+            for item in items
+            if item.get("severity") in {"Alta", "Desastre"}
+        )
+        comparison.append({
+            "label": label,
+            "total": len(items),
+            "percent": round((len(items) / total) * 100, 1) if total else 0,
+            "high": high_count,
+            "open": len(items),
+        })
+
+    leading = max(comparison, key=lambda item: item["total"], default=None)
+
+    return {
+        "ranges": comparison,
+        "leading_label": leading["label"] if leading else "-",
+        "leading_total": leading["total"] if leading else 0,
+        "aging_total": sum(item["total"] for item in comparison[-2:]),
+        "fresh_total": comparison[0]["total"] if comparison else 0,
+    }
+
+
+def build_recurrence_summary(incidents, recurrence_counter, total):
+    """
+    Identifica hosts e sintomas que aparecem repetidamente no recorte atual.
+    """
+
+    recurrent_items = []
+
+    for item in incidents:
+        key = (
+            item.get("host", "N/A"),
+            item.get("incident_type") or item.get("incident", "N/A"),
+        )
+        count = recurrence_counter[key]
+
+        if count <= 1:
+            continue
+
+        recurrent_items.append({
+            "host": item.get("host", "N/A"),
+            "unit": item.get("unit", "N/A"),
+            "equipment": item.get("equipment", "N/A"),
+            "incident_type": key[1],
+            "total": count,
+            "percent": round((count / total) * 100, 1) if total else 0,
+            "oldest_label": item.get("age_label", "-"),
+            "score": calculate_priority_score(item, count),
+        })
+
+    unique = {}
+
+    for item in recurrent_items:
+        unique_key = (item["host"], item["incident_type"])
+        current = unique.get(unique_key)
+
+        if not current or item["score"] > current["score"]:
+            unique[unique_key] = item
+
+    top_items = sorted(
+        unique.values(),
+        key=lambda item: (item["total"], item["score"]),
+        reverse=True,
+    )[:8]
+
+    return {
+        "total_recurrent_events": sum(item["total"] for item in top_items),
+        "affected_hosts": len(top_items),
+        "top": top_items,
+    }
+
+
+def build_priority_summary(incidents, recurrence_counter):
+    """
+    Gera uma fila executiva dos incidentes que mais merecem atenção.
+    """
+
+    ranked = []
+
+    for item in incidents:
+        recurrence_key = (
+            item.get("host", "N/A"),
+            item.get("incident_type") or item.get("incident", "N/A"),
+        )
+        score = calculate_priority_score(
+            item,
+            recurrence_counter.get(recurrence_key, 1),
+        )
+        level = priority_level(score)
+        ranked.append({
+            "score": level["score"],
+            "label": level["label"],
+            "class": level["class"],
+            "host": item.get("host", "N/A"),
+            "unit": item.get("unit", "N/A"),
+            "equipment": item.get("equipment", "N/A"),
+            "incident_type": item.get("incident_type") or item.get("incident", "N/A"),
+            "severity": item.get("severity", "N/A"),
+            "age_label": item.get("age_label", "-"),
+            "eventid": item.get("eventid", ""),
+        })
+
+    by_level = Counter(item["label"] for item in ranked)
+    top = sorted(
+        ranked,
+        key=lambda item: item["score"],
+        reverse=True,
+    )[:10]
+
+    return {
+        "top": top,
+        "critical": by_level.get("Crítica", 0),
+        "high": by_level.get("Alta", 0),
+        "medium": by_level.get("Média", 0),
+        "normal": by_level.get("Normal", 0),
+        "average_score": round(
+            sum(item["score"] for item in ranked) / len(ranked),
+            1,
+        ) if ranked else 0,
+    }
+
+
 def build_report_summary(incidents):
     """
     Calcula indicadores usados no HTML e na primeira página do PDF.
@@ -151,6 +368,14 @@ def build_report_summary(incidents):
         for item in incidents
         if item["host"] != "N/A"
     )
+    recurrence_counter = Counter(
+        (
+            item.get("host", "N/A"),
+            item.get("incident_type", item["incident"]),
+        )
+        for item in incidents
+        if item.get("host") != "N/A"
+    )
 
     total = len(incidents)
     avg_events_per_incident = (
@@ -159,6 +384,16 @@ def build_report_summary(incidents):
         else 0
     )
     age_summary = build_age_summary(incidents)
+    period_comparison = build_period_comparison(incidents, total)
+    recurrence_summary = build_recurrence_summary(
+        incidents,
+        recurrence_counter,
+        total,
+    )
+    priority_summary = build_priority_summary(
+        incidents,
+        recurrence_counter,
+    )
 
     def format_counter(counter, preferred_order=None):
         """
@@ -221,4 +456,7 @@ def build_report_summary(incidents):
         "top_equipment": format_counter(equipment_counter)[:8],
         "top_incident_types": format_counter(incident_counter)[:8],
         "top_hosts": format_counter(host_counter)[:8],
+        "period_comparison": period_comparison,
+        "recurrence": recurrence_summary,
+        "priority": priority_summary,
     }

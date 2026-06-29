@@ -129,6 +129,11 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual(summary["top_equipment"][0]["total"], 2)
         self.assertEqual(summary["top_units"][0]["name"], "1011-CE A")
         self.assertEqual(summary["top_incident_types"][0]["name"], "Unavailable by ICMP ping")
+        self.assertEqual(summary["period_comparison"]["fresh_total"], 4)
+        self.assertEqual(summary["recurrence"]["affected_hosts"], 1)
+        self.assertEqual(summary["recurrence"]["top"][0]["total"], 2)
+        self.assertGreaterEqual(summary["priority"]["high"], 1)
+        self.assertGreater(summary["priority"]["average_score"], 0)
 
     def test_empty_summary_is_safe(self):
         summary = build_report_summary([])
@@ -137,6 +142,9 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual(summary["unique_total"], 0)
         self.assertEqual(summary["age"]["oldest_label"], "-")
         self.assertEqual(summary["top_equipment"], [])
+        self.assertEqual(summary["period_comparison"]["leading_total"], 0)
+        self.assertEqual(summary["recurrence"]["top"], [])
+        self.assertEqual(summary["priority"]["top"], [])
 
 
 if __name__ == "__main__":
