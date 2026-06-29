@@ -1727,7 +1727,7 @@
         }
 
         .confea-modal {
-            width: min(1120px, calc(100% - 40px));
+            width: min(1260px, calc(100% - 32px));
             border-color: rgb(64 188 210 / 0.32);
             background:
                 linear-gradient(180deg, #0b2635 0%, #0d303f 100%);
@@ -1793,23 +1793,42 @@
                 linear-gradient(145deg, rgb(255 255 255 / 0.09), rgb(255 255 255 / 0.035));
         }
 
+        .confea-modal .modal-table-wrap {
+            background:
+                linear-gradient(180deg, #0b2635, #0d303f);
+            max-height: min(650px, 72vh);
+            padding: 18px 24px 24px;
+        }
+
         .confea-modal-table {
+            min-width: 1180px;
             table-layout: fixed;
             border-color: rgb(118 216 222 / 0.20);
+            border-spacing: 0;
             background: #0d3037;
         }
 
         .confea-modal-table th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
             background: #08242b;
             border-bottom-color: rgb(118 216 222 / 0.18);
             color: #ffffff;
+            font-size: 13px;
+            letter-spacing: 0;
+            padding: 15px 20px;
         }
 
         .confea-modal-table td {
             border-bottom-color: rgb(118 216 222 / 0.12);
             color: #d7edf0;
-            overflow-wrap: anywhere;
+            font-size: 15px;
+            font-weight: 700;
+            line-height: 1.35;
+            padding: 17px 20px;
             vertical-align: middle;
+            white-space: nowrap;
         }
 
         .confea-modal-table tbody tr:nth-child(even) {
@@ -1827,6 +1846,45 @@
         .confea-modal-table .modal-event {
             color: #efffff;
             font-weight: 800;
+        }
+
+        .confea-modal-table .modal-host,
+        .confea-modal-table .modal-incident {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .confea-modal-table .modal-date {
+            white-space: normal;
+        }
+
+        .confea-modal-table .modal-col-date {
+            width: 12%;
+        }
+
+        .confea-modal-table .modal-col-status {
+            width: 11%;
+        }
+
+        .confea-modal-table .modal-col-host {
+            width: 24%;
+        }
+
+        .confea-modal-table .modal-col-incident {
+            width: 24%;
+        }
+
+        .confea-modal-table .modal-col-severity {
+            width: 11%;
+        }
+
+        .confea-modal-table .modal-col-age {
+            width: 9%;
+        }
+
+        .confea-modal-table .modal-col-event {
+            width: 9%;
         }
 
         .zabbix-button {
