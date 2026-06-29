@@ -1600,15 +1600,15 @@
         .zabbix-logo-mark {
             position: relative;
             overflow: hidden;
-            border-color: rgb(255 255 255 / 0.28);
+            border-color: rgb(255 255 255 / 0.16);
             border-radius: 13px;
             background:
-                linear-gradient(145deg, rgb(255 255 255 / 0.98), rgb(255 232 234 / 0.92));
+                linear-gradient(145deg, #e21b2d 0%, #cf1727 58%, #a90f1d 100%);
             box-shadow:
                 0 14px 28px rgb(128 0 12 / 0.28),
-                0 0 0 4px rgb(255 255 255 / 0.08),
-                inset 0 1px 0 rgb(255 255 255 / 0.22);
-            padding: 8px;
+                0 0 0 4px rgb(226 27 45 / 0.16),
+                inset 0 1px 0 rgb(255 255 255 / 0.18);
+            padding: 0;
         }
 
         .zabbix-logo-mark::after {
@@ -1626,19 +1626,19 @@
             z-index: 1;
             display: block;
             width: 100%;
-            max-height: 100%;
-            object-fit: contain;
+            height: 100%;
+            object-fit: cover;
         }
 
         .zabbix-logo-mark span {
             position: relative;
             z-index: 1;
-            color: #d71924;
+            color: #ffffff;
             font-family: Arial, Helvetica, sans-serif;
             font-size: 43px;
             font-weight: 900;
             line-height: 1;
-            text-shadow: 0 2px 6px rgb(98 0 8 / 0.25);
+            text-shadow: 0 2px 6px rgb(98 0 8 / 0.35);
         }
 
         .zabbix-modal-title-wrap {
