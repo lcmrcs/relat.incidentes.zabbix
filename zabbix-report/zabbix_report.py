@@ -97,8 +97,16 @@ def load_asset_data_uri(filename):
     if not logo_path.exists():
         return None
 
+    mime_types = {
+        ".png": "image/png",
+        ".webp": "image/webp",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".svg": "image/svg+xml",
+    }
+    mime_type = mime_types.get(logo_path.suffix.lower(), "application/octet-stream")
     encoded_logo = base64.b64encode(logo_path.read_bytes()).decode("ascii")
-    return f"data:image/png;base64,{encoded_logo}"
+    return f"data:{mime_type};base64,{encoded_logo}"
 
 
 def load_logo_data_uri():
@@ -115,6 +123,22 @@ def load_confea_logo_data_uri():
     """
 
     return load_asset_data_uri("logoConfea.png")
+
+
+def load_zabbix_icon_data_uri():
+    """
+    Carrega o ícone oficial do Zabbix usado no painel resumido.
+    """
+
+    return load_asset_data_uri("zabbixLogoIcon.webp")
+
+
+def load_zabbix_logo_data_uri():
+    """
+    Carrega a logo completa do Zabbix usada no modal de detalhes.
+    """
+
+    return load_asset_data_uri("zabbixLogoFull.png")
 
 
 def cleanup_old_reports(current_base_name, keep_count=1):
@@ -957,6 +981,8 @@ def render_html(
         confea_incidents=confea_incidents,
         confea_summary=confea_summary,
         logo_data_uri=load_logo_data_uri(),
+        zabbix_icon_data_uri=load_zabbix_icon_data_uri(),
+        zabbix_logo_data_uri=load_zabbix_logo_data_uri(),
         confea_logo_data_uri=load_confea_logo_data_uri(),
         zabbix_web_url=zabbix_web_url,
     )

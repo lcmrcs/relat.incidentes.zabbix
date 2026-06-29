@@ -420,7 +420,11 @@
         {% if zabbix_incidents %}
         <section class="zabbix-panel server-panel" aria-label="Eventos do servidor Zabbix">
             <div class="special-panel-icon zabbix-logo-mark" aria-hidden="true">
+                {% if zabbix_icon_data_uri %}
+                <img src="{{ zabbix_icon_data_uri }}" alt="">
+                {% else %}
                 <span>Z</span>
+                {% endif %}
             </div>
             <div class="special-panel-content">
                 <span class="special-panel-kicker">Infraestrutura monitorada</span>
@@ -778,9 +782,18 @@
     {% if zabbix_incidents %}
     <dialog id="zabbix-dialog" class="zabbix-modal">
         <div class="modal-header">
-            <div>
-                <h2 class="modal-title">Servidor Zabbix</h2>
-                <p class="modal-subtitle">Eventos internos separados da operação das unidades escolares.</p>
+            <div class="zabbix-modal-title-wrap">
+                <div class="zabbix-modal-logo" aria-hidden="true">
+                    {% if zabbix_logo_data_uri %}
+                    <img src="{{ zabbix_logo_data_uri }}" alt="">
+                    {% else %}
+                    <span>Zabbix</span>
+                    {% endif %}
+                </div>
+                <div>
+                    <h2 class="modal-title">Servidor Zabbix</h2>
+                    <p class="modal-subtitle">Eventos internos separados da operação das unidades escolares.</p>
+                </div>
             </div>
             <button class="modal-close" type="button" data-zabbix-close aria-label="Fechar">×</button>
         </div>

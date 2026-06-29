@@ -42,6 +42,7 @@ Este arquivo registra mudanças relevantes de forma simples, para facilitar acom
 - Contraste do modo escuro em faixas de tempo, filtros, rankings e tabela.
 - Legibilidade dos contadores dos filtros no modo escuro e ajuste dos ícones de modo lunar/solar.
 - Substituição do texto "ZBX" por uma marca visual vermelha do Zabbix no painel do servidor.
+- Aplicação das logos oficiais do Zabbix no painel e no modal do Servidor Zabbix.
 - Contraste da tabela do modal "Servidor Zabbix" no modo escuro.
 - Organização compacta do filtro do relatório, com busca no topo, resultados próximos e filtros principais lado a lado.
 - Cards do cabeçalho atualizados para destacar geração, período analisado e autoria do Network Operations Center.
