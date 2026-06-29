@@ -448,13 +448,35 @@
         {% endif %}
 
         {% if confea_incidents %}
-        <section class="zabbix-panel" aria-label="Eventos da CONFEA VPN">
-            <div>
+        <section class="zabbix-panel confea-panel" aria-label="Eventos da CONFEA VPN">
+            <div class="confea-brand" aria-label="CONFEA">
+                {% if confea_logo_data_uri %}
+                <img src="{{ confea_logo_data_uri }}" alt="CONFEA">
+                {% else %}
+                <span>CONFEA</span>
+                {% endif %}
+            </div>
+            <div class="special-panel-content">
+                <span class="special-panel-kicker">Ambiente externo monitorado</span>
                 <h2>CONFEA VPN</h2>
-                <p>Total: {{ confea_summary.event_total }} | VM monitorada por ping via VPN</p>
+                <p>VMs acompanhadas por ping via VPN, separadas da operação das unidades escolares.</p>
+            </div>
+            <div class="special-panel-metrics confea-metrics" aria-label="Resumo da CONFEA VPN">
+                <div>
+                    <span>Total</span>
+                    <strong>{{ confea_summary.event_total }}</strong>
+                </div>
+                <div>
+                    <span>Mais antigo</span>
+                    <strong>{{ confea_summary.age.oldest_label }}</strong>
+                </div>
+                <div>
+                    <span>Escopo</span>
+                    <strong>VPN</strong>
+                </div>
             </div>
             <button class="zabbix-button" type="button" data-confea-open>
-                Abrir janela
+                Ver detalhes
             </button>
         </section>
         {% endif %}
@@ -824,13 +846,48 @@
     </dialog>
     {% endif %}
     {% if confea_incidents %}
-    <dialog id="confea-dialog">
-        <div class="modal-header">
-            <h2 class="modal-title">CONFEA VPN</h2>
+    <dialog id="confea-dialog" class="confea-modal">
+        <div class="modal-header confea-modal-header">
+            <div class="confea-modal-title-wrap">
+                <div class="confea-modal-logo" aria-hidden="true">
+                    {% if confea_logo_data_uri %}
+                    <img src="{{ confea_logo_data_uri }}" alt="">
+                    {% else %}
+                    <span>CONFEA</span>
+                    {% endif %}
+                </div>
+                <div>
+                    <h2 class="modal-title">CONFEA VPN</h2>
+                    <p class="modal-subtitle">Monitoramento de VMs por ping via túnel VPN.</p>
+                </div>
+            </div>
             <button class="modal-close" type="button" data-confea-close aria-label="Fechar">×</button>
         </div>
+        <div class="modal-summary confea-modal-summary">
+            <div>
+                <span class="modal-summary-label">Eventos</span>
+                <strong>{{ confea_summary.event_total }}</strong>
+            </div>
+            <div>
+                <span class="modal-summary-label">Mais antigo</span>
+                <strong>{{ confea_summary.age.oldest_label }}</strong>
+            </div>
+            <div>
+                <span class="modal-summary-label">Separado de</span>
+                <strong>Unidades escolares</strong>
+            </div>
+        </div>
         <div class="modal-table-wrap">
-            <table class="modal-table">
+            <table class="modal-table confea-modal-table">
+                <colgroup>
+                    <col class="modal-col-date">
+                    <col class="modal-col-status">
+                    <col class="modal-col-host">
+                    <col class="modal-col-incident">
+                    <col class="modal-col-severity">
+                    <col class="modal-col-age">
+                    <col class="modal-col-event">
+                </colgroup>
                 <thead>
                     <tr>
                         <th>Data</th>
@@ -845,13 +902,21 @@
                 <tbody>
                     {% for item in confea_incidents %}
                     <tr>
-                        <td>{{ item.date }}</td>
-                        <td>{{ item.status }}</td>
-                        <td>{{ item.host }}</td>
-                        <td title="{{ item.incident }}">{{ item.incident }}</td>
-                        <td>{{ item.severity }}</td>
-                        <td>{{ item.age_label }}</td>
-                        <td>{{ item.eventid }}</td>
+                        <td class="modal-date">{{ item.date }}</td>
+                        <td>
+                            <span class="status-badge {{ item.status | lower }}">
+                                {{ item.status }}
+                            </span>
+                        </td>
+                        <td class="modal-host">{{ item.host }}</td>
+                        <td class="modal-incident" title="{{ item.incident }}">{{ item.incident }}</td>
+                        <td>
+                            <span class="severity {{ item.severity | lower | replace('ã', 'a') | replace('ç', 'c') | replace('é', 'e') | replace('í', 'i') | replace(' ', '-') }}">
+                                {{ item.severity }}
+                            </span>
+                        </td>
+                        <td class="modal-age">{{ item.age_label }}</td>
+                        <td class="modal-event">{{ item.eventid }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

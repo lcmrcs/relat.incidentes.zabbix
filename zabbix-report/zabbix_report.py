@@ -84,21 +84,37 @@ def slugify(value):
     return normalized.strip("_") or "filtro"
 
 
-def load_logo_data_uri():
+def load_asset_data_uri(filename):
     """
-    Carrega a logo do projeto em formato embutido para o HTML.
+    Carrega um arquivo de imagem em formato embutido para o HTML.
 
     O relatório final precisa continuar abrindo sozinho quando for enviado por
     e-mail ou copiado para outro computador. Por isso a imagem é transformada
     em base64, evitando dependência de um arquivo separado ao lado do HTML.
     """
 
-    logo_path = ASSETS_DIR / "logoTechPng.png"
+    logo_path = ASSETS_DIR / filename
     if not logo_path.exists():
         return None
 
     encoded_logo = base64.b64encode(logo_path.read_bytes()).decode("ascii")
     return f"data:image/png;base64,{encoded_logo}"
+
+
+def load_logo_data_uri():
+    """
+    Carrega a logo principal do projeto em formato embutido para o HTML.
+    """
+
+    return load_asset_data_uri("logoTechPng.png")
+
+
+def load_confea_logo_data_uri():
+    """
+    Carrega a logo da CONFEA para destacar o painel de VPN.
+    """
+
+    return load_asset_data_uri("logoConfea.png")
 
 
 def cleanup_old_reports(current_base_name, keep_count=1):
@@ -941,6 +957,7 @@ def render_html(
         confea_incidents=confea_incidents,
         confea_summary=confea_summary,
         logo_data_uri=load_logo_data_uri(),
+        confea_logo_data_uri=load_confea_logo_data_uri(),
         zabbix_web_url=zabbix_web_url,
     )
 

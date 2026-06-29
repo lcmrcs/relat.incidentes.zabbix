@@ -31,6 +31,8 @@ Este arquivo registra mudanças relevantes de forma simples, para facilitar acom
   gráficos e cores por severidade/status.
 - PDF executivo, com capa visual mais próxima do HTML e indicadores focados em
   incidentes abertos.
+- Painel e modal da CONFEA VPN, com identidade visual própria, logo embutida,
+  métricas de resumo e tabela mais legível.
 - Cabeçalho do HTML, com composição visual mais ousada e indicadores executivos no próprio hero.
 - Aplicação da nova logo da Techface no cabeçalho, com destaque visual e integração ao hero.
 - Controle de tema, trocando o texto simples por "Modo lunar" e "Modo solar".
