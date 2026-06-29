@@ -157,7 +157,7 @@
 
             <article class="chart-card chart-card-age">
                 <div class="chart-card-heading">
-                    <span class="chart-kicker">Envelhecimento</span>
+                    <span class="chart-kicker">Tempo crítico</span>
                     <h2>Faixas de Tempo Offline</h2>
                 </div>
                 <div class="age-chart" aria-label="Faixas de idade dos incidentes">
@@ -189,19 +189,40 @@
         <section class="executive-intelligence" aria-label="Inteligência executiva do relatório">
             <div class="executive-heading">
                 <span class="chart-kicker">Inteligência operacional</span>
-                <h2>Prioridade, Reincidência e Envelhecimento</h2>
+                <h2>Criticidade, Tendência e Recorrência</h2>
                 <p>
-                    Leitura executiva baseada em severidade, tempo offline e repetição dos sintomas no ambiente monitorado.
+                    Síntese executiva baseada em severidade, permanência offline e repetição de sintomas no período analisado.
                 </p>
+            </div>
+
+            <div class="executive-snapshot" aria-label="Síntese da inteligência operacional">
+                <div>
+                    <span>Maior concentração</span>
+                    <strong>{{ summary.period_comparison.leading_label }}</strong>
+                    <small>{{ summary.period_comparison.leading_total }} incidente(s)</small>
+                </div>
+                <div>
+                    <span>Intervenção prioritária</span>
+                    <strong>{{ summary.priority.critical + summary.priority.high }}</strong>
+                    <small>{{ summary.priority.critical }} crítica · {{ summary.priority.high }} alta</small>
+                </div>
+                <div>
+                    <span>Padrões recorrentes</span>
+                    <strong>{{ summary.recurrence.affected_hosts }}</strong>
+                    <small>host(s) com repetição técnica</small>
+                </div>
             </div>
 
             <div class="intelligence-grid">
                 <article class="intelligence-card intelligence-card-wide">
                     <div class="intelligence-card-heading">
-                        <span>Comparativo por janela</span>
+                        <span>Distribuição temporal</span>
                         <strong>{{ summary.period_comparison.leading_label }}</strong>
                     </div>
-                    <div class="period-radar" aria-label="Comparativo de incidentes por janela de tempo">
+                    <p class="intelligence-note">
+                        Mostra onde o passivo operacional está concentrado e quantos casos exigem atenção por severidade.
+                    </p>
+                    <div class="period-radar" aria-label="Distribuição de incidentes por janela de tempo">
                         {% for item in summary.period_comparison.ranges %}
                         <div class="period-radar-row">
                             <div>
@@ -211,7 +232,7 @@
                             <span class="period-track">
                                 <span style="width: {{ item.percent }}%;"></span>
                             </span>
-                            <small>{{ item.percent }}% · {{ item.high }} alta/desastre</small>
+                            <small>{{ item.percent }}% · {{ item.high }} alta criticidade</small>
                         </div>
                         {% endfor %}
                     </div>
@@ -219,13 +240,13 @@
 
                 <article class="intelligence-card">
                     <div class="intelligence-card-heading">
-                        <span>Fila executiva</span>
+                        <span>Fila de intervenção</span>
                         <strong>{{ summary.priority.critical + summary.priority.high }}</strong>
                     </div>
                     <p class="intelligence-note">
-                        {{ summary.priority.critical }} crítico · {{ summary.priority.high }} alto · score médio {{ summary.priority.average_score }}
+                        {{ summary.priority.critical }} crítica · {{ summary.priority.high }} alta · índice médio {{ summary.priority.average_score }}
                     </p>
-                    <div class="priority-stack" aria-label="Incidentes mais prioritários">
+                    <div class="priority-stack" aria-label="Incidentes com maior prioridade operacional">
                         {% for item in summary.priority.top[:5] %}
                         <button class="priority-tile priority-tile-{{ item.class }}" type="button" data-quick-search="{{ item.host }}">
                             <span class="priority-score">{{ item.score }}</span>
@@ -240,11 +261,11 @@
 
                 <article class="intelligence-card">
                     <div class="intelligence-card-heading">
-                        <span>Reincidência</span>
+                        <span>Padrões recorrentes</span>
                         <strong>{{ summary.recurrence.affected_hosts }}</strong>
                     </div>
                     <p class="intelligence-note">
-                        Hosts com repetição do mesmo tipo de incidente no recorte atual.
+                        Hosts com repetição do mesmo tipo de incidente no período analisado.
                     </p>
                     <div class="recurrence-list" aria-label="Hosts reincidentes">
                         {% for item in summary.recurrence.top[:5] %}

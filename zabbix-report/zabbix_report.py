@@ -572,7 +572,7 @@ def build_excel_summary_rows(summary, generated, period_label):
         ("Mais antigo aberto", age["oldest_label"]),
         ("Média de idade", age["average_label"]),
         ("Acima de 7 dias", age["over_7d"]),
-        ("Score médio de prioridade", summary["priority"]["average_score"]),
+        ("Índice médio de prioridade", summary["priority"]["average_score"]),
         ("Fila crítica", summary["priority"]["critical"]),
         ("Fila alta", summary["priority"]["high"]),
         ("Hosts reincidentes", summary["recurrence"]["affected_hosts"]),
@@ -596,11 +596,11 @@ def build_excel_intelligence_frames(summary):
                 "Faixa": item["label"],
                 "Total": item["total"],
                 "Percentual": item["percent"],
-                "Alta/Desastre": item["high"],
+                "Alta criticidade": item["high"],
             }
             for item in summary["period_comparison"]["ranges"]
         ],
-        columns=["Faixa", "Total", "Percentual", "Alta/Desastre"],
+        columns=["Faixa", "Total", "Percentual", "Alta criticidade"],
     )
     recurrence = pd.DataFrame(
         [
@@ -610,7 +610,7 @@ def build_excel_intelligence_frames(summary):
                 "Equipamento": item["equipment"],
                 "Tipo de incidente": item["incident_type"],
                 "Ocorrências": item["total"],
-                "Score": item["score"],
+                "Índice": item["score"],
             }
             for item in summary["recurrence"]["top"]
         ],
@@ -620,13 +620,13 @@ def build_excel_intelligence_frames(summary):
             "Equipamento",
             "Tipo de incidente",
             "Ocorrências",
-            "Score",
+            "Índice",
         ],
     )
     priority = pd.DataFrame(
         [
             {
-                "Score": item["score"],
+                "Índice": item["score"],
                 "Prioridade": item["label"],
                 "Host": item["host"],
                 "Unidade": item["unit"],
@@ -639,7 +639,7 @@ def build_excel_intelligence_frames(summary):
             for item in summary["priority"]["top"]
         ],
         columns=[
-            "Score",
+            "Índice",
             "Prioridade",
             "Host",
             "Unidade",
@@ -652,9 +652,9 @@ def build_excel_intelligence_frames(summary):
     )
 
     return [
-        ("Comparativo por janela", comparison),
-        ("Reincidência operacional", recurrence),
-        ("Fila executiva de prioridade", priority),
+        ("Distribuição temporal", comparison),
+        ("Padrões recorrentes", recurrence),
+        ("Fila de intervenção prioritária", priority),
     ]
 
 

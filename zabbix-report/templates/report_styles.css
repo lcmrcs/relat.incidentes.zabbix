@@ -939,15 +939,18 @@
             position: relative;
             isolation: isolate;
             overflow: hidden;
-            border: 1px solid rgb(8 127 140 / 0.24);
-            border-radius: 16px;
+            border: 1px solid rgb(32 196 205 / 0.30);
+            border-radius: 20px;
             background:
-                radial-gradient(circle at 88% 0%, rgb(32 196 205 / 0.30), transparent 32%),
-                linear-gradient(135deg, #08242b 0%, #12343b 48%, #075c66 100%);
-            box-shadow: var(--shadow-lg);
+                radial-gradient(circle at 90% 4%, rgb(80 236 240 / 0.28), transparent 30%),
+                radial-gradient(circle at 0% 100%, rgb(8 127 140 / 0.24), transparent 34%),
+                linear-gradient(135deg, #061b21 0%, #0d3037 45%, #075c66 100%);
+            box-shadow:
+                0 26px 64px rgb(8 36 43 / 0.22),
+                inset 0 1px 0 rgb(255 255 255 / 0.12);
             color: #ffffff;
             margin-bottom: 22px;
-            padding: 24px;
+            padding: 28px;
         }
 
         .executive-intelligence::before {
@@ -961,52 +964,111 @@
 
         .executive-intelligence::after {
             position: absolute;
-            right: -110px;
-            top: -130px;
-            width: 360px;
-            height: 360px;
+            right: -120px;
+            top: -150px;
+            width: 420px;
+            height: 420px;
             border: 1px solid rgb(255 255 255 / 0.12);
             border-radius: 999px;
-            background: radial-gradient(circle, rgb(255 255 255 / 0.12), transparent 66%);
+            background:
+                radial-gradient(circle, rgb(255 255 255 / 0.14), transparent 64%);
             content: "";
             pointer-events: none;
             z-index: -1;
         }
 
         .executive-heading {
-            max-width: 760px;
-            margin-bottom: 20px;
+            max-width: 880px;
+            margin-bottom: 18px;
         }
 
         .executive-heading h2 {
             margin: 4px 0 6px;
-            font-size: clamp(22px, 2.5vw, 34px);
+            font-size: clamp(28px, 3vw, 44px);
             line-height: 1.15;
         }
 
         .executive-heading p {
             margin: 0;
             color: #c7e5e7;
-            font-size: 14px;
+            font-size: 15px;
+            max-width: 780px;
+        }
+
+        .executive-snapshot {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin: 20px 0 16px;
+        }
+
+        .executive-snapshot div {
+            position: relative;
+            overflow: hidden;
+            min-height: 96px;
+            border: 1px solid rgb(255 255 255 / 0.13);
+            border-radius: 16px;
+            background:
+                linear-gradient(145deg, rgb(255 255 255 / 0.13), rgb(255 255 255 / 0.045));
+            box-shadow:
+                inset 0 1px 0 rgb(255 255 255 / 0.10),
+                0 16px 32px rgb(0 0 0 / 0.14);
+            padding: 14px 16px;
+        }
+
+        .executive-snapshot div::after {
+            position: absolute;
+            right: -40px;
+            bottom: -46px;
+            width: 128px;
+            height: 128px;
+            border: 1px solid rgb(32 196 205 / 0.24);
+            border-radius: 999px;
+            background: rgb(32 196 205 / 0.08);
+            content: "";
+        }
+
+        .executive-snapshot span {
+            display: block;
+            color: #a8e7e9;
+            font-size: 11px;
+            font-weight: 950;
+            text-transform: uppercase;
+        }
+
+        .executive-snapshot strong {
+            display: block;
+            margin-top: 6px;
+            color: #ffffff;
+            font-size: clamp(24px, 2vw, 34px);
+            line-height: 1;
+        }
+
+        .executive-snapshot small {
+            display: block;
+            margin-top: 8px;
+            color: #c7e5e7;
+            font-size: 13px;
+            font-weight: 700;
         }
 
         .intelligence-grid {
             display: grid;
-            grid-template-columns: minmax(360px, 1.35fr) repeat(2, minmax(240px, 1fr));
-            gap: 14px;
+            grid-template-columns: minmax(420px, 1.32fr) repeat(2, minmax(260px, 1fr));
+            gap: 16px;
         }
 
         .intelligence-card {
             position: relative;
             overflow: hidden;
-            border: 1px solid rgb(255 255 255 / 0.14);
-            border-radius: 14px;
+            border: 1px solid rgb(255 255 255 / 0.16);
+            border-radius: 18px;
             background:
-                linear-gradient(145deg, rgb(255 255 255 / 0.12), rgb(255 255 255 / 0.045));
+                linear-gradient(145deg, rgb(255 255 255 / 0.14), rgb(255 255 255 / 0.045));
             box-shadow:
                 inset 0 1px 0 rgb(255 255 255 / 0.10),
-                0 16px 34px rgb(0 0 0 / 0.16);
-            padding: 16px;
+                0 18px 38px rgb(0 0 0 / 0.17);
+            padding: 18px;
         }
 
         .intelligence-card::before {
@@ -1027,7 +1089,7 @@
             gap: 12px;
             align-items: start;
             justify-content: space-between;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
         }
 
         .intelligence-card-heading span {
@@ -1039,7 +1101,7 @@
 
         .intelligence-card-heading strong {
             color: #ffffff;
-            font-size: 24px;
+            font-size: 26px;
             line-height: 1;
             text-align: right;
         }
@@ -1053,14 +1115,15 @@
 
         .period-radar-row {
             display: grid;
-            grid-template-columns: minmax(110px, 0.7fr) minmax(120px, 1fr) auto;
-            gap: 12px;
+            grid-template-columns: minmax(120px, 0.75fr) minmax(140px, 1fr) minmax(150px, auto);
+            gap: 14px;
             align-items: center;
-            min-height: 42px;
+            min-height: 52px;
             border: 1px solid rgb(255 255 255 / 0.10);
-            border-radius: 10px;
-            background: rgb(255 255 255 / 0.055);
-            padding: 8px 10px;
+            border-radius: 14px;
+            background:
+                linear-gradient(135deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.035));
+            padding: 10px 12px;
         }
 
         .period-radar-row div {
@@ -1079,12 +1142,13 @@
 
         .period-radar-row strong {
             color: #ffffff;
+            font-size: 18px;
         }
 
         .period-track {
             position: relative;
             overflow: hidden;
-            height: 8px;
+            height: 9px;
             border-radius: 999px;
             background: rgb(255 255 255 / 0.13);
         }
@@ -1099,9 +1163,10 @@
         }
 
         .intelligence-note {
-            margin: -6px 0 14px;
+            margin: -4px 0 14px;
             color: #c7e5e7;
             font-size: 13px;
+            line-height: 1.45;
         }
 
         .priority-tile,
@@ -1130,21 +1195,22 @@
 
         .priority-tile {
             grid-template-columns: auto minmax(0, 1fr);
-            gap: 10px;
+            gap: 12px;
             align-items: center;
-            padding: 10px;
+            min-height: 76px;
+            padding: 12px;
         }
 
         .priority-score {
             display: inline-grid;
-            width: 42px;
-            height: 42px;
+            width: 48px;
+            height: 48px;
             place-items: center;
-            border-radius: 12px;
+            border-radius: 14px;
             background:
                 linear-gradient(145deg, #20c4cd, #087f8c);
             color: #ffffff;
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 950;
             box-shadow: 0 0 18px rgb(32 196 205 / 0.24);
         }
@@ -1177,7 +1243,8 @@
             grid-template-columns: minmax(0, 1fr) auto;
             gap: 12px;
             align-items: center;
-            padding: 11px 12px;
+            min-height: 74px;
+            padding: 12px 14px;
         }
 
         .recurrence-item em {
@@ -3490,6 +3557,10 @@
             padding: 28px;
         }
 
+        body.presentation-mode .executive-snapshot {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
         body.presentation-mode .intelligence-grid {
             grid-template-columns: 1.2fr 1fr 1fr;
         }
@@ -3700,6 +3771,10 @@
         }
 
         @media (max-width: 1180px) {
+            .executive-snapshot {
+                grid-template-columns: 1fr;
+            }
+
             .intelligence-grid {
                 grid-template-columns: 1fr;
             }
@@ -3722,7 +3797,8 @@
             }
 
             body.presentation-mode .visual-dashboard,
-            body.presentation-mode .insights {
+            body.presentation-mode .insights,
+            body.presentation-mode .executive-snapshot {
                 grid-template-columns: 1fr;
             }
         }

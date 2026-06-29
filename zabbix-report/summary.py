@@ -223,7 +223,7 @@ def build_period_comparison(incidents, total):
 
 def build_recurrence_summary(incidents, recurrence_counter, total):
     """
-    Identifica hosts e sintomas que aparecem repetidamente no recorte atual.
+    Identifica hosts e sintomas que aparecem repetidamente no período analisado.
     """
 
     recurrent_items = []
