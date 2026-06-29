@@ -191,36 +191,23 @@
                 <span class="chart-kicker">Inteligência operacional</span>
                 <h2>Criticidade, Tendência e Recorrência</h2>
                 <p>
-                    Síntese executiva baseada em severidade, permanência offline e repetição de sintomas no período analisado.
+                    Síntese para orientar decisão: onde o volume está concentrado, quais ocorrências exigem intervenção e quais sintomas se repetem.
                 </p>
             </div>
 
-            <div class="executive-snapshot" aria-label="Síntese da inteligência operacional">
-                <div>
-                    <span>Maior concentração</span>
-                    <strong>{{ summary.period_comparison.leading_label }}</strong>
-                    <small>{{ summary.period_comparison.leading_total }} incidente(s)</small>
-                </div>
-                <div>
-                    <span>Intervenção prioritária</span>
-                    <strong>{{ summary.priority.critical + summary.priority.high }}</strong>
-                    <small>{{ summary.priority.critical }} crítica · {{ summary.priority.high }} alta</small>
-                </div>
-                <div>
-                    <span>Padrões recorrentes</span>
-                    <strong>{{ summary.recurrence.affected_hosts }}</strong>
-                    <small>host(s) com repetição técnica</small>
-                </div>
+            <div class="executive-brief" aria-label="Critérios usados na inteligência operacional">
+                <span>Critério: severidade</span>
+                <span>Critério: permanência offline</span>
+                <span>Critério: repetição técnica</span>
             </div>
 
             <div class="intelligence-grid">
                 <article class="intelligence-card intelligence-card-wide">
                     <div class="intelligence-card-heading">
                         <span>Distribuição temporal</span>
-                        <strong>{{ summary.period_comparison.leading_label }}</strong>
                     </div>
                     <p class="intelligence-note">
-                        Mostra onde o passivo operacional está concentrado e quantos casos exigem atenção por severidade.
+                        Organiza os incidentes por tempo offline para separar ocorrências recentes de passivos que exigem acompanhamento mais firme.
                     </p>
                     <div class="period-radar" aria-label="Distribuição de incidentes por janela de tempo">
                         {% for item in summary.period_comparison.ranges %}
@@ -240,20 +227,20 @@
 
                 <article class="intelligence-card">
                     <div class="intelligence-card-heading">
-                        <span>Fila de intervenção</span>
-                        <strong>{{ summary.priority.critical + summary.priority.high }}</strong>
+                        <span>Intervenção recomendada</span>
                     </div>
                     <p class="intelligence-note">
-                        {{ summary.priority.critical }} crítica · {{ summary.priority.high }} alta · índice médio {{ summary.priority.average_score }}
+                        Prioriza incidentes pela combinação de severidade, tempo offline e repetição do mesmo sintoma.
                     </p>
                     <div class="priority-stack" aria-label="Incidentes com maior prioridade operacional">
                         {% for item in summary.priority.top[:5] %}
                         <button class="priority-tile priority-tile-{{ item.class }}" type="button" data-quick-search="{{ item.host }}">
-                            <span class="priority-score">{{ item.score }}</span>
                             <span>
-                                <strong>{{ item.label }}</strong>
-                                <small title="{{ item.host }}">{{ item.host }}</small>
+                                <strong>{{ item.host }}</strong>
+                                <small title="{{ item.incident_type }}">{{ item.incident_type }}</small>
                             </span>
+                            <em>{{ item.label }}</em>
+                            <small>{{ item.severity }} · {{ item.age_label }}</small>
                         </button>
                         {% endfor %}
                     </div>
@@ -262,10 +249,9 @@
                 <article class="intelligence-card">
                     <div class="intelligence-card-heading">
                         <span>Padrões recorrentes</span>
-                        <strong>{{ summary.recurrence.affected_hosts }}</strong>
                     </div>
                     <p class="intelligence-note">
-                        Hosts com repetição do mesmo tipo de incidente no período analisado.
+                        Evidencia hosts com repetição do mesmo tipo de incidente, ajudando a diferenciar falha isolada de comportamento recorrente.
                     </p>
                     <div class="recurrence-list" aria-label="Hosts reincidentes">
                         {% for item in summary.recurrence.top[:5] %}
@@ -278,7 +264,7 @@
                         </button>
                         {% endfor %}
                         {% if not summary.recurrence.top %}
-                        <span class="empty-insight">Nenhuma reincidência relevante neste recorte.</span>
+                        <span class="empty-insight">Nenhum padrão recorrente relevante no período analisado.</span>
                         {% endif %}
                     </div>
                 </article>

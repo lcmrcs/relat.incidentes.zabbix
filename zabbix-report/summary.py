@@ -54,10 +54,10 @@ def format_age(seconds):
 
 def priority_level(score):
     """
-    Classifica um score numérico em uma faixa executiva de prioridade.
+    Classifica um índice numérico em uma faixa executiva de prioridade.
 
-    O score combina severidade, idade e reincidência. A faixa facilita a leitura
-    para gestão sem esconder a pontuação técnica.
+    O índice combina severidade, tempo offline e recorrência. A faixa facilita a leitura
+    para gestão sem expor o cálculo técnico no relatório.
     """
 
     for minimum, label, class_name in PRIORITY_LEVELS:
@@ -273,7 +273,7 @@ def build_recurrence_summary(incidents, recurrence_counter, total):
 
 def build_priority_summary(incidents, recurrence_counter):
     """
-    Gera uma fila executiva dos incidentes que mais merecem atenção.
+    Gera uma leitura executiva dos incidentes que mais merecem atenção.
     """
 
     ranked = []

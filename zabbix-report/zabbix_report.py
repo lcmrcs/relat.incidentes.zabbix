@@ -573,8 +573,8 @@ def build_excel_summary_rows(summary, generated, period_label):
         ("Média de idade", age["average_label"]),
         ("Acima de 7 dias", age["over_7d"]),
         ("Índice médio de prioridade", summary["priority"]["average_score"]),
-        ("Fila crítica", summary["priority"]["critical"]),
-        ("Fila alta", summary["priority"]["high"]),
+        ("Prioridade crítica", summary["priority"]["critical"]),
+        ("Prioridade alta", summary["priority"]["high"]),
         ("Hosts reincidentes", summary["recurrence"]["affected_hosts"]),
         ("", ""),
         ("Alta", summary["high"]),
@@ -654,7 +654,7 @@ def build_excel_intelligence_frames(summary):
     return [
         ("Distribuição temporal", comparison),
         ("Padrões recorrentes", recurrence),
-        ("Fila de intervenção prioritária", priority),
+        ("Prioridades operacionais", priority),
     ]
 
 

@@ -18,8 +18,8 @@ Este arquivo registra mudanças relevantes de forma simples, para facilitar acom
 
 ### Adicionado
 
-- Camada de inteligência executiva com comparativo por janelas de tempo,
-  reincidência operacional e score de prioridade.
+- Camada de inteligência executiva com distribuição temporal, padrões
+  recorrentes e índice operacional de prioridade.
 - Barra de ações no topo do relatório HTML.
 - Modo apresentação para destacar indicadores, gráficos e rankings executivos.
 - Alternância entre tema claro e tema escuro.
