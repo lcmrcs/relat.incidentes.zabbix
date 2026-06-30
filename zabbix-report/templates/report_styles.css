@@ -4344,7 +4344,7 @@
 
         @page {
             size: A5 landscape;
-            margin: 8mm;
+            margin: 6mm;
         }
 
         @media print {
@@ -4352,7 +4352,6 @@
             *::before,
             *::after {
                 animation: none !important;
-                box-shadow: none !important;
                 text-shadow: none !important;
                 transition: none !important;
             }
@@ -4361,9 +4360,9 @@
             body {
                 width: auto;
                 min-width: 0;
-                background: #ffffff !important;
+                background: #f4fbfb !important;
                 color: #09252d !important;
-                font-size: 8.5pt;
+                font-size: 8pt;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
@@ -4373,7 +4372,7 @@
             }
 
             main {
-                width: 100%;
+                width: 194mm;
                 max-width: none;
                 margin: 0;
                 padding: 0;
@@ -4389,39 +4388,57 @@
                 display: none !important;
             }
 
+            .report-header,
+            .kpi-strip,
+            .visual-dashboard,
+            .executive-intelligence,
+            .insights,
+            .zabbix-panel,
+            .events-section,
+            .table-wrap {
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+
             .report-header {
-                margin: 0 0 6mm;
-                padding: 8mm;
+                min-height: 58mm;
+                margin: 0 0 4mm;
+                padding: 7mm;
                 border: 1px solid #0a6f78;
                 border-radius: 5mm;
                 background:
+                    radial-gradient(circle at 86% 16%, rgb(32 196 205 / 0.32), transparent 30%),
                     linear-gradient(135deg, #0b333b 0%, #075c66 100%) !important;
                 color: #ffffff !important;
                 break-after: avoid;
                 page-break-after: avoid;
+                box-shadow: 0 5mm 13mm rgb(8 36 43 / 0.12) !important;
             }
 
             .report-header-content {
                 align-items: center;
-                gap: 8mm;
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) 38mm;
+                gap: 7mm;
             }
 
             .report-heading h1 {
-                max-width: 120mm;
+                max-width: none;
                 margin: 0 0 4mm;
                 color: #ffffff !important;
-                font-size: 21pt;
-                line-height: 1.05;
+                font-size: 20pt;
+                line-height: 1.07;
             }
 
             .hero-signal-grid {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
-                gap: 3mm;
+                gap: 2.5mm;
             }
 
             .hero-signal {
                 min-height: auto;
-                padding: 3mm;
+                padding: 2.6mm;
                 border-color: rgb(255 255 255 / 0.24);
                 background: rgb(255 255 255 / 0.12) !important;
             }
@@ -4432,9 +4449,10 @@
             }
 
             .brand-mark {
-                width: 34mm;
-                min-width: 34mm;
+                width: 38mm;
+                min-width: 38mm;
                 height: auto;
+                justify-self: end;
             }
 
             .kpi-strip,
@@ -4442,14 +4460,16 @@
             .panel-grid {
                 display: grid;
                 grid-template-columns: repeat(3, minmax(0, 1fr));
-                gap: 4mm;
+                gap: 3mm;
             }
 
             .kpi-strip {
-                margin-bottom: 5mm;
+                margin-bottom: 4mm;
                 padding: 0;
                 border: 0;
                 background: transparent !important;
+                break-after: page;
+                page-break-after: always;
             }
 
             .summary-item,
@@ -4461,14 +4481,16 @@
                 break-inside: avoid;
                 page-break-inside: avoid;
                 border: 1px solid #b9d7dc !important;
-                border-radius: 4mm;
-                background: #ffffff !important;
+                border-radius: 3mm;
+                background:
+                    linear-gradient(145deg, #ffffff 0%, #f4fbfb 100%) !important;
                 color: #09252d !important;
+                box-shadow: 0 3mm 9mm rgb(8 36 43 / 0.08) !important;
             }
 
             .summary-item {
                 min-height: auto;
-                padding: 4mm;
+                padding: 3.6mm;
             }
 
             .summary-label,
@@ -4494,16 +4516,47 @@
 
             .chart-card {
                 min-height: auto;
-                padding: 5mm;
+                padding: 4mm;
+            }
+
+            .visual-dashboard {
+                margin: 0 0 4mm;
+                break-after: page;
+                page-break-after: always;
+            }
+
+            .chart-card-heading {
+                margin-bottom: 3mm;
+            }
+
+            .donut-chart {
+                width: 42mm;
+                height: 42mm;
+            }
+
+            .column-visual {
+                min-height: 43mm;
+            }
+
+            .column-bar {
+                min-width: 16mm;
+            }
+
+            .age-chip {
+                min-height: 8mm;
+                padding: 1.5mm 2mm;
             }
 
             .executive-intelligence {
-                margin: 5mm 0;
-                padding: 6mm;
+                margin: 0 0 4mm;
+                padding: 5mm;
                 border-color: #0a7f8c !important;
                 background:
+                    radial-gradient(circle at 92% 8%, rgb(32 196 205 / 0.15), transparent 28%),
                     linear-gradient(135deg, #eefafa 0%, #ffffff 100%) !important;
                 color: #09252d !important;
+                break-after: page;
+                page-break-after: always;
             }
 
             .executive-heading h2,
@@ -4523,7 +4576,7 @@
 
             .intelligence-grid {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
-                gap: 4mm;
+                gap: 3mm;
             }
 
             .intelligence-card,
@@ -4534,16 +4587,30 @@
                 background: #ffffff !important;
             }
 
+            .intelligence-card {
+                padding: 3mm;
+            }
+
+            .period-radar-row,
+            .priority-tile,
+            .recurrence-item {
+                padding: 2.4mm;
+            }
+
             .zabbix-panel {
-                margin: 5mm 0;
-                padding: 5mm;
+                margin: 0 0 4mm;
+                padding: 4mm;
+                break-inside: avoid;
+                page-break-inside: avoid;
             }
 
             .events-section {
-                margin: 5mm 0 3mm;
+                margin: 0 0 3mm;
                 padding: 0;
                 border: 0;
                 background: transparent !important;
+                break-before: page;
+                page-break-before: always;
                 break-after: avoid;
                 page-break-after: avoid;
             }
@@ -4558,6 +4625,7 @@
                 overflow: visible;
                 margin: 0;
                 border-radius: 3mm;
+                box-shadow: none !important;
             }
 
             table {
@@ -4608,11 +4676,11 @@
 
             th,
             td {
-                padding: 2.4mm 2mm;
+                padding: 2.1mm 1.6mm;
                 border-bottom: 1px solid #d8e8ea;
                 color: #09252d !important;
-                font-size: 7.2pt;
-                line-height: 1.28;
+                font-size: 6.8pt;
+                line-height: 1.24;
                 vertical-align: top;
                 white-space: normal;
                 overflow-wrap: anywhere;
@@ -4653,9 +4721,21 @@
             .severity,
             .priority-badge {
                 min-width: 0;
-                padding: 1.2mm 2mm;
+                padding: 1mm 1.6mm;
                 border-radius: 999px;
-                font-size: 6.8pt;
+                font-size: 6.4pt;
                 white-space: nowrap;
+            }
+
+            .server-panel,
+            .confea-panel {
+                display: grid;
+                grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) auto;
+                gap: 4mm;
+                align-items: center;
+            }
+
+            .special-panel-metrics {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
             }
         }

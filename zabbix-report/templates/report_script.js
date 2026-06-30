@@ -838,15 +838,17 @@
 
         function exportPdf() {
             document.body.classList.add("pdf-exporting");
+            document.body.classList.add("print-layout-ready");
 
             window.setTimeout(() => {
                 window.print();
-            }, 120);
-
-            window.setTimeout(() => {
-                document.body.classList.remove("pdf-exporting");
-            }, 1200);
+            }, 180);
         }
+
+        window.addEventListener("afterprint", () => {
+            document.body.classList.remove("pdf-exporting");
+            document.body.classList.remove("print-layout-ready");
+        });
 
         if (exportPdfButton) {
             exportPdfButton.addEventListener("click", exportPdf);
