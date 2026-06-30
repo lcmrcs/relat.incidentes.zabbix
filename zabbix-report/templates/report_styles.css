@@ -4371,6 +4371,15 @@
                 padding: 0;
             }
 
+            body.theme-dark {
+                --text: #123a43;
+                --muted: #486771;
+                --header: #082933;
+                --header-ink: #082933;
+                --surface: #ffffff;
+                --line-soft: #c7dde1;
+            }
+
             main {
                 width: 194mm;
                 max-width: none;
@@ -4519,6 +4528,15 @@
                 padding: 4mm;
             }
 
+            .chart-card::before,
+            .chart-card::after,
+            .kpi-strip::before,
+            .kpi-strip::after,
+            .executive-intelligence::before,
+            .executive-intelligence::after {
+                display: none !important;
+            }
+
             .visual-dashboard {
                 margin: 0 0 4mm;
                 break-after: page;
@@ -4532,6 +4550,49 @@
             .donut-chart {
                 width: 42mm;
                 height: 42mm;
+                background:
+                    radial-gradient(circle, #ffffff 0 56%, transparent 57%),
+                    linear-gradient(145deg, #effafa, #dceff1) !important;
+                box-shadow:
+                    inset 0 0 0 2mm rgb(255 255 255 / 0.82),
+                    0 2mm 6mm rgb(8 36 43 / 0.08) !important;
+            }
+
+            .donut-track {
+                stroke: #e4eff1 !important;
+            }
+
+            .donut-center strong {
+                color: #082933 !important;
+            }
+
+            .donut-center span {
+                color: #6b858d !important;
+            }
+
+            .chart-legend,
+            .age-chart {
+                gap: 2mm;
+            }
+
+            .legend-item,
+            body.theme-dark .legend-item {
+                min-height: 7.8mm;
+                border-color: #c7dde1 !important;
+                background:
+                    linear-gradient(135deg, #ffffff 0%, #f5fbfb 100%) !important;
+                color: #123a43 !important;
+                padding: 1.7mm 2mm;
+            }
+
+            .legend-item span,
+            body.theme-dark .legend-item span {
+                color: #123a43 !important;
+            }
+
+            .legend-item strong,
+            body.theme-dark .legend-item strong {
+                color: #082933 !important;
             }
 
             .column-visual {
@@ -4540,11 +4601,67 @@
 
             .column-bar {
                 min-width: 16mm;
+                color: #123a43 !important;
             }
 
-            .age-chip {
+            .column-track {
+                height: 29mm;
+                background:
+                    linear-gradient(180deg, #edfafa, #dfeff1) !important;
+                box-shadow: inset 0 1mm 3mm rgb(8 36 43 / 0.05) !important;
+            }
+
+            .column-fill {
+                background:
+                    linear-gradient(180deg, #32d2d8 0%, #0b9aa7 48%, #087f8c 100%) !important;
+                box-shadow: none !important;
+            }
+
+            .column-bar strong,
+            body.theme-dark .column-bar strong {
+                color: #087f8c !important;
+            }
+
+            .column-bar > span:last-child,
+            body.theme-dark .column-bar > span:last-child {
+                color: #56747c !important;
+            }
+
+            .age-chip,
+            body.theme-dark .age-chip {
                 min-height: 8mm;
+                border-color: #c7dde1 !important;
+                background:
+                    linear-gradient(90deg, #effafa 0%, #ffffff 62%) !important;
+                color: #123a43 !important;
                 padding: 1.5mm 2mm;
+            }
+
+            .age-chip::before,
+            body.theme-dark .age-chip::before {
+                background:
+                    linear-gradient(90deg, #0b9aa7 0%, #20c4cd 100%) !important;
+            }
+
+            .age-chip span,
+            body.theme-dark .age-chip span {
+                color: #123a43 !important;
+            }
+
+            .age-chip strong,
+            body.theme-dark .age-chip strong {
+                color: #082933 !important;
+            }
+
+            .age-note,
+            body.theme-dark .age-note {
+                border-top-color: #c7dde1 !important;
+                color: #486771 !important;
+            }
+
+            .age-note strong,
+            body.theme-dark .age-note strong {
+                color: #082933 !important;
             }
 
             .executive-intelligence {
