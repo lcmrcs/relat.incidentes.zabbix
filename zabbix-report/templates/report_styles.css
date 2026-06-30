@@ -389,6 +389,36 @@
             transform: translateY(-1px);
         }
 
+        .toolbar-button:active,
+        .clear-button:active,
+        .download-button:active,
+        .details-button:active,
+        .zabbix-button:active,
+        .modal-zabbix-link:active,
+        .filter-button:active,
+        .metric-action:active,
+        .legend-item:active,
+        .age-chip:active {
+            transform: translateY(0) scale(0.985);
+        }
+
+        .toolbar-button:focus-visible,
+        .clear-button:focus-visible,
+        .download-button:focus-visible,
+        .details-button:focus-visible,
+        .zabbix-button:focus-visible,
+        .modal-zabbix-link:focus-visible,
+        .filter-button:focus-visible,
+        .metric-action:focus-visible,
+        .legend-item:focus-visible,
+        .age-chip:focus-visible {
+            outline: 3px solid rgb(32 196 205 / 0.32);
+            outline-offset: 3px;
+            box-shadow:
+                0 0 0 1px rgb(255 255 255 / 0.50),
+                0 0 26px rgb(32 196 205 / 0.18);
+        }
+
         .toolbar-button.primary {
             border-color: transparent;
             background: var(--accent-gradient);
@@ -514,6 +544,27 @@
                 border-color var(--motion-fast),
                 box-shadow var(--motion-med),
                 transform var(--motion-med);
+            animation: soft-reveal 520ms ease both;
+        }
+
+        .summary-item:nth-child(2) {
+            animation-delay: 45ms;
+        }
+
+        .summary-item:nth-child(3) {
+            animation-delay: 90ms;
+        }
+
+        .summary-item:nth-child(4) {
+            animation-delay: 135ms;
+        }
+
+        .summary-item:nth-child(5) {
+            animation-delay: 180ms;
+        }
+
+        .summary-item:nth-child(6) {
+            animation-delay: 225ms;
         }
 
         .summary-item::after {
@@ -583,6 +634,15 @@
                 border-color var(--motion-fast),
                 box-shadow var(--motion-med),
                 transform var(--motion-med);
+            animation: soft-reveal 560ms ease both;
+        }
+
+        .visual-dashboard .chart-card:nth-child(2) {
+            animation-delay: 80ms;
+        }
+
+        .visual-dashboard .chart-card:nth-child(3) {
+            animation-delay: 160ms;
         }
 
         .chart-card::before {
@@ -1080,6 +1140,15 @@
                 inset 0 1px 0 rgb(255 255 255 / 0.72),
                 0 14px 30px rgb(8 36 43 / 0.10);
             padding: 18px;
+            animation: soft-reveal 560ms ease both;
+        }
+
+        .intelligence-card:nth-child(2) {
+            animation-delay: 80ms;
+        }
+
+        .intelligence-card:nth-child(3) {
+            animation-delay: 160ms;
         }
 
         .intelligence-card::before {
@@ -1302,6 +1371,19 @@
                 border-color var(--motion-fast),
                 box-shadow var(--motion-med),
                 transform var(--motion-med);
+            animation: soft-reveal 540ms ease both;
+        }
+
+        .insights .panel:nth-child(2) {
+            animation-delay: 70ms;
+        }
+
+        .insights .panel:nth-child(3) {
+            animation-delay: 140ms;
+        }
+
+        .insights .panel:nth-child(4) {
+            animation-delay: 210ms;
         }
 
         .panel:hover {
@@ -1433,6 +1515,30 @@
             from {
                 opacity: 0;
                 transform: translateY(14px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes soft-reveal {
+            from {
+                opacity: 0;
+                transform: translateY(12px) scale(0.985);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes row-reveal {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
             }
 
             to {
@@ -2175,6 +2281,19 @@
                 border-color var(--motion-fast),
                 box-shadow var(--motion-med),
                 transform var(--motion-med);
+            animation: soft-reveal 520ms ease both;
+        }
+
+        .filter-group:nth-child(2) {
+            animation-delay: 60ms;
+        }
+
+        .filter-group:nth-child(3) {
+            animation-delay: 120ms;
+        }
+
+        .filter-group:nth-child(4) {
+            animation-delay: 180ms;
         }
 
         .filter-group:hover {
@@ -3950,10 +4069,35 @@
         }
 
         tbody tr {
+            animation: row-reveal 420ms ease both;
             transition:
                 background var(--motion-fast),
                 box-shadow var(--motion-fast),
                 transform var(--motion-fast);
+        }
+
+        tbody tr:nth-child(2) {
+            animation-delay: 18ms;
+        }
+
+        tbody tr:nth-child(3) {
+            animation-delay: 36ms;
+        }
+
+        tbody tr:nth-child(4) {
+            animation-delay: 54ms;
+        }
+
+        tbody tr:nth-child(5) {
+            animation-delay: 72ms;
+        }
+
+        tbody tr:nth-child(6) {
+            animation-delay: 90ms;
+        }
+
+        tbody tr:nth-child(n + 7) {
+            animation: none;
         }
 
         tbody tr:hover {
