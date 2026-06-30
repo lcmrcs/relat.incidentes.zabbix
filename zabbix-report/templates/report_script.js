@@ -52,6 +52,7 @@
         const globalSearch = document.getElementById("global-search");
         const clearFilters = document.getElementById("clear-filters");
         const downloadFiltered = document.getElementById("download-filtered");
+        const exportPdfButton = document.getElementById("export-pdf");
         const tableEmpty = document.getElementById("table-empty");
         const filterSummaryItems = document.querySelectorAll("[data-filter-summary]");
         const dialog = document.getElementById("incident-dialog");
@@ -833,6 +834,22 @@
 
         if (downloadFiltered) {
             downloadFiltered.addEventListener("click", downloadCsv);
+        }
+
+        function exportPdf() {
+            document.body.classList.add("pdf-exporting");
+
+            window.setTimeout(() => {
+                window.print();
+            }, 120);
+
+            window.setTimeout(() => {
+                document.body.classList.remove("pdf-exporting");
+            }, 1200);
+        }
+
+        if (exportPdfButton) {
+            exportPdfButton.addEventListener("click", exportPdf);
         }
 
         updateFilters();
