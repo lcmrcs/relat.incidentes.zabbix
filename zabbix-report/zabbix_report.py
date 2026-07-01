@@ -284,6 +284,14 @@ def parse_args():
         ),
     )
     parser.add_argument(
+        "--unidade",
+        default=None,
+        help=(
+            "Filtra o relatório por código ou nome da unidade escolar. "
+            "Exemplo: --unidade 1011."
+        ),
+    )
+    parser.add_argument(
         "--manter-relatorios",
         type=int,
         default=1,
@@ -511,6 +519,29 @@ def filter_by_equipment(incidents, equipment_name):
         item
         for item in incidents
         if str(item.get("equipment", "")).strip().lower() == target
+    ]
+
+
+def filter_by_unit(incidents, unit_filter):
+    """
+    Mantém apenas incidentes da unidade escolar informada.
+
+    O filtro aceita tanto o código numérico quanto parte do nome da unidade.
+    Isso deixa o uso mais simples na tela inicial e no terminal.
+    """
+
+    if not unit_filter:
+        return incidents
+
+    target = str(unit_filter).strip().lower()
+
+    return [
+        item
+        for item in incidents
+        if (
+            target in str(item.get("unit_code", "")).strip().lower()
+            or target in str(item.get("unit", "")).strip().lower()
+        )
     ]
 
 
@@ -1037,6 +1068,14 @@ def main():
         incidents
     )
     equipment_filter = str(args.equipamento).strip() if args.equipamento else ""
+    unit_filter = str(args.unidade).strip() if args.unidade else ""
+
+    if unit_filter:
+        main_incidents = filter_by_unit(main_incidents, unit_filter)
+        zabbix_incidents = []
+        confea_incidents = []
+        period_label = f"{period_label} | Unidade: {unit_filter}"
+        period_slug = f"{period_slug}_unidade_{slugify(unit_filter)}"
 
     if equipment_filter:
         main_incidents = filter_by_equipment(main_incidents, equipment_filter)

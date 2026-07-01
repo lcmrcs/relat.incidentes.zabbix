@@ -72,6 +72,7 @@ Funcao:
 - Abre uma tela local no navegador.
 - Permite escolher periodo, situacao, equipamento e quantidade de relatorios
   mantidos.
+- Permite filtrar por codigo ou nome de unidade escolar.
 - Executa o gerador principal por tras da tela.
 - Mostra links para abrir HTML, Excel e PDF ao finalizar.
 
@@ -144,6 +145,12 @@ Exemplos para outros equipamentos:
 ```bash
 python zabbix-report/zabbix_report.py --periodo historico --status abertos --equipamento "Câmera"
 python zabbix-report/zabbix_report.py --periodo historico --status abertos --equipamento "Mikrotik"
+```
+
+Exemplo por unidade escolar:
+
+```bash
+python zabbix-report/zabbix_report.py --periodo historico --status abertos --unidade 1011
 ```
 
 ## 6.1. Atalho para relatório por equipamento

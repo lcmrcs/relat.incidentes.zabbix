@@ -214,6 +214,7 @@ Pela tela, é possível:
 
 - gerar relatório histórico, 24h, 2 dias, 5 dias, 7 dias, 15 dias ou 30 dias;
 - filtrar por equipamento;
+- filtrar por código ou nome de unidade escolar;
 - escolher incidentes abertos, resolvidos ou todos;
 - manter apenas o relatório mais recente ou preservar mais execuções;
 - abrir diretamente o HTML, Excel e PDF gerados.

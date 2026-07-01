@@ -293,7 +293,12 @@ HTML_PAGE = r"""<!doctype html>
         .segmented {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 8px;
+            gap: 10px;
+            border: 1px solid #cfe3e6;
+            border-radius: 999px;
+            background:
+                linear-gradient(135deg, rgb(255 255 255 / 0.82), rgb(239 250 250 / 0.72));
+            padding: 6px;
         }
 
         .segmented input {
@@ -303,25 +308,40 @@ HTML_PAGE = r"""<!doctype html>
         }
 
         .segmented span {
+            position: relative;
+            overflow: hidden;
             display: grid;
             place-items: center;
-            min-height: 44px;
-            border: 1px solid #c8dde1;
+            min-height: 42px;
+            border: 1px solid transparent;
             border-radius: 999px;
-            background: #ffffff;
+            background: transparent;
             color: #244850;
             cursor: pointer;
             font-weight: 900;
             text-transform: none;
-            transition: 160ms ease;
+            transition:
+                background 180ms ease,
+                border-color 180ms ease,
+                box-shadow 180ms ease,
+                color 180ms ease,
+                transform 180ms ease;
+        }
+
+        .segmented span:hover {
+            background: rgb(255 255 255 / 0.82);
+            color: var(--accent);
+            transform: translateY(-1px);
         }
 
         .segmented input:checked + span {
-            border-color: var(--accent);
+            border-color: rgb(8 127 140 / 0.40);
             background:
-                linear-gradient(135deg, rgb(32 196 205 / 0.20), rgb(8 127 140 / 0.12));
+                linear-gradient(135deg, rgb(32 196 205 / 0.28), rgb(8 127 140 / 0.16));
             color: var(--accent);
-            box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.70);
+            box-shadow:
+                inset 0 1px 0 rgb(255 255 255 / 0.78),
+                0 10px 20px rgb(8 127 140 / 0.12);
         }
 
         .actions {
@@ -369,9 +389,14 @@ HTML_PAGE = r"""<!doctype html>
         }
 
         .primary {
-            background: linear-gradient(135deg, #20c4cd, #087f8c);
+            border-color: rgb(255 255 255 / 0.30);
+            background:
+                radial-gradient(circle at 18% 18%, rgb(255 255 255 / 0.30), transparent 30%),
+                linear-gradient(135deg, #20c4cd, #087f8c);
             color: #ffffff;
-            box-shadow: 0 16px 30px rgb(8 127 140 / 0.22);
+            box-shadow:
+                0 16px 30px rgb(8 127 140 / 0.22),
+                inset 0 1px 0 rgb(255 255 255 / 0.22);
         }
 
         .secondary,
@@ -572,7 +597,7 @@ HTML_PAGE = r"""<!doctype html>
                 <div class="panel-header">
                     <div>
                         <h2>Novo relatório</h2>
-                        <p>Defina o período, a situação e o tipo de equipamento que deseja analisar.</p>
+                        <p>Defina o período, a situação, a unidade escolar e o equipamento que deseja analisar.</p>
                     </div>
                 </div>
 
@@ -605,8 +630,8 @@ HTML_PAGE = r"""<!doctype html>
                         </label>
 
                         <label>
-                            Outro equipamento
-                            <input id="custom-equipment" name="customEquipment" type="text" placeholder="Ex.: Nobreak, Servidor, Sensor">
+                            Unidade escolar
+                            <input id="unit-filter" name="unitFilter" type="search" placeholder="Código ou nome da unidade">
                         </label>
 
                         <label>
@@ -679,7 +704,7 @@ HTML_PAGE = r"""<!doctype html>
         const since = document.getElementById("since");
         const customDateWrap = document.getElementById("custom-date-wrap");
         const equipment = document.getElementById("equipment");
-        const customEquipment = document.getElementById("custom-equipment");
+        const unitFilter = document.getElementById("unit-filter");
         const keep = document.getElementById("keep");
         const generateButton = document.getElementById("generate-button");
         const healthList = document.getElementById("health-list");
@@ -709,7 +734,8 @@ HTML_PAGE = r"""<!doctype html>
                 period: period.value,
                 since: since.value,
                 status: getStatus(),
-                equipment: customEquipment.value.trim() || equipment.value,
+                equipment: equipment.value,
+                unit: unitFilter.value.trim(),
                 keep: keep.value,
             };
         }
@@ -736,8 +762,11 @@ HTML_PAGE = r"""<!doctype html>
             const payload = getPayload();
             customDateWrap.classList.toggle("hidden", period.value !== "custom");
             selectionPeriod.textContent = getPeriodLabel(payload);
-            selectionScope.textContent = payload.equipment || "Todos os equipamentos";
-            selectionDelivery.textContent = `${payload.status} · HTML, Excel e PDF`;
+            selectionScope.textContent = [
+                payload.equipment || "Todos os equipamentos",
+                payload.unit ? `Unidade ${payload.unit}` : "",
+            ].filter(Boolean).join(" · ");
+            selectionDelivery.textContent = "HTML, Excel e PDF";
         }
 
         function renderHealth() {
@@ -926,6 +955,7 @@ def normalize_payload(payload: dict) -> list[str]:
     since = str(payload.get("since", "")).strip()
     status = str(payload.get("status", "abertos")).strip()
     equipment = str(payload.get("equipment", "")).strip()
+    unit = str(payload.get("unit", "")).strip()
 
     try:
         keep = int(payload.get("keep", 1))
@@ -953,6 +983,9 @@ def normalize_payload(payload: dict) -> list[str]:
 
     if equipment:
         args.extend(["--equipamento", equipment])
+
+    if unit:
+        args.extend(["--unidade", unit])
 
     args.extend(["--manter-relatorios", str(keep)])
     return args
