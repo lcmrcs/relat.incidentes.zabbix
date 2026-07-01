@@ -9,8 +9,10 @@ complexa ou dependente de frameworks externos.
 from __future__ import annotations
 
 import argparse
+import html
 import json
 import mimetypes
+import re
 import subprocess
 import sys
 import webbrowser
@@ -39,6 +41,9 @@ KNOWN_EQUIPMENTS = [
     "Câmera",
     "Servidor",
 ]
+
+UNIT_CODE_START = 1011
+UNIT_CODE_END = 1169
 
 
 HTML_PAGE = r"""<!doctype html>
@@ -288,6 +293,105 @@ HTML_PAGE = r"""<!doctype html>
             border-color: var(--accent-bright);
             box-shadow: 0 0 0 4px rgb(32 196 205 / 0.18);
             transform: translateY(-1px);
+        }
+
+        .unit-picker {
+            position: relative;
+        }
+
+        .unit-picker input {
+            padding-right: 92px;
+        }
+
+        .unit-picker::after {
+            position: absolute;
+            right: 12px;
+            bottom: 11px;
+            border: 1px solid rgb(8 127 140 / 0.16);
+            border-radius: 999px;
+            background: rgb(32 196 205 / 0.12);
+            color: var(--accent);
+            content: "buscar";
+            font-size: 10px;
+            font-weight: 950;
+            padding: 5px 8px;
+            text-transform: uppercase;
+            pointer-events: none;
+        }
+
+        .unit-options {
+            position: absolute;
+            inset: calc(100% + 8px) 0 auto;
+            z-index: 20;
+            display: none;
+            max-height: 260px;
+            overflow: auto;
+            border: 1px solid rgb(8 127 140 / 0.20);
+            border-radius: 18px;
+            background:
+                linear-gradient(145deg, rgb(255 255 255 / 0.98), rgb(239 252 252 / 0.96));
+            box-shadow:
+                0 18px 40px rgb(8 36 43 / 0.16),
+                inset 0 1px 0 rgb(255 255 255 / 0.90);
+            padding: 8px;
+        }
+
+        .unit-options.visible {
+            display: grid;
+            gap: 7px;
+        }
+
+        .unit-option {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+            gap: 10px;
+            align-items: center;
+            min-height: 42px;
+            border: 1px solid rgb(8 127 140 / 0.12);
+            border-radius: 13px;
+            background: rgb(255 255 255 / 0.84);
+            color: var(--ink);
+            cursor: pointer;
+            padding: 9px 10px;
+            text-align: left;
+            transition: 160ms ease;
+        }
+
+        .unit-option:hover,
+        .unit-option:focus {
+            border-color: rgb(32 196 205 / 0.48);
+            background: rgb(32 196 205 / 0.12);
+            transform: translateY(-1px);
+        }
+
+        .unit-option-code {
+            display: inline-grid;
+            place-items: center;
+            min-width: 44px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #20c4cd, #087f8c);
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 950;
+            padding: 5px 8px;
+        }
+
+        .unit-option-name {
+            overflow: hidden;
+            font-size: 13px;
+            font-weight: 850;
+            text-overflow: ellipsis;
+            text-transform: none;
+            white-space: nowrap;
+        }
+
+        .unit-empty {
+            border: 1px dashed #b8d6dc;
+            border-radius: 13px;
+            color: var(--muted);
+            font-size: 13px;
+            padding: 12px;
+            text-transform: none;
         }
 
         .segmented {
@@ -629,9 +733,10 @@ HTML_PAGE = r"""<!doctype html>
                             </select>
                         </label>
 
-                        <label>
+                        <label class="unit-picker">
                             Unidade escolar
                             <input id="unit-filter" name="unitFilter" type="search" placeholder="Código ou nome da unidade">
+                            <div class="unit-options" id="unit-options" role="listbox" aria-label="Unidades escolares"></div>
                         </label>
 
                         <label>
@@ -698,6 +803,7 @@ HTML_PAGE = r"""<!doctype html>
 
     <script>
         const equipments = __EQUIPMENTS__;
+        const units = __UNITS__;
         const health = __HEALTH__;
         const form = document.getElementById("report-form");
         const period = document.getElementById("period");
@@ -705,6 +811,7 @@ HTML_PAGE = r"""<!doctype html>
         const customDateWrap = document.getElementById("custom-date-wrap");
         const equipment = document.getElementById("equipment");
         const unitFilter = document.getElementById("unit-filter");
+        const unitOptions = document.getElementById("unit-options");
         const keep = document.getElementById("keep");
         const generateButton = document.getElementById("generate-button");
         const healthList = document.getElementById("health-list");
@@ -723,6 +830,59 @@ HTML_PAGE = r"""<!doctype html>
                 option.textContent = name;
                 equipment.appendChild(option);
             }
+        }
+
+        function normalizeText(value) {
+            return String(value || "")
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .toLowerCase();
+        }
+
+        function renderUnitOptions() {
+            const query = normalizeText(unitFilter.value);
+            const filtered = units
+                .filter((item) => {
+                    if (!query) {
+                        return true;
+                    }
+
+                    return normalizeText(`${item.code} ${item.name}`).includes(query);
+                })
+                .slice(0, 18);
+
+            unitOptions.innerHTML = "";
+
+            if (!filtered.length) {
+                unitOptions.innerHTML = `<div class="unit-empty">Nenhuma unidade encontrada para esse termo.</div>`;
+                unitOptions.classList.add("visible");
+                return;
+            }
+
+            for (const item of filtered) {
+                const button = document.createElement("button");
+                button.className = "unit-option";
+                button.type = "button";
+                button.setAttribute("role", "option");
+                button.dataset.value = item.name || item.code;
+
+                const code = document.createElement("span");
+                code.className = "unit-option-code";
+                code.textContent = item.code || "----";
+
+                const name = document.createElement("span");
+                name.className = "unit-option-name";
+                name.textContent = item.name || item.code;
+
+                button.append(code, name);
+                unitOptions.appendChild(button);
+            }
+
+            unitOptions.classList.add("visible");
+        }
+
+        function closeUnitOptions() {
+            unitOptions.classList.remove("visible");
         }
 
         function getStatus() {
@@ -868,6 +1028,24 @@ HTML_PAGE = r"""<!doctype html>
         refreshSelection();
         form.addEventListener("input", refreshSelection);
         form.addEventListener("change", refreshSelection);
+        unitFilter.addEventListener("focus", renderUnitOptions);
+        unitFilter.addEventListener("input", renderUnitOptions);
+        unitOptions.addEventListener("click", (event) => {
+            const option = event.target.closest(".unit-option");
+
+            if (!option) {
+                return;
+            }
+
+            unitFilter.value = option.dataset.value;
+            closeUnitOptions();
+            refreshSelection();
+        });
+        document.addEventListener("click", (event) => {
+            if (!event.target.closest(".unit-picker")) {
+                closeUnitOptions();
+            }
+        });
         form.addEventListener("submit", generateReport);
     </script>
 </body>
@@ -908,12 +1086,56 @@ def build_health_items() -> list[dict[str, str]]:
     ]
 
 
+def collect_known_units() -> list[dict[str, str]]:
+    """Monta sugestões de unidades a partir dos relatórios locais já gerados."""
+
+    units_by_code = {
+        str(code): {"code": str(code), "name": str(code)}
+        for code in range(UNIT_CODE_START, UNIT_CODE_END + 1)
+    }
+
+    for report_path in sorted(
+        REPORTS_DIR.glob("*.html"),
+        key=lambda path: path.stat().st_mtime,
+        reverse=True,
+    ):
+        try:
+            content = report_path.read_text(encoding="utf-8", errors="ignore")
+        except OSError:
+            continue
+
+        rows = re.findall(r"<tr\b[^>]*>", content, flags=re.DOTALL)
+
+        for row in rows:
+            code_match = re.search(r'data-unit-code="([^"]*)"', row)
+            name_match = re.search(r'data-unit="([^"]*)"', row)
+
+            if not code_match or not name_match:
+                continue
+
+            raw_code = code_match.group(1)
+            raw_name = name_match.group(1)
+            code = html.unescape(raw_code).strip()
+            name = html.unescape(raw_name).strip()
+
+            if not code.isdigit() or not UNIT_CODE_START <= int(code) <= UNIT_CODE_END:
+                continue
+
+            if name and name != "-":
+                units_by_code[code] = {"code": code, "name": name}
+
+    return sorted(units_by_code.values(), key=lambda item: int(item["code"]))
+
+
 def render_page() -> bytes:
     """Renderiza a tela inicial com dados locais simples."""
 
     page = HTML_PAGE.replace(
         "__EQUIPMENTS__",
         json.dumps(KNOWN_EQUIPMENTS, ensure_ascii=False),
+    ).replace(
+        "__UNITS__",
+        json.dumps(collect_known_units(), ensure_ascii=False),
     ).replace(
         "__HEALTH__",
         json.dumps(build_health_items(), ensure_ascii=False),
