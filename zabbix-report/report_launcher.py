@@ -70,9 +70,9 @@ HTML_PAGE = r"""<!doctype html>
             min-height: 100vh;
             margin: 0;
             background:
-                radial-gradient(circle at 12% 8%, rgb(32 196 205 / 0.22), transparent 26%),
-                radial-gradient(circle at 88% 2%, rgb(8 127 140 / 0.18), transparent 28%),
-                linear-gradient(135deg, #f7fbfb 0%, #eaf5f5 100%);
+                radial-gradient(circle at 14% 6%, rgb(32 196 205 / 0.30), transparent 24%),
+                radial-gradient(circle at 86% 0%, rgb(8 127 140 / 0.22), transparent 30%),
+                linear-gradient(135deg, #f7fbfb 0%, #e8f4f4 52%, #dff0f0 100%);
             color: var(--ink);
             font-family: Inter, "Segoe UI", Arial, sans-serif;
             padding: 28px;
@@ -87,13 +87,25 @@ HTML_PAGE = r"""<!doctype html>
             position: relative;
             overflow: hidden;
             border: 1px solid rgb(32 196 205 / 0.28);
-            border-radius: 28px;
+            border-radius: 32px;
             background:
-                radial-gradient(circle at 88% 8%, rgb(32 196 205 / 0.25), transparent 28%),
-                linear-gradient(135deg, #08242b 0%, #0b3d46 52%, #087f8c 100%);
+                radial-gradient(circle at 82% 10%, rgb(32 196 205 / 0.34), transparent 28%),
+                linear-gradient(135deg, #071f26 0%, #0b3d46 48%, #087f8c 100%);
             color: #ffffff;
             padding: 34px;
-            box-shadow: var(--shadow);
+            box-shadow:
+                var(--shadow),
+                inset 0 1px 0 rgb(255 255 255 / 0.14);
+        }
+
+        .hero::before {
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(112deg, transparent 0 58%, rgb(255 255 255 / 0.08) 58% 68%, transparent 68%),
+                radial-gradient(circle at 18% 84%, rgb(255 255 255 / 0.10), transparent 24%);
+            content: "";
+            pointer-events: none;
         }
 
         .hero::after {
@@ -104,6 +116,11 @@ HTML_PAGE = r"""<!doctype html>
             border: 1px solid rgb(255 255 255 / 0.14);
             border-radius: 999px;
             content: "";
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
         }
 
         .eyebrow {
@@ -155,8 +172,10 @@ HTML_PAGE = r"""<!doctype html>
         .status-card {
             border: 1px solid rgb(255 255 255 / 0.16);
             border-radius: 18px;
-            background: rgb(255 255 255 / 0.09);
+            background:
+                linear-gradient(135deg, rgb(255 255 255 / 0.14), rgb(255 255 255 / 0.06));
             padding: 14px;
+            box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12);
         }
 
         .status-card span {
@@ -176,7 +195,7 @@ HTML_PAGE = r"""<!doctype html>
 
         .layout {
             display: grid;
-            grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.55fr);
+            grid-template-columns: minmax(0, 1.1fr) minmax(330px, 0.52fr);
             gap: 18px;
             margin-top: 18px;
             align-items: start;
@@ -186,10 +205,13 @@ HTML_PAGE = r"""<!doctype html>
             position: relative;
             overflow: hidden;
             border: 1px solid var(--line);
-            border-radius: 24px;
+            border-radius: 28px;
             background:
-                linear-gradient(145deg, rgb(255 255 255 / 0.94), rgb(245 253 253 / 0.88));
-            box-shadow: 0 18px 44px rgb(8 36 43 / 0.10);
+                radial-gradient(circle at 100% 0%, rgb(32 196 205 / 0.10), transparent 32%),
+                linear-gradient(145deg, rgb(255 255 255 / 0.96), rgb(245 253 253 / 0.90));
+            box-shadow:
+                0 18px 44px rgb(8 36 43 / 0.10),
+                inset 0 1px 0 rgb(255 255 255 / 0.80);
             padding: 22px;
         }
 
@@ -370,28 +392,48 @@ HTML_PAGE = r"""<!doctype html>
             transform: none;
         }
 
-        .command-preview {
+        .selection-summary {
             display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 10px;
-            border: 1px dashed #a8cdd2;
-            border-radius: 18px;
-            background: #f6fbfb;
-            padding: 14px;
         }
 
-        .command-preview span {
+        .selection-card {
+            position: relative;
+            overflow: hidden;
+            min-height: 86px;
+            border: 1px solid #c8dde1;
+            border-radius: 20px;
+            background:
+                linear-gradient(145deg, #ffffff 0%, #f1fbfb 100%);
+            padding: 15px;
+        }
+
+        .selection-card::after {
+            position: absolute;
+            right: -24px;
+            bottom: -38px;
+            width: 94px;
+            height: 94px;
+            border: 1px solid rgb(8 127 140 / 0.12);
+            border-radius: 999px;
+            content: "";
+        }
+
+        .selection-card span {
+            display: block;
             color: var(--muted);
-            font-size: 11px;
-            font-weight: 900;
+            font-size: 10px;
+            font-weight: 950;
             text-transform: uppercase;
         }
 
-        code {
-            color: #082933;
-            font-family: "Cascadia Code", Consolas, monospace;
-            font-size: 13px;
-            line-height: 1.5;
-            overflow-wrap: anywhere;
+        .selection-card strong {
+            display: block;
+            margin-top: 8px;
+            color: var(--accent);
+            font-size: 17px;
+            line-height: 1.2;
         }
 
         .side-stack {
@@ -494,7 +536,8 @@ HTML_PAGE = r"""<!doctype html>
 
             .layout,
             .field-grid,
-            .status-strip {
+            .status-strip,
+            .selection-summary {
                 grid-template-columns: 1fr;
             }
 
@@ -516,10 +559,12 @@ HTML_PAGE = r"""<!doctype html>
 <body>
     <div class="shell">
         <section class="hero">
-            <span class="eyebrow">Central operacional</span>
-            <h1>Gerador de Relatórios Zabbix</h1>
-            <p>Escolha o recorte, gere os arquivos oficiais e abra o HTML executivo sem precisar memorizar comandos de terminal.</p>
-            <div class="status-strip" id="status-strip"></div>
+            <div class="hero-content">
+                <span class="eyebrow">Central operacional</span>
+                <h1>Gerador de Relatórios Zabbix</h1>
+                <p>Escolha o recorte, gere os arquivos oficiais e abra o HTML executivo sem precisar memorizar comandos de terminal.</p>
+                <div class="status-strip" id="status-strip"></div>
+            </div>
         </section>
 
         <div class="layout">
@@ -579,13 +624,22 @@ HTML_PAGE = r"""<!doctype html>
                         </div>
                     </label>
 
-                    <div class="command-preview">
-                        <span>Comando equivalente</span>
-                        <code id="command-preview">python zabbix-report/zabbix_report.py --periodo historico --status abertos --manter-relatorios 1</code>
+                    <div class="selection-summary" aria-label="Resumo da geração selecionada">
+                        <div class="selection-card">
+                            <span>Recorte</span>
+                            <strong id="selection-period">Histórico completo</strong>
+                        </div>
+                        <div class="selection-card">
+                            <span>Escopo</span>
+                            <strong id="selection-scope">Todos os equipamentos</strong>
+                        </div>
+                        <div class="selection-card">
+                            <span>Entrega</span>
+                            <strong id="selection-delivery">HTML, Excel e PDF</strong>
+                        </div>
                     </div>
 
                     <div class="actions">
-                        <button class="secondary" id="copy-command" type="button">Copiar comando</button>
                         <button class="primary" id="generate-button" type="submit">Gerar relatório</button>
                     </div>
                 </form>
@@ -627,14 +681,15 @@ HTML_PAGE = r"""<!doctype html>
         const equipment = document.getElementById("equipment");
         const customEquipment = document.getElementById("custom-equipment");
         const keep = document.getElementById("keep");
-        const commandPreview = document.getElementById("command-preview");
         const generateButton = document.getElementById("generate-button");
-        const copyCommand = document.getElementById("copy-command");
         const healthList = document.getElementById("health-list");
         const resultList = document.getElementById("result-list");
         const resultActions = document.getElementById("result-actions");
         const output = document.getElementById("output");
         const statusStrip = document.getElementById("status-strip");
+        const selectionPeriod = document.getElementById("selection-period");
+        const selectionScope = document.getElementById("selection-scope");
+        const selectionDelivery = document.getElementById("selection-delivery");
 
         function fillEquipmentOptions() {
             for (const name of equipments) {
@@ -659,28 +714,30 @@ HTML_PAGE = r"""<!doctype html>
             };
         }
 
-        function buildCommand(payload) {
-            const parts = ["python", "zabbix-report/zabbix_report.py"];
+        function getPeriodLabel(payload) {
+            const labels = {
+                historico: "Histórico completo",
+                "24h": "Últimas 24h",
+                "2d": "Últimos 2 dias",
+                "5d": "Últimos 5 dias",
+                "7d": "Últimos 7 dias",
+                "15d": "Últimos 15 dias",
+                "30d": "Últimos 30 dias",
+            };
 
             if (payload.period === "custom") {
-                parts.push("--desde", payload.since || "AAAA-MM-DD");
-            } else {
-                parts.push("--periodo", payload.period);
+                return payload.since ? `Desde ${payload.since}` : "Data inicial";
             }
 
-            parts.push("--status", payload.status);
-
-            if (payload.equipment) {
-                parts.push("--equipamento", `"${payload.equipment}"`);
-            }
-
-            parts.push("--manter-relatorios", payload.keep || "1");
-            return parts.join(" ");
+            return labels[payload.period] || "Recorte selecionado";
         }
 
-        function refreshCommand() {
+        function refreshSelection() {
+            const payload = getPayload();
             customDateWrap.classList.toggle("hidden", period.value !== "custom");
-            commandPreview.textContent = buildCommand(getPayload());
+            selectionPeriod.textContent = getPeriodLabel(payload);
+            selectionScope.textContent = payload.equipment || "Todos os equipamentos";
+            selectionDelivery.textContent = `${payload.status} · HTML, Excel e PDF`;
         }
 
         function renderHealth() {
@@ -711,14 +768,19 @@ HTML_PAGE = r"""<!doctype html>
             ].filter(([, file]) => file);
 
             if (!entries.length) {
-                resultList.innerHTML = `<li class="result-item"><i class="dot warn"></i><div><strong>Nenhum arquivo localizado</strong><span>Veja a saída técnica abaixo.</span></div></li>`;
+                resultList.innerHTML = `<li class="result-item"><i class="dot warn"></i><div><strong>Nenhum arquivo localizado</strong><span>A geração terminou, mas nenhum arquivo final foi localizado.</span></div></li>`;
                 return;
             }
 
             for (const [label, file] of entries) {
+                const descriptions = {
+                    HTML: "Relatório interativo pronto para análise.",
+                    Excel: "Planilha executiva pronta para conferência.",
+                    PDF: "Documento pronto para apresentação ou envio.",
+                };
                 const li = document.createElement("li");
                 li.className = "result-item";
-                li.innerHTML = `<i class="dot"></i><div><strong>${label}</strong><span>${file.name}</span></div>`;
+                li.innerHTML = `<i class="dot"></i><div><strong>${label}</strong><span>${descriptions[label] || "Arquivo gerado com sucesso."}</span></div>`;
                 resultList.appendChild(li);
 
                 const link = document.createElement("a");
@@ -741,10 +803,11 @@ HTML_PAGE = r"""<!doctype html>
                 return;
             }
 
-            output.classList.add("visible");
-            output.textContent = "Gerando relatório. Aguarde a consulta ao Zabbix...";
+            output.classList.remove("visible");
+            output.textContent = "";
             resultList.innerHTML = "";
             resultActions.innerHTML = "";
+            resultList.innerHTML = `<li class="result-item"><i class="dot"></i><div><strong>Geração em andamento</strong><span>Consultando o Zabbix e preparando os arquivos finais.</span></div></li>`;
             generateButton.disabled = true;
             generateButton.textContent = "Gerando...";
 
@@ -755,7 +818,6 @@ HTML_PAGE = r"""<!doctype html>
                     body: JSON.stringify(payload),
                 });
                 const data = await response.json();
-                output.textContent = data.output || "";
 
                 if (!response.ok || !data.ok) {
                     throw new Error(data.error || "Falha ao gerar relatório.");
@@ -764,6 +826,8 @@ HTML_PAGE = r"""<!doctype html>
                 renderResults(data);
             } catch (error) {
                 resultList.innerHTML = `<li class="result-item"><i class="dot error"></i><div><strong>Falha na geração</strong><span>${error.message}</span></div></li>`;
+                output.classList.remove("visible");
+                output.textContent = "";
             } finally {
                 generateButton.disabled = false;
                 generateButton.textContent = "Gerar relatório";
@@ -772,15 +836,10 @@ HTML_PAGE = r"""<!doctype html>
 
         fillEquipmentOptions();
         renderHealth();
-        refreshCommand();
-        form.addEventListener("input", refreshCommand);
-        form.addEventListener("change", refreshCommand);
+        refreshSelection();
+        form.addEventListener("input", refreshSelection);
+        form.addEventListener("change", refreshSelection);
         form.addEventListener("submit", generateReport);
-        copyCommand.addEventListener("click", async () => {
-            await navigator.clipboard.writeText(commandPreview.textContent);
-            copyCommand.textContent = "Comando copiado";
-            setTimeout(() => copyCommand.textContent = "Copiar comando", 1400);
-        });
     </script>
 </body>
 </html>
@@ -795,22 +854,26 @@ def build_health_items() -> list[dict[str, str]]:
             "title": "Credenciais",
             "short": "OK" if ENV_FILE.exists() else "Pendente",
             "detail": (
-                "Arquivo zabbix-report/.env encontrado."
+                "Credenciais locais configuradas neste computador."
                 if ENV_FILE.exists()
-                else "Crie zabbix-report/.env a partir do .env.example."
+                else "Configure as credenciais locais antes de gerar."
             ),
             "level": "" if ENV_FILE.exists() else "warn",
         },
         {
             "title": "Gerador",
             "short": "Disponível" if REPORT_SCRIPT.exists() else "Erro",
-            "detail": str(REPORT_SCRIPT.relative_to(PROJECT_DIR)),
+            "detail": (
+                "Motor de geração pronto para uso."
+                if REPORT_SCRIPT.exists()
+                else "Motor de geração não localizado."
+            ),
             "level": "" if REPORT_SCRIPT.exists() else "error",
         },
         {
             "title": "Saída",
-            "short": "Reports",
-            "detail": str(REPORTS_DIR.relative_to(PROJECT_DIR)),
+            "short": "Arquivos",
+            "detail": "HTML, Excel e PDF serão entregues ao finalizar.",
             "level": "",
         },
     ]
