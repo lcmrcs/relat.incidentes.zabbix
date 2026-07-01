@@ -52,7 +52,40 @@ Use quando:
 - A API parecer lenta ou indisponivel.
 - Voce quiser confirmar que o `.env` esta correto.
 
-## 4. Comando principal do relatorio atual
+## 4. Tela inicial para gerar relatorios
+
+Este e o caminho mais facil para gerar relatorios sem decorar comandos.
+
+No Windows:
+
+```text
+abrir_tela_relatorio.bat
+```
+
+No Linux ou WSL:
+
+```bash
+./abrir_tela_relatorio.sh
+```
+
+Funcao:
+- Abre uma tela local no navegador.
+- Permite escolher periodo, situacao, equipamento e quantidade de relatorios
+  mantidos.
+- Executa o gerador principal por tras da tela.
+- Mostra links para abrir HTML, Excel e PDF ao finalizar.
+
+Endereco usado pela tela:
+
+```text
+http://127.0.0.1:8765/
+```
+
+Observacao:
+- A janela do terminal precisa continuar aberta enquanto voce usa a tela.
+- Para encerrar a tela local, pressione `Ctrl+C` no terminal.
+
+## 5. Comando principal do relatorio atual
 
 Este e o comando mais importante do projeto:
 
@@ -90,7 +123,7 @@ Funcao:
 - Evita que a pasta acumule relatórios antigos demais.
 - Use apenas quando precisar comparar relatórios de execuções anteriores.
 
-## 5. Gerar relatorio por equipamento
+## 6. Gerar relatorio por equipamento
 
 Use quando quiser um relatório específico de um tipo de equipamento, sem
 alterar o relatório principal.
@@ -113,7 +146,7 @@ python zabbix-report/zabbix_report.py --periodo historico --status abertos --equ
 python zabbix-report/zabbix_report.py --periodo historico --status abertos --equipamento "Mikrotik"
 ```
 
-## 5.1. Atalho para relatório por equipamento
+## 6.1. Atalho para relatório por equipamento
 
 Use este atalho quando outra pessoa precisar gerar um relatório filtrado por
 equipamento, sem decorar o comando completo.

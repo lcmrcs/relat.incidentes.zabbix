@@ -186,7 +186,39 @@ Esse teste confirma se:
 - o token está válido;
 - o Zabbix está respondendo.
 
-## Gerar Relatório Principal
+## Tela Inicial para Gerar Relatórios
+
+O caminho mais simples para gerar relatórios é abrir a tela local do projeto.
+Ela permite escolher período, situação, equipamento e quantidade de relatórios
+mantidos sem memorizar comandos.
+
+No Windows:
+
+```text
+abrir_tela_relatorio.bat
+```
+
+No Linux ou WSL:
+
+```bash
+./abrir_tela_relatorio.sh
+```
+
+A tela abre no navegador em:
+
+```text
+http://127.0.0.1:8765/
+```
+
+Pela tela, é possível:
+
+- gerar relatório histórico, 24h, 2 dias, 5 dias, 7 dias, 15 dias ou 30 dias;
+- filtrar por equipamento;
+- escolher incidentes abertos, resolvidos ou todos;
+- manter apenas o relatório mais recente ou preservar mais execuções;
+- abrir diretamente o HTML, Excel e PDF gerados.
+
+## Gerar Relatório Principal pelo Terminal
 
 Comando mais usado no projeto:
 
