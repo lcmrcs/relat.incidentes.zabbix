@@ -476,6 +476,14 @@ def build_unit_criticality_map(incidents, recurrence_counter):
         level = unit_criticality_level(score)
         top_equipment = data["equipment_counter"].most_common(1)
         top_severity = data["severity_counter"].most_common(1)
+        equipment_mix = [
+            {"name": name, "total": count}
+            for name, count in data["equipment_counter"].most_common(4)
+        ]
+        severity_mix = [
+            {"name": name, "total": count}
+            for name, count in data["severity_counter"].most_common(3)
+        ]
 
         ranked.append({
             "name": data["name"],
@@ -490,8 +498,11 @@ def build_unit_criticality_map(incidents, recurrence_counter):
             "recurrence": data["recurrent_events"],
             "top_equipment": top_equipment[0][0] if top_equipment else "-",
             "top_equipment_total": top_equipment[0][1] if top_equipment else 0,
+            "affected_equipment_count": len(data["equipment_counter"]),
+            "equipment_mix": equipment_mix,
             "top_severity": top_severity[0][0] if top_severity else "-",
             "top_severity_total": top_severity[0][1] if top_severity else 0,
+            "severity_mix": severity_mix,
             "factors": {
                 "volume": round(volume_score),
                 "severity": round(severity_average),

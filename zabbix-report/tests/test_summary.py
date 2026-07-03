@@ -139,6 +139,12 @@ class SummaryTests(unittest.TestCase):
         self.assertGreater(summary["priority"]["average_score"], 0)
         self.assertEqual(summary["unit_criticality"]["total_units"], 2)
         self.assertEqual(summary["unit_criticality"]["top"][0]["name"], "1011-CE A")
+        self.assertGreaterEqual(
+            summary["unit_criticality"]["top"][0]["affected_equipment_count"],
+            1,
+        )
+        self.assertTrue(summary["unit_criticality"]["top"][0]["equipment_mix"])
+        self.assertTrue(summary["unit_criticality"]["top"][0]["severity_mix"])
         self.assertIn(
             summary["unit_criticality"]["top"][0]["level"],
             {

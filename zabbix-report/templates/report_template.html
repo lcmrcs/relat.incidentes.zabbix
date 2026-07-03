@@ -281,7 +281,7 @@
                         <span class="chart-kicker">Mapa de criticidade por unidade</span>
                         <h3>Unidades que exigem maior atenção operacional</h3>
                         <p>
-                            Score calculado por volume, severidade, tempo offline, reincidência e impacto do equipamento afetado.
+                            Leitura executiva das unidades que precisam de maior atenção operacional, combinando volume, severidade, tempo offline, reincidência e equipamentos afetados.
                         </p>
                     </div>
                     <div class="unit-criticality-summary">
@@ -300,23 +300,39 @@
                 <div class="criticality-grid">
                     {% for unit in summary.unit_criticality.top %}
                     <button class="criticality-card criticality-card-{{ unit.class }}" type="button" data-quick-unit="{{ unit.name }}">
-                        <span class="criticality-score">{{ unit.score }}</span>
-                        <span class="criticality-main">
-                            <strong title="{{ unit.name }}">{{ unit.name }}</strong>
-                            <em>{{ unit.level }}</em>
+                        <span class="criticality-score-block">
+                            <span class="criticality-score">{{ unit.score }}</span>
+                            <small>score</small>
                         </span>
-                        <span class="criticality-meta">
-                            <span>{{ unit.total }} incidentes</span>
-                            <span>{{ unit.top_severity }}: {{ unit.top_severity_total }}</span>
-                            <span>{{ unit.top_equipment }}: {{ unit.top_equipment_total }}</span>
-                            <span>Mais antigo: {{ unit.oldest_label }}</span>
-                        </span>
-                        <span class="criticality-factors" aria-label="Composição do score">
-                            <span style="--factor: {{ unit.factors.volume }}%;" title="Volume de incidentes"></span>
-                            <span style="--factor: {{ unit.factors.severity }}%;" title="Severidade"></span>
-                            <span style="--factor: {{ unit.factors.age }}%;" title="Tempo offline"></span>
-                            <span style="--factor: {{ unit.factors.recurrence }}%;" title="Reincidência"></span>
-                            <span style="--factor: {{ unit.factors.equipment }}%;" title="Impacto do equipamento"></span>
+                        <span class="criticality-content">
+                            <span class="criticality-main">
+                                <strong title="{{ unit.name }}">{{ unit.name }}</strong>
+                                <em>{{ unit.level }}</em>
+                            </span>
+                            <span class="criticality-quick-facts">
+                                <span><strong>{{ unit.total }}</strong> incidentes</span>
+                                <span><strong>{{ unit.affected_equipment_count }}</strong> equipamentos</span>
+                                <span><strong>{{ unit.oldest_label }}</strong> mais antigo</span>
+                            </span>
+                            <span class="criticality-section-label">Equipamentos com problema</span>
+                            <span class="criticality-chip-row">
+                                {% for equipment in unit.equipment_mix %}
+                                <span>{{ equipment.name }} <strong>{{ equipment.total }}</strong></span>
+                                {% endfor %}
+                            </span>
+                            <span class="criticality-section-label">Severidade registrada</span>
+                            <span class="criticality-chip-row severity-chip-row">
+                                {% for severity in unit.severity_mix %}
+                                <span>{{ severity.name }} <strong>{{ severity.total }}</strong></span>
+                                {% endfor %}
+                            </span>
+                            <span class="criticality-factors" aria-label="Composição do score">
+                                <span style="--factor: {{ unit.factors.volume }}%;" title="Volume de incidentes"></span>
+                                <span style="--factor: {{ unit.factors.severity }}%;" title="Severidade"></span>
+                                <span style="--factor: {{ unit.factors.age }}%;" title="Tempo offline"></span>
+                                <span style="--factor: {{ unit.factors.recurrence }}%;" title="Reincidência"></span>
+                                <span style="--factor: {{ unit.factors.equipment }}%;" title="Impacto do equipamento"></span>
+                            </span>
                         </span>
                     </button>
                     {% endfor %}
