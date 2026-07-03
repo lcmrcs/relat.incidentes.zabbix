@@ -70,6 +70,12 @@
             </div>
         </nav>
 
+        <section class="report-section-intro" aria-label="Abertura da visão executiva">
+            <span>Visão executiva</span>
+            <h2>Panorama atual da operação monitorada</h2>
+            <p>Indicadores essenciais para entender rapidamente o tamanho do passivo, a idade dos incidentes e os pontos de maior criticidade.</p>
+        </section>
+
         <section class="summary kpi-strip" aria-label="Resumo executivo do relatorio">
             <div class="summary-item kpi-primary">
                 <p class="summary-label">Incidentes abertos</p>
@@ -106,6 +112,7 @@
                 <div class="chart-card-heading">
                     <span class="chart-kicker">Mapa visual</span>
                     <h2>Severidade dos Incidentes</h2>
+                    <p>Distribuição dos incidentes por nível de severidade registrado no Zabbix.</p>
                 </div>
                 <div class="donut-layout">
                     <div class="donut-chart" aria-label="Distribuição por severidade">
@@ -145,6 +152,7 @@
                 <div class="chart-card-heading">
                     <span class="chart-kicker">Concentração</span>
                     <h2>Equipamentos em Destaque</h2>
+                    <p>Tipos de equipamentos mais presentes no recorte atual.</p>
                 </div>
                 <div class="column-chart" aria-label="Equipamentos mais afetados">
                     {% for item in summary.top_equipment[:6] %}
@@ -163,6 +171,7 @@
                 <div class="chart-card-heading">
                     <span class="chart-kicker">Tempo crítico</span>
                     <h2>Faixas de Tempo Offline</h2>
+                    <p>Idade dos incidentes abertos agrupada por janelas operacionais.</p>
                 </div>
                 <div class="age-chart" aria-label="Faixas de idade dos incidentes">
                     <button class="age-chip" type="button" data-quick-age="0-86400" style="--age-width: {{ (summary.age.range_24h / summary.event_total * 100) | round(1) if summary.event_total else 0 }}%;">
@@ -195,7 +204,7 @@
                 <span class="chart-kicker">Inteligência operacional</span>
                 <h2>Criticidade, Tendência e Recorrência</h2>
                 <p>
-                    Síntese para orientar decisão: onde o volume está concentrado, quais ocorrências exigem intervenção e quais sintomas se repetem.
+                    Leitura analítica para priorizar atuação: concentração temporal, reincidência técnica, criticidade por unidade e impacto dos equipamentos afetados.
                 </p>
             </div>
 
@@ -600,7 +609,7 @@
                 <div>
                     <span class="filter-kicker">Refinamento operacional</span>
                     <h2>Filtro do Relatório</h2>
-                    <p>Selecione apenas o que precisa analisar agora.</p>
+                    <p>Combine filtros para investigar unidades, equipamentos, severidades e tempo offline sem perder o contexto executivo.</p>
                 </div>
                 <span class="filter-status" id="filter-status">Exibindo: {{ summary.event_total }}</span>
             </div>
@@ -782,7 +791,7 @@
                 <div>
                     <h2 class="section-title">Detalhamento dos Eventos</h2>
                     <p class="section-subtitle">
-                        Lista operacional dos incidentes filtrados no relatório.
+                        Lista operacional dos incidentes filtrados, com severidade, prioridade, equipamento e acesso aos detalhes do evento.
                     </p>
                 </div>
                 <span class="events-count">{{ summary.event_total }} registros</span>
