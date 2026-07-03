@@ -145,6 +145,8 @@ class SummaryTests(unittest.TestCase):
         )
         self.assertTrue(summary["unit_criticality"]["top"][0]["equipment_mix"])
         self.assertTrue(summary["unit_criticality"]["top"][0]["severity_mix"])
+        self.assertTrue(summary["top_oldest_units"])
+        self.assertTrue(summary["top_high_severity_units"])
         self.assertIn(
             summary["unit_criticality"]["top"][0]["level"],
             {
@@ -166,6 +168,8 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual(summary["recurrence"]["top"], [])
         self.assertEqual(summary["priority"]["top"], [])
         self.assertEqual(summary["unit_criticality"]["top"], [])
+        self.assertEqual(summary["top_oldest_units"], [])
+        self.assertEqual(summary["top_high_severity_units"], [])
 
 
 if __name__ == "__main__":

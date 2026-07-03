@@ -520,6 +520,46 @@
                     {% endfor %}
                 </ul>
             </article>
+
+            {% if summary.top_oldest_units %}
+            <article class="panel">
+                <h2>Passivo Mais Antigo por Unidade</h2>
+                <ul class="metric-list">
+                    {% for item in summary.top_oldest_units %}
+                    <li class="metric-row">
+                        <button class="metric-action metric-action-stacked" type="button" data-quick-unit="{{ item.name }}">
+                            <span>
+                                <span class="metric-name" title="{{ item.name }}">{{ item.name }}</span>
+                                <span class="metric-detail">{{ item.detail }}</span>
+                            </span>
+                            <span class="metric-total">{{ item.total }}</span>
+                        </button>
+                        <span class="bar"><span style="width: {{ item.percent }}%;"></span></span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </article>
+            {% endif %}
+
+            {% if summary.top_high_severity_units %}
+            <article class="panel">
+                <h2>Unidades com Severidade Alta</h2>
+                <ul class="metric-list">
+                    {% for item in summary.top_high_severity_units %}
+                    <li class="metric-row">
+                        <button class="metric-action metric-action-stacked" type="button" data-quick-unit="{{ item.name }}">
+                            <span>
+                                <span class="metric-name" title="{{ item.name }}">{{ item.name }}</span>
+                                <span class="metric-detail">{{ item.detail }}</span>
+                            </span>
+                            <span class="metric-total">{{ item.total }}</span>
+                        </button>
+                        <span class="bar"><span style="width: {{ item.percent }}%;"></span></span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </article>
+            {% endif %}
         </section>
 
         {% if zabbix_incidents %}

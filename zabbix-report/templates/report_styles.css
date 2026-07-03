@@ -2052,12 +2052,25 @@
             color: var(--accent-dark);
         }
 
+        .metric-action-stacked {
+            align-items: start;
+        }
+
         .metric-name {
+            display: block;
             min-width: 0;
             overflow: hidden;
             color: #244850;
             text-overflow: ellipsis;
             white-space: nowrap;
+        }
+
+        .metric-detail {
+            display: block;
+            margin-top: 3px;
+            color: #6a848a;
+            font-size: 11px;
+            font-weight: 750;
         }
 
         .metric-total {
@@ -4415,6 +4428,7 @@
         body.theme-dark .modal-subtitle,
         body.theme-dark .age-note,
         body.theme-dark .metric-name,
+        body.theme-dark .metric-detail,
         body.theme-dark .filter-label,
         body.theme-dark .filter-button span:first-child,
         body.theme-dark .age-chip span,
@@ -5227,6 +5241,7 @@
             .chart-card-eyebrow,
             .section-subtitle,
             .metric-name,
+            .metric-detail,
             .age-note,
             .table-unit,
             .table-incident,

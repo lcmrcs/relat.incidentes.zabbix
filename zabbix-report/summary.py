@@ -533,6 +533,86 @@ def build_unit_criticality_map(incidents, recurrence_counter):
     }
 
 
+def build_unit_executive_rankings(incidents):
+    """
+    Cria rankings complementares por unidade escolar.
+
+    Esses rankings evitam repetir a visão de volume puro: um destaca unidades
+    com passivo mais antigo e outro evidencia concentração de severidade alta.
+    """
+
+    units = {}
+
+    for item in incidents:
+        unit = item.get("unit", "N/A")
+
+        if unit not in units:
+            units[unit] = {
+                "name": unit,
+                "total": 0,
+                "high_total": 0,
+                "oldest_seconds": 0,
+                "oldest_label": "-",
+            }
+
+        units[unit]["total"] += 1
+
+        if item.get("severity") in {"Alta", "Desastre"}:
+            units[unit]["high_total"] += 1
+
+        age_seconds = item.get("age_seconds", 0) or 0
+
+        if age_seconds > units[unit]["oldest_seconds"]:
+            units[unit]["oldest_seconds"] = age_seconds
+            units[unit]["oldest_label"] = item.get("age_label") or format_age(age_seconds)
+
+    aging_rank = sorted(
+        (
+            data
+            for data in units.values()
+            if data["oldest_seconds"] > 0
+        ),
+        key=lambda item: (item["oldest_seconds"], item["total"]),
+        reverse=True,
+    )
+    high_rank = sorted(
+        (
+            data
+            for data in units.values()
+            if data["high_total"] > 0
+        ),
+        key=lambda item: (item["high_total"], item["total"]),
+        reverse=True,
+    )
+
+    return {
+        "oldest_units": [
+            {
+                "name": item["name"],
+                "total": item["oldest_label"],
+                "percent": round(
+                    (item["oldest_seconds"] / aging_rank[0]["oldest_seconds"]) * 100,
+                    1,
+                ) if aging_rank else 0,
+                "detail": f'{item["total"]} incidentes',
+            }
+            for item in aging_rank[:8]
+        ],
+        "high_severity_units": [
+            {
+                "name": item["name"],
+                "total": item["high_total"],
+                "percent": round(
+                    (item["high_total"] / high_rank[0]["high_total"]) * 100,
+                    1,
+                ) if high_rank else 0,
+                "detail": f'{item["total"]} incidentes',
+            }
+            for item in high_rank[:8]
+        ],
+    }
+
+
 def build_report_summary(incidents):
     """
     Calcula indicadores usados no HTML e na primeira página do PDF.
@@ -610,6 +690,7 @@ def build_report_summary(incidents):
         incidents,
         recurrence_counter,
     )
+    unit_rankings = build_unit_executive_rankings(incidents)
 
     def format_counter(counter, preferred_order=None):
         """
@@ -672,6 +753,8 @@ def build_report_summary(incidents):
         "top_equipment": format_counter(equipment_counter)[:8],
         "top_incident_types": format_counter(incident_counter)[:8],
         "top_hosts": format_counter(host_counter)[:8],
+        "top_oldest_units": unit_rankings["oldest_units"],
+        "top_high_severity_units": unit_rankings["high_severity_units"],
         "period_comparison": period_comparison,
         "recurrence": recurrence_summary,
         "priority": priority_summary,
