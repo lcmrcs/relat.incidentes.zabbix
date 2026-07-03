@@ -290,7 +290,8 @@
                         <span class="chart-kicker">Mapa de criticidade por unidade</span>
                         <h3>Unidades que exigem maior atenção operacional</h3>
                         <p>
-                            Prioriza unidades por risco operacional, destacando onde há maior concentração de incidentes, impacto técnico e necessidade de atuação.
+                            Ranking executivo das unidades com maior prioridade de atuação, combinando impacto técnico,
+                            recorrência, severidade e tempo offline.
                         </p>
                     </div>
                     <div class="unit-criticality-summary">
@@ -314,12 +315,21 @@
                             O score varia de 0 a 100. Quanto maior o número, maior a prioridade operacional da unidade. A nota combina volume de incidentes, severidade, tempo offline, reincidência e impacto do equipamento afetado.
                         </p>
                     </div>
-                    <ul>
-                        <li><span>0-43</span> monitoramento normal</li>
-                        <li><span>44-63</span> acompanhamento ativo</li>
-                        <li><span>64-81</span> prioridade alta</li>
-                        <li><span>82-100</span> intervenção imediata</li>
-                    </ul>
+                    <div class="criticality-method-grid">
+                        <ul class="criticality-score-bands">
+                            <li><span>0-43</span> monitoramento normal</li>
+                            <li><span>44-63</span> acompanhamento ativo</li>
+                            <li><span>64-81</span> prioridade alta</li>
+                            <li><span>82-100</span> intervenção imediata</li>
+                        </ul>
+                        <ul class="criticality-score-weights">
+                            <li><span>24%</span> volume de incidentes</li>
+                            <li><span>24%</span> severidade registrada</li>
+                            <li><span>20%</span> tempo offline</li>
+                            <li><span>18%</span> reincidência técnica</li>
+                            <li><span>14%</span> impacto do equipamento</li>
+                        </ul>
+                    </div>
                 </div>
 
                 <div class="criticality-grid">
@@ -350,29 +360,6 @@
                                 {% for severity in unit.severity_mix %}
                                 <span class="severity-chip severity-chip-{{ severity.name | lower | replace('ã', 'a') | replace('ç', 'c') | replace('é', 'e') | replace('í', 'i') | replace(' ', '-') }}">{{ severity.name }} <strong>{{ severity.total }}</strong></span>
                                 {% endfor %}
-                            </span>
-                            <span class="criticality-section-label">Composição do score</span>
-                            <span class="criticality-factors" aria-label="Composição do score da unidade">
-                                <span class="criticality-factor">
-                                    <span class="factor-label">Volume <em>24%</em></span>
-                                    <span class="factor-track"><span style="--factor: {{ unit.factors.volume }}%;"></span></span>
-                                </span>
-                                <span class="criticality-factor">
-                                    <span class="factor-label">Severidade <em>24%</em></span>
-                                    <span class="factor-track"><span style="--factor: {{ unit.factors.severity }}%;"></span></span>
-                                </span>
-                                <span class="criticality-factor">
-                                    <span class="factor-label">Tempo offline <em>20%</em></span>
-                                    <span class="factor-track"><span style="--factor: {{ unit.factors.age }}%;"></span></span>
-                                </span>
-                                <span class="criticality-factor">
-                                    <span class="factor-label">Reincidência <em>18%</em></span>
-                                    <span class="factor-track"><span style="--factor: {{ unit.factors.recurrence }}%;"></span></span>
-                                </span>
-                                <span class="criticality-factor">
-                                    <span class="factor-label">Equipamento <em>14%</em></span>
-                                    <span class="factor-track"><span style="--factor: {{ unit.factors.equipment }}%;"></span></span>
-                                </span>
                             </span>
                         </span>
                     </button>
