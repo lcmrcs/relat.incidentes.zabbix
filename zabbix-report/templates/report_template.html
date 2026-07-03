@@ -297,6 +297,21 @@
                     <span><strong>{{ summary.unit_criticality.normal }}</strong> monitoramento normal</span>
                 </div>
 
+                <div class="criticality-method" aria-label="Como o score de criticidade é calculado">
+                    <div>
+                        <strong>Como o score é medido</strong>
+                        <p>
+                            O índice vai de 0 a 100 e combina cinco critérios ponderados: volume de incidentes, severidade, tempo offline, reincidência e impacto do equipamento. A cor do score indica a faixa operacional da unidade.
+                        </p>
+                    </div>
+                    <ul>
+                        <li><span>0-43</span> monitoramento normal</li>
+                        <li><span>44-63</span> acompanhamento ativo</li>
+                        <li><span>64-81</span> prioridade alta</li>
+                        <li><span>82-100</span> intervenção imediata</li>
+                    </ul>
+                </div>
+
                 <div class="criticality-grid">
                     {% for unit in summary.unit_criticality.top %}
                     <button class="criticality-card criticality-card-{{ unit.class }}" type="button" data-quick-unit="{{ unit.name }}">
@@ -323,15 +338,31 @@
                             <span class="criticality-section-label">Severidade registrada</span>
                             <span class="criticality-chip-row severity-chip-row">
                                 {% for severity in unit.severity_mix %}
-                                <span>{{ severity.name }} <strong>{{ severity.total }}</strong></span>
+                                <span class="severity-chip severity-chip-{{ severity.name | lower | replace('ã', 'a') | replace('ç', 'c') | replace('é', 'e') | replace('í', 'i') | replace(' ', '-') }}">{{ severity.name }} <strong>{{ severity.total }}</strong></span>
                                 {% endfor %}
                             </span>
-                            <span class="criticality-factors" aria-label="Composição do score">
-                                <span style="--factor: {{ unit.factors.volume }}%;" title="Volume de incidentes"></span>
-                                <span style="--factor: {{ unit.factors.severity }}%;" title="Severidade"></span>
-                                <span style="--factor: {{ unit.factors.age }}%;" title="Tempo offline"></span>
-                                <span style="--factor: {{ unit.factors.recurrence }}%;" title="Reincidência"></span>
-                                <span style="--factor: {{ unit.factors.equipment }}%;" title="Impacto do equipamento"></span>
+                            <span class="criticality-section-label">Composição do score</span>
+                            <span class="criticality-factors" aria-label="Composição do score da unidade">
+                                <span class="criticality-factor">
+                                    <span class="factor-label">Volume <em>24%</em></span>
+                                    <span class="factor-track"><span style="--factor: {{ unit.factors.volume }}%;"></span></span>
+                                </span>
+                                <span class="criticality-factor">
+                                    <span class="factor-label">Severidade <em>24%</em></span>
+                                    <span class="factor-track"><span style="--factor: {{ unit.factors.severity }}%;"></span></span>
+                                </span>
+                                <span class="criticality-factor">
+                                    <span class="factor-label">Tempo offline <em>20%</em></span>
+                                    <span class="factor-track"><span style="--factor: {{ unit.factors.age }}%;"></span></span>
+                                </span>
+                                <span class="criticality-factor">
+                                    <span class="factor-label">Reincidência <em>18%</em></span>
+                                    <span class="factor-track"><span style="--factor: {{ unit.factors.recurrence }}%;"></span></span>
+                                </span>
+                                <span class="criticality-factor">
+                                    <span class="factor-label">Equipamento <em>14%</em></span>
+                                    <span class="factor-track"><span style="--factor: {{ unit.factors.equipment }}%;"></span></span>
+                                </span>
                             </span>
                         </span>
                     </button>
