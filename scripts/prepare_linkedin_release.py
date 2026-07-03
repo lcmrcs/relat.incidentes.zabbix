@@ -2,8 +2,9 @@
 Prepara uma versão pública do relatório para publicação no LinkedIn.
 
 O script parte do HTML executivo mais recente, mascara dados sensíveis e gera
-prints do relatório sanitizado. A intenção é divulgar o projeto sem expor IPs,
-nomes internos, hosts, URLs privadas ou números operacionais sensíveis.
+prints do relatório sanitizado quando há navegador disponível. A intenção é
+divulgar o projeto sem expor IPs, nomes internos, hosts, URLs privadas ou
+números operacionais sensíveis, preservando o visual real do HTML executivo.
 """
 
 from __future__ import annotations
@@ -20,6 +21,12 @@ REPORTS_DIR = ROOT / "zabbix-report" / "reports"
 OUTPUT_ROOT = ROOT / "entrega_supervisor" / "linkedin_sanitizado"
 WINDOWS_EDGE = Path("/mnt/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe")
 WINDOWS_CHROME = Path("/mnt/c/Program Files/Google/Chrome/Application/chrome.exe")
+CAPTURES = [
+    ("01_visao_geral.png", "main"),
+    ("02_inteligencia_operacional.png", ".executive-intelligence"),
+    ("03_mapa_criticidade.png", ".unit-criticality-map"),
+    ("04_filtro_relatorio.png", ".filter-panel"),
+]
 
 
 LINKEDIN_TEXT = """Estou evoluindo este projeto de automação de relatórios com foco em monitoramento, infraestrutura e análise executiva de incidentes.
@@ -120,6 +127,8 @@ def protect_blocks(text: str) -> tuple[str, dict[str, str]]:
     text = re.sub(r"<style\b.*?</style>", store, text, flags=re.DOTALL | re.IGNORECASE)
     text = re.sub(r"<script\b.*?</script>", store, text, flags=re.DOTALL | re.IGNORECASE)
     text = re.sub(r"data:image/[^\"']+", store, text)
+    text = re.sub(r"\b\d{2}/\d{2}/\d{4}\s+\d{1,2}:\d{2}\b", store, text)
+    text = re.sub(r"\b\d{1,2}:\d{2}\b", store, text)
     return text, protected
 
 
@@ -175,7 +184,12 @@ def sanitize_public_numbers(text: str) -> str:
     protected_text = re.sub(r"\b(\d{2,4})(\s+unidades?)\b", replace_event_total, protected_text, flags=re.IGNORECASE)
     protected_text = re.sub(r"(?<![/.-])\b(\d{2,4})\b(?![/.-])", replace_count, protected_text)
 
-    return restore_blocks(protected_text, protected)
+    protected_text = restore_blocks(protected_text, protected)
+    protected_text = protected_text.replace("4 a 2 dias", "4 a 7 dias")
+    protected_text = protected_text.replace("15 a 10 dias", "7 a 10 dias")
+    protected_text = protected_text.replace("11 a 11 dias", "11 a 14 dias")
+
+    return protected_text
 
 
 def inject_public_badge(text: str) -> str:
@@ -290,12 +304,6 @@ def screenshot_with_playwright(html_path: Path, output_dir: Path) -> list[Path]:
     os.environ["TEMP"] = str(temp_dir)
     os.environ["PLAYWRIGHT_ARTIFACTS_PATH"] = str(temp_dir)
 
-    shots = [
-        ("01_visao_geral.png", "main"),
-        ("02_inteligencia_operacional.png", ".executive-intelligence"),
-        ("03_mapa_criticidade.png", ".unit-criticality-map"),
-        ("04_filtro_relatorio.png", ".filter-panel"),
-    ]
     created: list[Path] = []
 
     with sync_playwright() as playwright:
@@ -305,7 +313,7 @@ def screenshot_with_playwright(html_path: Path, output_dir: Path) -> list[Path]:
         page.evaluate("localStorage.clear(); document.body.classList.add('theme-dark');")
         page.wait_for_timeout(600)
 
-        for filename, selector in shots:
+        for filename, selector in CAPTURES:
             locator = page.locator(selector).first
             if locator.count() == 0:
                 continue
@@ -374,24 +382,77 @@ def capture_variant_html(html_path: Path, output_dir: Path, selector: str, filen
     return variant_path
 
 
+def prepare_capture_variants(html_path: Path, output_dir: Path) -> dict[str, Path]:
+    """
+    Cria HTMLs auxiliares para capturar partes específicas do relatório real.
+
+    Esses arquivos usam o próprio HTML sanitizado como base. A única diferença
+    é um pequeno script que ativa o modo escuro e posiciona a página no bloco
+    que será fotografado.
+    """
+
+    capture_dir = output_dir / "_capture_html"
+    capture_dir.mkdir(parents=True, exist_ok=True)
+
+    return {
+        image_name: capture_variant_html(
+            html_path,
+            capture_dir,
+            selector,
+            Path(image_name).stem,
+        )
+        for image_name, selector in CAPTURES
+    }
+
+
+def write_windows_capture_bat(output_dir: Path, variants: dict[str, Path]) -> Path:
+    """
+    Gera um atalho Windows para capturar prints fiéis fora do WSL.
+    """
+
+    images_dir = output_dir / "imagens"
+    bat_path = output_dir / "capturar_prints_no_windows.bat"
+    lines = [
+        "@echo off",
+        "setlocal",
+        "set BROWSER=%ProgramFiles(x86)%\\Microsoft\\Edge\\Application\\msedge.exe",
+        "if not exist \"%BROWSER%\" set BROWSER=%ProgramFiles%\\Google\\Chrome\\Application\\chrome.exe",
+        "if not exist \"%BROWSER%\" (",
+        "  echo Nao foi encontrado Microsoft Edge ou Google Chrome.",
+        "  pause",
+        "  exit /b 1",
+        ")",
+        f"if not exist \"{windows_path(images_dir)}\" mkdir \"{windows_path(images_dir)}\"",
+    ]
+
+    for image_name, variant_path in variants.items():
+        image_path = images_dir / image_name
+        lines.append(
+            "\"%BROWSER%\" --headless --disable-gpu --hide-scrollbars "
+            "--window-size=1600,1000 --virtual-time-budget=2500 "
+            f"--screenshot=\"{windows_path(image_path)}\" "
+            f"\"{windows_file_url(variant_path)}\""
+        )
+
+    lines.extend([
+        "echo.",
+        f"echo Prints gerados em: {windows_path(images_dir)}",
+        "pause",
+    ])
+    bat_path.write_text("\r\n".join(lines) + "\r\n", encoding="utf-8")
+    return bat_path
+
+
 def screenshot_with_windows_browser(html_path: Path, output_dir: Path) -> list[Path]:
     executable = browser_executable()
 
     if not executable:
         raise FileNotFoundError("Microsoft Edge ou Google Chrome nao foi encontrado no Windows.")
 
-    captures = [
-        ("01_visao_geral.png", "main"),
-        ("02_inteligencia_operacional.png", ".executive-intelligence"),
-        ("03_mapa_criticidade.png", ".unit-criticality-map"),
-        ("04_filtro_relatorio.png", ".filter-panel"),
-    ]
     created: list[Path] = []
-    capture_dir = output_dir / "_capture_html"
-    capture_dir.mkdir(parents=True, exist_ok=True)
+    variants = prepare_capture_variants(html_path, output_dir)
 
-    for image_name, selector in captures:
-        variant = capture_variant_html(html_path, capture_dir, selector, Path(image_name).stem)
+    for image_name, variant in variants.items():
         image_path = output_dir / image_name
         command = (
             f'"{windows_path(executable)}" '
@@ -484,120 +545,6 @@ def create_canvas():
     return image, draw
 
 
-def generate_public_pngs(output_dir: Path) -> list[Path]:
-    """
-    Gera imagens públicas quando não há navegador headless disponível.
-
-    Os dados são demonstrativos e propositalmente baixos para divulgação.
-    """
-
-    from PIL import ImageDraw
-
-    output_dir.mkdir(parents=True, exist_ok=True)
-    paths: list[Path] = []
-
-    # Visão geral.
-    image, draw = create_canvas()
-    draw_badge(draw, (70, 54), "DEMONSTRAÇÃO PÚBLICA")
-    draw_text(draw, (70, 130), "Relatório Executivo de Incidentes Zabbix", 54, "#ffffff", True)
-    draw_text(draw, (70, 204), "Dados sanitizados para apresentação pública no LinkedIn", 24, "#c7e5e7")
-    draw_metric_card(draw, (70, 285, 420, 410), "Incidentes abertos", "24", "#d92f3a")
-    draw_metric_card(draw, (450, 285, 800, 410), "Mais antigo", "3d 4h", "#e67700")
-    draw_metric_card(draw, (830, 285, 1180, 410), "Score médio", "18.6", "#20c4cd")
-    rounded(draw, (70, 470, 740, 820), radius=28, fill="#0d3037", outline="#2a737b")
-    draw_text(draw, (105, 505), "Severidade dos incidentes", 30, "#ffffff", True)
-    draw.pieslice((120, 575, 340, 795), 0, 210, fill="#e67700")
-    draw.pieslice((120, 575, 340, 795), 210, 315, fill="#2f9e44")
-    draw.pieslice((120, 575, 340, 795), 315, 350, fill="#1c7ed6")
-    draw.ellipse((170, 625, 290, 745), fill="#061b21")
-    draw_text(draw, (230, 655), "24", 42, "#ffffff", True, "mm")
-    draw_text(draw, (230, 700), "abertos", 17, "#a9cdd2", True, "mm")
-    draw_bar_row(draw, 390, 585, "Alta", "12", 280, "#e67700")
-    draw_bar_row(draw, 390, 660, "Atenção", "8", 280, "#2f9e44")
-    draw_bar_row(draw, 390, 735, "Informação", "4", 280, "#1c7ed6")
-    rounded(draw, (780, 470, 1530, 820), radius=28, fill="#0d3037", outline="#2a737b")
-    draw_text(draw, (815, 505), "Equipamentos em destaque", 30, "#ffffff", True)
-    for idx, (name, value) in enumerate([("Câmera", 9), ("Terminal", 6), ("Switch", 4), ("Mikrotik", 3), ("NVR", 2)]):
-        x = 840 + idx * 130
-        draw.rounded_rectangle((x, 605, x + 70, 760), radius=35, fill="#173f47")
-        draw.rounded_rectangle((x, 760 - value * 11, x + 70, 760), radius=35, fill="#20c4cd")
-        draw_text(draw, (x + 35, 780), str(value), 22, "#ffffff", True, "mm")
-        draw_text(draw, (x + 35, 812), name, 16, "#c7e5e7", True, "mm")
-    path = output_dir / "01_visao_geral_publica.png"
-    image.save(path)
-    paths.append(path)
-
-    # Mapa de criticidade.
-    image, draw = create_canvas()
-    draw_badge(draw, (70, 54), "MAPA DE CRITICIDADE")
-    draw_text(draw, (70, 125), "Unidades que exigem atenção operacional", 48, "#ffffff", True)
-    draw_text(draw, (70, 190), "Score demonstrativo baseado em volume, severidade, tempo offline, recorrência e impacto do equipamento.", 23, "#c7e5e7")
-    cards = [
-        ("Unidade Escolar 001", 31, "Acompanhamento ativo", "6 incidentes", "2 equipamentos", "3d 4h"),
-        ("Unidade Escolar 002", 24, "Monitoramento normal", "4 incidentes", "2 equipamentos", "2d 7h"),
-        ("Unidade Escolar 003", 21, "Monitoramento normal", "3 incidentes", "1 equipamento", "1d 5h"),
-        ("Unidade Escolar 004", 18, "Monitoramento normal", "2 incidentes", "1 equipamento", "8h"),
-    ]
-    for idx, card in enumerate(cards):
-        x = 70 + (idx % 2) * 730
-        y = 280 + (idx // 2) * 260
-        rounded(draw, (x, y, x + 670, y + 220), radius=26, fill="#123b43", outline="#2a737b")
-        draw.rounded_rectangle((x + 28, y + 30, x + 118, y + 120), radius=24, fill="#20a6b2")
-        draw_text(draw, (x + 73, y + 75), str(card[1]), 36, "#ffffff", True, "mm")
-        draw_text(draw, (x + 150, y + 32), card[0], 28, "#ffffff", True)
-        draw_text(draw, (x + 150, y + 75), card[2], 17, "#9ff4f1", True)
-        draw_text(draw, (x + 34, y + 150), card[3], 22, "#eafcff", True)
-        draw_text(draw, (x + 245, y + 150), card[4], 22, "#eafcff", True)
-        draw_text(draw, (x + 475, y + 150), card[5], 22, "#eafcff", True)
-    path = output_dir / "02_mapa_criticidade_publico.png"
-    image.save(path)
-    paths.append(path)
-
-    # Rankings.
-    image, draw = create_canvas()
-    draw_badge(draw, (70, 54), "RANKINGS EXECUTIVOS")
-    draw_text(draw, (70, 125), "Prioridades operacionais do recorte", 48, "#ffffff", True)
-    columns = [
-        ("Equipamentos afetados", [("Câmera", "9"), ("Terminal Facial", "6"), ("Switch", "4"), ("Mikrotik", "3")]),
-        ("Tipos de incidente", [("Unavailable by ICMP ping", "11"), ("High ICMP ping loss", "5"), ("No SNMP data", "3"), ("Interface down", "2")]),
-        ("Passivo por unidade", [("Unidade Escolar 001", "3d 4h"), ("Unidade Escolar 002", "2d 7h"), ("Unidade Escolar 003", "1d 5h"), ("Unidade Escolar 004", "8h")]),
-    ]
-    for idx, (title, rows) in enumerate(columns):
-        x = 70 + idx * 510
-        rounded(draw, (x, 230, x + 470, 810), radius=28, fill="#0d3037", outline="#2a737b")
-        draw_text(draw, (x + 32, 270), title, 28, "#ffffff", True)
-        for row_idx, (label, value) in enumerate(rows):
-            y = 340 + row_idx * 105
-            draw_bar_row(draw, x + 32, y, label, value, 390, "#20c4cd")
-    path = output_dir / "03_rankings_publicos.png"
-    image.save(path)
-    paths.append(path)
-
-    # Detalhes.
-    image, draw = create_canvas()
-    rounded(draw, (250, 80, 1350, 820), radius=28, fill="#0d3037", outline="#2a737b", width=3)
-    draw.rectangle((250, 80, 1350, 170), fill="#123f46")
-    draw_text(draw, (295, 112), "Detalhes do Incidente", 34, "#ffffff", True)
-    draw_text(draw, (1295, 118), "×", 42, "#dff7f5", True, "mm")
-    rows = [
-        ("Status", "Aberto"), ("Tempo offline", "4h"), ("Unidade", "Unidade Escolar 001"),
-        ("Host", "HOST-DEMO 001"), ("Equipamento", "Câmera"),
-        ("Tipo de incidente", "Unavailable by ICMP ping"), ("Severidade", "Atenção"),
-        ("Prioridade", "Normal"), ("Evento", "7000000"),
-    ]
-    for idx, (label, value) in enumerate(rows):
-        x = 295 + (idx % 2) * 510
-        y = 215 + (idx // 2) * 105
-        rounded(draw, (x, y, x + 470, y + 78), radius=16, fill="#123b43", outline="#2a737b")
-        draw_text(draw, (x + 22, y + 16), label.upper(), 16, "#a9cdd2", True)
-        draw_text(draw, (x + 22, y + 42), value, 22, "#ffffff", True)
-    path = output_dir / "04_detalhes_publicos.png"
-    image.save(path)
-    paths.append(path)
-
-    return paths
-
-
 def main() -> None:
     source = latest_report()
     today = datetime.now().strftime("%Y-%m-%d")
@@ -605,12 +552,16 @@ def main() -> None:
     images_dir = output_dir / "imagens"
     output_dir.mkdir(parents=True, exist_ok=True)
     images_dir.mkdir(parents=True, exist_ok=True)
+    for old_image in images_dir.glob("*.png"):
+        old_image.unlink()
 
     sanitized_html = sanitize_html(source.read_text(encoding="utf-8"))
     html_path = output_dir / "relatorio_publico_linkedin.html"
     text_path = output_dir / "texto_linkedin.md"
     html_path.write_text(sanitized_html, encoding="utf-8")
     text_path.write_text(LINKEDIN_TEXT, encoding="utf-8")
+    variants = prepare_capture_variants(html_path, images_dir)
+    windows_capture_bat = write_windows_capture_bat(output_dir, variants)
 
     screenshots: list[Path] = []
 
@@ -624,10 +575,11 @@ def main() -> None:
                 f"Motivo do Playwright: {exc}\n"
             )
         except Exception as fallback_exc:
-            screenshots = generate_public_pngs(images_dir)
             warning = (
                 "O HTML sanitizado foi gerado. Como as capturas por navegador falharam,\n"
-                "foram gerados PNGs publicos demonstrativos com dados baixos e sanitizados.\n"
+                "nenhum print foi criado automaticamente. Para manter fidelidade visual,\n"
+                "este script nao gera imagens simuladas. Abra o HTML sanitizado no navegador\n"
+                "e capture as telas manualmente, ou instale as dependencias do Playwright.\n"
                 f"Motivo Playwright: {exc}\n"
                 f"Motivo navegador Windows: {fallback_exc}\n"
             )
@@ -637,6 +589,7 @@ def main() -> None:
     print(f"HTML sanitizado: {html_path}")
     print(f"Texto LinkedIn: {text_path}")
     print(f"Pasta de imagens: {images_dir}")
+    print(f"Captura fiel no Windows: {windows_capture_bat}")
 
     if screenshots:
         print("Prints gerados:")
