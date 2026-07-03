@@ -129,6 +129,11 @@ def protect_blocks(text: str) -> tuple[str, dict[str, str]]:
     text = re.sub(r"data:image/[^\"']+", store, text)
     text = re.sub(r"\b\d{2}/\d{2}/\d{4}\s+\d{1,2}:\d{2}\b", store, text)
     text = re.sub(r"\b\d{1,2}:\d{2}\b", store, text)
+    text = re.sub(r"\bÚltimas\s+\d{1,2}h\b", store, text, flags=re.IGNORECASE)
+    text = re.sub(r"\b\d{1,2}\s+a\s+\d{1,2}\s+dias\b", store, text, flags=re.IGNORECASE)
+    text = re.sub(r"\+\d{1,3}\s+dias\b", store, text, flags=re.IGNORECASE)
+    text = re.sub(r"\b\d{1,2}-\d{1,2}d\b", store, text, flags=re.IGNORECASE)
+    text = re.sub(r"\+\d{1,3}d\b", store, text, flags=re.IGNORECASE)
     return text, protected
 
 
@@ -184,12 +189,107 @@ def sanitize_public_numbers(text: str) -> str:
     protected_text = re.sub(r"\b(\d{2,4})(\s+unidades?)\b", replace_event_total, protected_text, flags=re.IGNORECASE)
     protected_text = re.sub(r"(?<![/.-])\b(\d{2,4})\b(?![/.-])", replace_count, protected_text)
 
-    protected_text = restore_blocks(protected_text, protected)
-    protected_text = protected_text.replace("4 a 2 dias", "4 a 7 dias")
-    protected_text = protected_text.replace("15 a 10 dias", "7 a 10 dias")
-    protected_text = protected_text.replace("11 a 11 dias", "11 a 14 dias")
+    return restore_blocks(protected_text, protected)
 
-    return protected_text
+
+def force_lunar_mode(text: str) -> str:
+    """
+    Deixa o HTML público pronto para abrir e capturar no modo lunar.
+    """
+
+    text = re.sub(r"<body(?![^>]*class=)", '<body class="theme-dark"', text, count=1)
+    text = re.sub(
+        r'<body class="([^"]*)"',
+        lambda match: (
+            match.group(0)
+            if "theme-dark" in match.group(1).split()
+            else f'<body class="{match.group(1)} theme-dark"'
+        ),
+        text,
+        count=1,
+    )
+    script = """
+    <script>
+        localStorage.setItem("zabbix-report-theme", "dark");
+        document.addEventListener("DOMContentLoaded", () => {
+            document.body.classList.add("theme-dark");
+        });
+    </script>
+    """
+
+    if "</head>" in text:
+        text = text.replace("</head>", f"{script}\n</head>", 1)
+
+    return text
+
+
+def inject_public_dom_sanitizer(text: str) -> str:
+    """
+    Reaplica a sanitização depois que o JavaScript do relatório recalcula telas.
+
+    O HTML original possui filtros e cartões que são atualizados no navegador.
+    Para material público, essa camada evita que contagens reais voltem a
+    aparecer depois do carregamento da página.
+    """
+
+    script = """
+    <script>
+        (() => {
+            const dayCycle = [0, 1, 2, 3, 4, 5, 6];
+            const lowDemoNumber = (value) => {
+                const number = Number(value);
+                if (!Number.isFinite(number) || number <= 9) return String(value);
+                if (number <= 30) return String(Math.max(1, number % 8));
+                if (number <= 99) return String(8 + (number % 12));
+                if (number <= 999) return String(18 + (number % 24));
+                return String(1 + (number % 9));
+            };
+            const softenAge = (text) => text
+                .replace(/\\b(\\d{2,4})d\\s+(\\d{1,2})h\\b/g, (_, days, hours) => {
+                    const day = dayCycle[Number(days) % dayCycle.length];
+                    const hour = Number(hours) % 8;
+                    return day ? `${day}d ${hour}h` : `${hour}h`;
+                })
+                .replace(/\\b(\\d{2,4})h\\s+(\\d{1,2})min\\b/g, (_, hours, minutes) => {
+                    const hour = Math.max(1, Number(hours) % 6);
+                    return `${hour}h ${Number(minutes) % 60}min`;
+                });
+            const sanitizeText = (text) => {
+                if (!text || /\\d{2}\\/\\d{2}\\/\\d{4}/.test(text)) return text;
+                let output = softenAge(text);
+                output = output.replace(/\\b(\\d{2,4})\\s*\\|\\s*(\\d{1,3}(?:\\.\\d)?)%/g, (_, count, percent) => {
+                    const safePercent = Math.min(9.8, Math.max(0.3, Number(percent) / 9)).toFixed(1);
+                    return `${lowDemoNumber(count)} | ${safePercent}%`;
+                });
+                output = output.replace(/\\b(\\d{2,4})(\\s+(?:incidentes?|equipamentos?|unidades?))\\b/gi, (_, number, suffix) => {
+                    return `${lowDemoNumber(number)}${suffix}`;
+                });
+                output = output.replace(/(?<![\\/.:\\-])\\b\\d{2,4}\\b(?![\\/.:\\-])/g, (number) => lowDemoNumber(number));
+                return output;
+            };
+            const sanitizeDom = () => {
+                const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+                const nodes = [];
+                while (walker.nextNode()) nodes.push(walker.currentNode);
+                for (const node of nodes) {
+                    const next = sanitizeText(node.nodeValue);
+                    if (next !== node.nodeValue) node.nodeValue = next;
+                }
+                document.body.classList.add("theme-dark");
+            };
+            window.addEventListener("load", () => {
+                sanitizeDom();
+                setTimeout(sanitizeDom, 300);
+                setTimeout(sanitizeDom, 900);
+            });
+        })();
+    </script>
+    """
+
+    if "</body>" in text:
+        text = text.replace("</body>", f"{script}\n</body>", 1)
+
+    return text
 
 
 def inject_public_badge(text: str) -> str:
@@ -226,7 +326,7 @@ def inject_public_badge(text: str) -> str:
     if "</body>" in text:
         text = text.replace("</body>", f"{badge}\n</body>", 1)
 
-    return text
+    return inject_public_dom_sanitizer(force_lunar_mode(text))
 
 
 def sanitize_html(html: str) -> str:
