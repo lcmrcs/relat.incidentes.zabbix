@@ -126,6 +126,7 @@ def protect_blocks(text: str) -> tuple[str, dict[str, str]]:
 
     text = re.sub(r"<style\b.*?</style>", store, text, flags=re.DOTALL | re.IGNORECASE)
     text = re.sub(r"<script\b.*?</script>", store, text, flags=re.DOTALL | re.IGNORECASE)
+    text = re.sub(r"<svg\b.*?</svg>", store, text, flags=re.DOTALL | re.IGNORECASE)
     text = re.sub(r"data:image/[^\"']+", store, text)
     text = re.sub(r"\b\d{2}/\d{2}/\d{4}\s+\d{1,2}:\d{2}\b", store, text)
     text = re.sub(r"\b\d{1,2}:\d{2}\b", store, text)
