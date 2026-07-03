@@ -27,6 +27,24 @@ PRIORITY_LEVELS = [
     (0, "Normal", "normal"),
 ]
 
+EQUIPMENT_IMPACT_SCORE = {
+    "Mikrotik": 100,
+    "Switch": 88,
+    "NVR": 74,
+    "Central de Alarme": 66,
+    "Portal Detector de Metal": 62,
+    "Terminal Facial": 55,
+    "Câmera": 42,
+    "Servidor": 78,
+}
+
+UNIT_CRITICALITY_LEVELS = [
+    (82, "Intervenção imediata", "critical"),
+    (64, "Prioridade alta", "high"),
+    (44, "Acompanhamento ativo", "medium"),
+    (0, "Monitoramento normal", "normal"),
+]
+
 
 def format_age(seconds):
     """
@@ -70,6 +88,29 @@ def priority_level(score):
 
     return {
         "label": "Normal",
+        "class": "normal",
+        "score": min(100, round(score)),
+    }
+
+
+def unit_criticality_level(score):
+    """
+    Converte o score de uma unidade em uma recomendação executiva.
+
+    O texto é propositalmente orientado à ação, para que o ranking não seja
+    apenas uma lista de números.
+    """
+
+    for minimum, label, class_name in UNIT_CRITICALITY_LEVELS:
+        if score >= minimum:
+            return {
+                "label": label,
+                "class": class_name,
+                "score": min(100, round(score)),
+            }
+
+    return {
+        "label": "Monitoramento normal",
         "class": "normal",
         "score": min(100, round(score)),
     }
@@ -321,6 +362,166 @@ def build_priority_summary(incidents, recurrence_counter):
     }
 
 
+def build_unit_criticality_map(incidents, recurrence_counter):
+    """
+    Calcula o mapa de criticidade operacional por unidade escolar.
+
+    A pontuação combina cinco fatores:
+    - volume de incidentes;
+    - severidade registrada no Zabbix;
+    - tempo offline;
+    - reincidência do mesmo host/sintoma;
+    - impacto do tipo de equipamento afetado.
+    """
+
+    units = {}
+
+    for item in incidents:
+        unit = item.get("unit", "N/A")
+        unit_code = item.get("unit_code", "")
+
+        if unit not in units:
+            units[unit] = {
+                "name": unit,
+                "code": unit_code,
+                "incidents": [],
+                "severity_counter": Counter(),
+                "equipment_counter": Counter(),
+                "recurrent_events": 0,
+                "max_age_seconds": 0,
+            }
+
+        recurrence_key = (
+            item.get("host", "N/A"),
+            item.get("incident_type") or item.get("incident", "N/A"),
+        )
+        recurrence_count = recurrence_counter.get(recurrence_key, 1)
+
+        units[unit]["incidents"].append(item)
+        units[unit]["severity_counter"][item.get("severity", "N/A")] += 1
+        units[unit]["equipment_counter"][item.get("equipment", "N/A")] += 1
+        units[unit]["recurrent_events"] += max(0, recurrence_count - 1)
+        units[unit]["max_age_seconds"] = max(
+            units[unit]["max_age_seconds"],
+            item.get("age_seconds", 0) or 0,
+        )
+
+    max_volume = max(
+        (len(data["incidents"]) for data in units.values()),
+        default=0,
+    )
+    max_recurrence = max(
+        (data["recurrent_events"] for data in units.values()),
+        default=0,
+    )
+
+    ranked = []
+
+    for data in units.values():
+        incident_total = len(data["incidents"])
+        severity_average = (
+            sum(
+                SEVERITY_SCORE.get(item.get("severity"), 8)
+                for item in data["incidents"]
+            ) / incident_total
+            if incident_total
+            else 0
+        )
+        age_average = (
+            sum(item.get("age_seconds", 0) or 0 for item in data["incidents"])
+            / incident_total
+            if incident_total
+            else 0
+        )
+
+        if age_average >= 90 * 86400:
+            age_score = 100
+        elif age_average >= 30 * 86400:
+            age_score = 82
+        elif age_average >= 10 * 86400:
+            age_score = 64
+        elif age_average >= 3 * 86400:
+            age_score = 44
+        elif age_average >= 86400:
+            age_score = 24
+        else:
+            age_score = 8
+
+        equipment_average = (
+            sum(
+                EQUIPMENT_IMPACT_SCORE.get(item.get("equipment"), 34)
+                for item in data["incidents"]
+            ) / incident_total
+            if incident_total
+            else 0
+        )
+        volume_score = (
+            (incident_total / max_volume) * 100
+            if max_volume
+            else 0
+        )
+        recurrence_score = (
+            (data["recurrent_events"] / max_recurrence) * 100
+            if max_recurrence
+            else 0
+        )
+
+        score = (
+            volume_score * 0.24
+            + severity_average * 0.24
+            + age_score * 0.20
+            + recurrence_score * 0.18
+            + equipment_average * 0.14
+        )
+        level = unit_criticality_level(score)
+        top_equipment = data["equipment_counter"].most_common(1)
+        top_severity = data["severity_counter"].most_common(1)
+
+        ranked.append({
+            "name": data["name"],
+            "code": data["code"],
+            "score": level["score"],
+            "level": level["label"],
+            "class": level["class"],
+            "total": incident_total,
+            "severity_average": round(severity_average, 1),
+            "age_label": format_age(age_average),
+            "oldest_label": format_age(data["max_age_seconds"]),
+            "recurrence": data["recurrent_events"],
+            "top_equipment": top_equipment[0][0] if top_equipment else "-",
+            "top_equipment_total": top_equipment[0][1] if top_equipment else 0,
+            "top_severity": top_severity[0][0] if top_severity else "-",
+            "top_severity_total": top_severity[0][1] if top_severity else 0,
+            "factors": {
+                "volume": round(volume_score),
+                "severity": round(severity_average),
+                "age": round(age_score),
+                "recurrence": round(recurrence_score),
+                "equipment": round(equipment_average),
+            },
+        })
+
+    ranked = sorted(
+        ranked,
+        key=lambda item: (item["score"], item["total"], item["recurrence"]),
+        reverse=True,
+    )
+    by_level = Counter(item["level"] for item in ranked)
+
+    return {
+        "top": ranked[:8],
+        "total_units": len(ranked),
+        "critical": by_level.get("Intervenção imediata", 0),
+        "high": by_level.get("Prioridade alta", 0),
+        "medium": by_level.get("Acompanhamento ativo", 0),
+        "normal": by_level.get("Monitoramento normal", 0),
+        "average_score": round(
+            sum(item["score"] for item in ranked) / len(ranked),
+            1,
+        ) if ranked else 0,
+    }
+
+
 def build_report_summary(incidents):
     """
     Calcula indicadores usados no HTML e na primeira página do PDF.
@@ -394,6 +595,10 @@ def build_report_summary(incidents):
         incidents,
         recurrence_counter,
     )
+    unit_criticality = build_unit_criticality_map(
+        incidents,
+        recurrence_counter,
+    )
 
     def format_counter(counter, preferred_order=None):
         """
@@ -459,4 +664,5 @@ def build_report_summary(incidents):
         "period_comparison": period_comparison,
         "recurrence": recurrence_summary,
         "priority": priority_summary,
+        "unit_criticality": unit_criticality,
     }

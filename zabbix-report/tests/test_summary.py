@@ -40,12 +40,15 @@ def incident(
         "incident_key": key,
         "status": status,
         "severity": severity,
+        "unit_code": unit.split("-", 1)[0],
         "unit": unit,
         "equipment": equipment,
         "incident_type": incident_type,
         "incident": incident_name,
         "host": host or f"{key}-host",
         "timestamp": NOW - age_seconds,
+        "age_seconds": age_seconds,
+        "age_label": format_age(age_seconds),
     }
 
 
@@ -134,6 +137,17 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual(summary["recurrence"]["top"][0]["total"], 2)
         self.assertGreaterEqual(summary["priority"]["high"], 1)
         self.assertGreater(summary["priority"]["average_score"], 0)
+        self.assertEqual(summary["unit_criticality"]["total_units"], 2)
+        self.assertEqual(summary["unit_criticality"]["top"][0]["name"], "1011-CE A")
+        self.assertIn(
+            summary["unit_criticality"]["top"][0]["level"],
+            {
+                "Intervenção imediata",
+                "Prioridade alta",
+                "Acompanhamento ativo",
+                "Monitoramento normal",
+            },
+        )
 
     def test_empty_summary_is_safe(self):
         summary = build_report_summary([])
@@ -145,6 +159,7 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual(summary["period_comparison"]["leading_total"], 0)
         self.assertEqual(summary["recurrence"]["top"], [])
         self.assertEqual(summary["priority"]["top"], [])
+        self.assertEqual(summary["unit_criticality"]["top"], [])
 
 
 if __name__ == "__main__":

@@ -193,8 +193,14 @@ def cleanup_old_reports(current_base_name, keep_count=1):
 
         for path in paths:
             if path.exists():
-                path.unlink()
-                removed.append(path)
+                try:
+                    path.unlink()
+                    removed.append(path)
+                except PermissionError:
+                    print(
+                        "AVISO: não foi possível remover relatório antigo "
+                        f"porque o arquivo está em uso: {path}"
+                    )
 
     return removed
 

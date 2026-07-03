@@ -273,6 +273,56 @@
                     </div>
                 </article>
             </div>
+
+            {% if summary.unit_criticality.top %}
+            <section class="unit-criticality-map" aria-label="Mapa de criticidade por unidade escolar">
+                <div class="unit-criticality-heading">
+                    <div>
+                        <span class="chart-kicker">Mapa de criticidade por unidade</span>
+                        <h3>Unidades que exigem maior atenção operacional</h3>
+                        <p>
+                            Score calculado por volume, severidade, tempo offline, reincidência e impacto do equipamento afetado.
+                        </p>
+                    </div>
+                    <div class="unit-criticality-summary">
+                        <span>{{ summary.unit_criticality.total_units }} unidades avaliadas</span>
+                        <strong>Score médio {{ summary.unit_criticality.average_score }}</strong>
+                    </div>
+                </div>
+
+                <div class="criticality-levels" aria-label="Distribuição por nível de criticidade">
+                    <span><strong>{{ summary.unit_criticality.critical }}</strong> intervenção imediata</span>
+                    <span><strong>{{ summary.unit_criticality.high }}</strong> prioridade alta</span>
+                    <span><strong>{{ summary.unit_criticality.medium }}</strong> acompanhamento ativo</span>
+                    <span><strong>{{ summary.unit_criticality.normal }}</strong> monitoramento normal</span>
+                </div>
+
+                <div class="criticality-grid">
+                    {% for unit in summary.unit_criticality.top %}
+                    <button class="criticality-card criticality-card-{{ unit.class }}" type="button" data-quick-unit="{{ unit.name }}">
+                        <span class="criticality-score">{{ unit.score }}</span>
+                        <span class="criticality-main">
+                            <strong title="{{ unit.name }}">{{ unit.name }}</strong>
+                            <em>{{ unit.level }}</em>
+                        </span>
+                        <span class="criticality-meta">
+                            <span>{{ unit.total }} incidentes</span>
+                            <span>{{ unit.top_severity }}: {{ unit.top_severity_total }}</span>
+                            <span>{{ unit.top_equipment }}: {{ unit.top_equipment_total }}</span>
+                            <span>Mais antigo: {{ unit.oldest_label }}</span>
+                        </span>
+                        <span class="criticality-factors" aria-label="Composição do score">
+                            <span style="--factor: {{ unit.factors.volume }}%;" title="Volume de incidentes"></span>
+                            <span style="--factor: {{ unit.factors.severity }}%;" title="Severidade"></span>
+                            <span style="--factor: {{ unit.factors.age }}%;" title="Tempo offline"></span>
+                            <span style="--factor: {{ unit.factors.recurrence }}%;" title="Reincidência"></span>
+                            <span style="--factor: {{ unit.factors.equipment }}%;" title="Impacto do equipamento"></span>
+                        </span>
+                    </button>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
         </section>
 
         <section class="insights" aria-label="Indicadores do relatorio">
