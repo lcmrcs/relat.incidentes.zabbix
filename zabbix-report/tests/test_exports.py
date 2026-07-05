@@ -56,10 +56,19 @@ class ExportTests(unittest.TestCase):
 
         self.assertEqual(
             workbook.sheetnames,
-            ["Resumo Executivo", "Rankings", "Inteligência", "Unidades", "Todos"],
+            [
+                "Resumo Executivo",
+                "Rankings",
+                "Inteligência",
+                "Criticidade",
+                "Unidades",
+                "Todos",
+            ],
         )
         self.assertEqual(workbook["Resumo Executivo"]["A3"].value, "Gerado em")
         self.assertEqual(workbook["Inteligência"]["A1"].value, "Distribuição temporal")
+        self.assertEqual(workbook["Criticidade"]["A1"].value, "Score")
+        self.assertEqual(workbook["Criticidade"]["B1"].value, "Faixa operacional")
         self.assertEqual(workbook["Unidades"]["A1"].value, "Data de abertura")
         self.assertEqual(workbook["Unidades"]["K1"].value, "Evento Zabbix")
 

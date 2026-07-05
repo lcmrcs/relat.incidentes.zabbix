@@ -695,6 +695,91 @@ def build_excel_intelligence_frames(summary):
     ]
 
 
+def build_excel_criticality_frame(summary):
+    """
+    Cria a visão executiva de criticidade por unidade escolar.
+
+    Essa aba leva para o Excel o mesmo raciocínio do mapa do HTML: pontuação,
+    faixa operacional, volume, severidade, reincidência e equipamentos afetados.
+    """
+
+    rows = []
+
+    for item in summary["unit_criticality"]["top"]:
+        equipment_mix = ", ".join(
+            f'{equipment["name"]}: {equipment["total"]}'
+            for equipment in item["equipment_mix"]
+        )
+        severity_mix = ", ".join(
+            f'{severity["name"]}: {severity["total"]}'
+            for severity in item["severity_mix"]
+        )
+        factors = item["factors"]
+
+        rows.append({
+            "Score": item["score"],
+            "Faixa operacional": item["level"],
+            "Código": item["code"],
+            "Unidade": item["name"],
+            "Incidentes": item["total"],
+            "Equipamentos afetados": item["affected_equipment_count"],
+            "Principal equipamento": (
+                f'{item["top_equipment"]} ({item["top_equipment_total"]})'
+            ),
+            "Severidade predominante": (
+                f'{item["top_severity"]} ({item["top_severity_total"]})'
+            ),
+            "Mais antigo": item["oldest_label"],
+            "Média offline": item["age_label"],
+            "Reincidência": item["recurrence"],
+            "Composição dos equipamentos": equipment_mix,
+            "Composição da severidade": severity_mix,
+            "Fator volume": f'{factors["volume"]}%',
+            "Fator severidade": f'{factors["severity"]}%',
+            "Fator tempo offline": f'{factors["age"]}%',
+            "Fator reincidência": f'{factors["recurrence"]}%',
+            "Fator equipamento": f'{factors["equipment"]}%',
+        })
+
+    return pd.DataFrame(
+        rows,
+        columns=[
+            "Score",
+            "Faixa operacional",
+            "Código",
+            "Unidade",
+            "Incidentes",
+            "Equipamentos afetados",
+            "Principal equipamento",
+            "Severidade predominante",
+            "Mais antigo",
+            "Média offline",
+            "Reincidência",
+            "Composição dos equipamentos",
+            "Composição da severidade",
+            "Fator volume",
+            "Fator severidade",
+            "Fator tempo offline",
+            "Fator reincidência",
+            "Fator equipamento",
+        ],
+    )
+
+
+def excel_level_colors(level):
+    """
+    Define cores da faixa operacional usada na aba de criticidade.
+    """
+
+    colors = {
+        "Intervenção imediata": ("991B1B", "FFFFFF"),
+        "Prioridade alta": ("EA580C", "FFFFFF"),
+        "Acompanhamento ativo": ("D97706", "FFFFFF"),
+        "Monitoramento normal": ("0F766E", "FFFFFF"),
+    }
+    return colors.get(str(level), ("64748B", "FFFFFF"))
+
+
 def style_excel_workbook(writer):
     """
     Aplica acabamento visual, filtros e congelamento em todas as abas.
@@ -704,10 +789,17 @@ def style_excel_workbook(writer):
     """
 
     workbook = writer.book
+    workbook.properties.title = "Relatório Executivo de Incidentes Zabbix"
+    workbook.properties.subject = "Monitoramento operacional via Zabbix"
+    workbook.properties.creator = "Network Operations Center"
+
     header_fill = PatternFill("solid", fgColor="073B43")
     accent_fill = PatternFill("solid", fgColor="E8FAF8")
     dark_fill = PatternFill("solid", fgColor="062A30")
     soft_fill = PatternFill("solid", fgColor="F6FBFB")
+    section_fill = PatternFill("solid", fgColor="0F766E")
+    warning_fill = PatternFill("solid", fgColor="FFF7ED")
+    danger_fill = PatternFill("solid", fgColor="FEE2E2")
     border_color = "BFD8DC"
     thin_border = Border(
         left=Side(style="thin", color=border_color),
@@ -719,8 +811,13 @@ def style_excel_workbook(writer):
     for sheet_index, worksheet in enumerate(workbook.worksheets):
         worksheet.sheet_view.showGridLines = False
         worksheet.freeze_panes = "A2"
+        worksheet.sheet_view.zoomScale = 90
 
-        if worksheet.max_row > 1 and worksheet.max_column > 1:
+        if (
+            worksheet.title not in {"Resumo Executivo", "Rankings", "Inteligência"}
+            and worksheet.max_row > 1
+            and worksheet.max_column > 1
+        ):
             worksheet.auto_filter.ref = worksheet.dimensions
 
         for cell in worksheet[1]:
@@ -750,6 +847,7 @@ def style_excel_workbook(writer):
         if (
             worksheet.title not in {"Resumo Executivo", "Rankings", "Inteligência"}
             and worksheet.max_row > 1
+            and worksheet.max_column > 1
         ):
             table_ref = worksheet.dimensions
             table_name = f"Tabela{sheet_index + 1}"
@@ -766,6 +864,12 @@ def style_excel_workbook(writer):
             headers = [cell.value for cell in worksheet[1]]
             severity_index = headers.index("Severidade") + 1 if "Severidade" in headers else None
             status_index = headers.index("Status") + 1 if "Status" in headers else None
+            level_index = (
+                headers.index("Faixa operacional") + 1
+                if "Faixa operacional" in headers
+                else None
+            )
+            score_index = headers.index("Score") + 1 if "Score" in headers else None
 
             for row in worksheet.iter_rows(min_row=2):
                 if severity_index:
@@ -784,10 +888,23 @@ def style_excel_workbook(writer):
                         status_cell.fill = PatternFill("solid", fgColor="DCFCE7")
                         status_cell.font = Font(color="166534", bold=True)
 
+                if level_index:
+                    level_cell = row[level_index - 1]
+                    fill_color, font_color = excel_level_colors(level_cell.value)
+                    level_cell.fill = PatternFill("solid", fgColor=fill_color)
+                    level_cell.font = Font(color=font_color, bold=True)
+                    level_cell.alignment = Alignment(horizontal="center", vertical="center")
+
+                if score_index:
+                    score_cell = row[score_index - 1]
+                    score_cell.font = Font(color="073B43", bold=True, size=13)
+                    score_cell.alignment = Alignment(horizontal="center", vertical="center")
+
         worksheet.row_dimensions[1].height = 24
 
     summary_sheet = workbook["Resumo Executivo"]
     summary_sheet.freeze_panes = None
+    summary_sheet.sheet_view.zoomScale = 95
     summary_sheet.column_dimensions["A"].width = 32
     summary_sheet.column_dimensions["B"].width = 44
     summary_sheet["A1"].fill = dark_fill
@@ -801,6 +918,20 @@ def style_excel_workbook(writer):
         summary_sheet[f"A{row_number}"].fill = accent_fill
         summary_sheet[f"B{row_number}"].fill = accent_fill
 
+    for row_number in (6, 7, 8, 9, 10, 11, 12, 13):
+        summary_sheet[f"B{row_number}"].font = Font(
+            color="087F8C",
+            bold=True,
+            size=13,
+        )
+
+    for row_number in (15, 16, 17, 18, 19):
+        summary_sheet[f"B{row_number}"].font = Font(
+            color="EA580C" if row_number in (15, 16) else "087F8C",
+            bold=True,
+            size=12,
+        )
+
     summary_sheet.sheet_properties.tabColor = "087F8C"
 
     for worksheet in workbook.worksheets:
@@ -812,20 +943,61 @@ def style_excel_workbook(writer):
             worksheet.sheet_properties.tabColor = "7C3AED"
         elif worksheet.title == "Todos":
             worksheet.sheet_properties.tabColor = "0F766E"
+        elif worksheet.title == "Criticidade":
+            worksheet.sheet_properties.tabColor = "EA580C"
 
     if "Rankings" in workbook.sheetnames:
         rankings_sheet = workbook["Rankings"]
         rankings_sheet.sheet_properties.tabColor = "0E7490"
+        rankings_sheet.freeze_panes = None
+
+        for row in rankings_sheet.iter_rows():
+            first_cell = row[0]
+            if first_cell.value and all(cell.value in (None, "") for cell in row[1:]):
+                for cell in row[:3]:
+                    cell.fill = section_fill
+                    cell.font = Font(color="FFFFFF", bold=True)
+                    cell.alignment = Alignment(horizontal="left", vertical="center")
+                rankings_sheet.row_dimensions[first_cell.row].height = 22
 
     if "Inteligência" in workbook.sheetnames:
         intelligence_sheet = workbook["Inteligência"]
         intelligence_sheet.sheet_properties.tabColor = "12343B"
+        intelligence_sheet.freeze_panes = None
 
         for row in intelligence_sheet.iter_rows():
             first_cell = row[0]
             if first_cell.value and all(cell.value in (None, "") for cell in row[1:]):
-                first_cell.fill = dark_fill
-                first_cell.font = Font(color="FFFFFF", bold=True)
+                for cell in row[:max(1, intelligence_sheet.max_column)]:
+                    cell.fill = dark_fill
+                    cell.font = Font(color="FFFFFF", bold=True)
+                    cell.alignment = Alignment(horizontal="left", vertical="center")
+                intelligence_sheet.row_dimensions[first_cell.row].height = 22
+
+    if "Criticidade" in workbook.sheetnames:
+        criticality_sheet = workbook["Criticidade"]
+        criticality_sheet.freeze_panes = "D2"
+        criticality_sheet.sheet_view.zoomScale = 85
+        criticality_sheet.column_dimensions["A"].width = 12
+        criticality_sheet.column_dimensions["B"].width = 24
+        criticality_sheet.column_dimensions["D"].width = 42
+        criticality_sheet.column_dimensions["G"].width = 28
+        criticality_sheet.column_dimensions["H"].width = 28
+        criticality_sheet.column_dimensions["L"].width = 34
+        criticality_sheet.column_dimensions["M"].width = 34
+
+        for row in criticality_sheet.iter_rows(min_row=2):
+            score = row[0].value or 0
+            if score >= 82:
+                row[0].fill = danger_fill
+                row[0].font = Font(color="991B1B", bold=True, size=13)
+            elif score >= 64:
+                row[0].fill = warning_fill
+                row[0].font = Font(color="EA580C", bold=True, size=13)
+            else:
+                row[0].fill = accent_fill
+                row[0].font = Font(color="0F766E", bold=True, size=13)
+            row[0].alignment = Alignment(horizontal="center", vertical="center")
 
 
 def add_excel_charts(writer):
@@ -952,6 +1124,12 @@ def export_excel(
                 startrow=start_row + 1,
             )
             start_row += len(frame) + 4
+
+        build_excel_criticality_frame(summary).to_excel(
+            writer,
+            sheet_name="Criticidade",
+            index=False,
+        )
 
         incidents_to_excel_frame(main_incidents).to_excel(
             writer,
