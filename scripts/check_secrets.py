@@ -8,10 +8,9 @@ Zabbix, tokens do GitHub e senhas escritas diretamente em arquivos versionados.
 
 from __future__ import annotations
 
-import re
 import os
+import re
 from pathlib import Path
-
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -92,9 +91,7 @@ def check_env_assignment(path: Path, line_number: int, line: str) -> list[str]:
     if not stripped or stripped.startswith("#") or "=" not in stripped:
         return findings
 
-    if path.name not in {".env", ".env.example"} and not stripped.startswith(
-        "ZABBIX_TOKEN="
-    ):
+    if path.name not in {".env", ".env.example"} and not stripped.startswith("ZABBIX_TOKEN="):
         return findings
 
     key, value = stripped.split("=", 1)
@@ -102,9 +99,7 @@ def check_env_assignment(path: Path, line_number: int, line: str) -> list[str]:
     value = normalize_env_value(value)
 
     if key == "ZABBIX_TOKEN" and value.lower() not in PLACEHOLDER_WORDS:
-        findings.append(
-            f"{path}:{line_number}: ZABBIX_TOKEN parece conter valor real"
-        )
+        findings.append(f"{path}:{line_number}: ZABBIX_TOKEN parece conter valor real")
 
     return findings
 
@@ -134,9 +129,7 @@ def main() -> int:
     findings: list[str] = []
 
     for current_root, dirnames, filenames in os.walk(ROOT):
-        dirnames[:] = [
-            dirname for dirname in dirnames if dirname not in IGNORED_PARTS
-        ]
+        dirnames[:] = [dirname for dirname in dirnames if dirname not in IGNORED_PARTS]
 
         for filename in filenames:
             path = Path(current_root) / filename

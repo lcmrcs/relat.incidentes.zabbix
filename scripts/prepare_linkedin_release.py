@@ -9,12 +9,11 @@ números operacionais sensíveis, preservando o visual real do HTML executivo.
 
 from __future__ import annotations
 
-import re
 import os
+import re
 import subprocess
 from datetime import datetime
 from pathlib import Path
-
 
 ROOT = Path(__file__).resolve().parents[1]
 REPORTS_DIR = ROOT / "zabbix-report" / "reports"
@@ -76,12 +75,11 @@ def collect_values(text: str, patterns: list[str]) -> list[str]:
 
 
 def apply_mapping(text: str, values: list[str], prefix: str) -> str:
-    mapping = {
-        value: f"{prefix} {index:03d}"
-        for index, value in enumerate(values, start=1)
-    }
+    mapping = {value: f"{prefix} {index:03d}" for index, value in enumerate(values, start=1)}
 
-    for original, replacement in sorted(mapping.items(), key=lambda item: len(item[0]), reverse=True):
+    for original, replacement in sorted(
+        mapping.items(), key=lambda item: len(item[0]), reverse=True
+    ):
         text = text.replace(original, replacement)
 
     return text
@@ -184,10 +182,18 @@ def sanitize_public_numbers(text: str) -> str:
     def replace_event_total(match: re.Match[str]) -> str:
         return f"{low_demo_number(int(match.group(1)))}{match.group(2)}"
 
-    protected_text = re.sub(r"\b(\d{2,4})\s*\|\s*(\d{1,3}(?:\.\d)?)%", replace_percent_pair, protected_text)
-    protected_text = re.sub(r"\b(\d{2,4})(\s+incidentes?)\b", replace_event_total, protected_text, flags=re.IGNORECASE)
-    protected_text = re.sub(r"\b(\d{2,4})(\s+equipamentos?)\b", replace_event_total, protected_text, flags=re.IGNORECASE)
-    protected_text = re.sub(r"\b(\d{2,4})(\s+unidades?)\b", replace_event_total, protected_text, flags=re.IGNORECASE)
+    protected_text = re.sub(
+        r"\b(\d{2,4})\s*\|\s*(\d{1,3}(?:\.\d)?)%", replace_percent_pair, protected_text
+    )
+    protected_text = re.sub(
+        r"\b(\d{2,4})(\s+incidentes?)\b", replace_event_total, protected_text, flags=re.IGNORECASE
+    )
+    protected_text = re.sub(
+        r"\b(\d{2,4})(\s+equipamentos?)\b", replace_event_total, protected_text, flags=re.IGNORECASE
+    )
+    protected_text = re.sub(
+        r"\b(\d{2,4})(\s+unidades?)\b", replace_event_total, protected_text, flags=re.IGNORECASE
+    )
     protected_text = re.sub(r"(?<![/.-])\b(\d{2,4})\b(?![/.-])", replace_count, protected_text)
 
     return restore_blocks(protected_text, protected)
@@ -333,23 +339,29 @@ def inject_public_badge(text: str) -> str:
 def sanitize_html(html: str) -> str:
     text = html
 
-    unit_values = collect_values(text, [
-        r'data-unit="([^"]+)"',
-        r'data-quick-unit="([^"]+)"',
-        r'<td class="table-unit">([^<]+)</td>',
-        r'title="((?:10|11)\d{2}-[^"]+)"',
-        r'<span class="metric-name"[^>]*>((?:10|11)\d{2}[^<]+)</span>',
-        r'<strong title="((?:10|11)\d{2}[^"]+)">',
-        r'<span>((?:10|11)\d{2}-(?:CE|CETI|CPM|CTEP|CEEP)[^<]+)</span>',
-    ])
-    host_values = collect_values(text, [
-        r'data-host="([^"]+)"',
-        r'data-quick-search="([^"]+)"',
-        r'<td class="table-host">([^<]+)</td>',
-        r'<td class="modal-host">([^<]+)</td>',
-        r'<strong>((?:CFH|[0-9]{4})[^<]{4,80})</strong>',
-        r'<span class="metric-name"[^>]*>((?:CFH|[0-9]{4})[^<]{4,80})</span>',
-    ])
+    unit_values = collect_values(
+        text,
+        [
+            r'data-unit="([^"]+)"',
+            r'data-quick-unit="([^"]+)"',
+            r'<td class="table-unit">([^<]+)</td>',
+            r'title="((?:10|11)\d{2}-[^"]+)"',
+            r'<span class="metric-name"[^>]*>((?:10|11)\d{2}[^<]+)</span>',
+            r'<strong title="((?:10|11)\d{2}[^"]+)">',
+            r"<span>((?:10|11)\d{2}-(?:CE|CETI|CPM|CTEP|CEEP)[^<]+)</span>",
+        ],
+    )
+    host_values = collect_values(
+        text,
+        [
+            r'data-host="([^"]+)"',
+            r'data-quick-search="([^"]+)"',
+            r'<td class="table-host">([^<]+)</td>',
+            r'<td class="modal-host">([^<]+)</td>',
+            r"<strong>((?:CFH|[0-9]{4})[^<]{4,80})</strong>",
+            r'<span class="metric-name"[^>]*>((?:CFH|[0-9]{4})[^<]{4,80})</span>',
+        ],
+    )
 
     # URLs privadas e links diretos para o Zabbix.
     text = re.sub(r"https?://[^\"'\\s<>)]+", "https://zabbix.exemplo.local/evento", text)
@@ -391,7 +403,10 @@ def sanitize_html(html: str) -> str:
     text = soften_age_labels(text)
     text = sanitize_public_numbers(text)
 
-    text = text.replace("Relatório Executivo de Incidentes Zabbix", "Relatório Executivo de Incidentes Zabbix · Demo")
+    text = text.replace(
+        "Relatório Executivo de Incidentes Zabbix",
+        "Relatório Executivo de Incidentes Zabbix · Demo",
+    )
     return inject_public_badge(text)
 
 
@@ -517,29 +532,31 @@ def write_windows_capture_bat(output_dir: Path, variants: dict[str, Path]) -> Pa
         "@echo off",
         "setlocal",
         "set BROWSER=%ProgramFiles(x86)%\\Microsoft\\Edge\\Application\\msedge.exe",
-        "if not exist \"%BROWSER%\" set BROWSER=%ProgramFiles%\\Google\\Chrome\\Application\\chrome.exe",
-        "if not exist \"%BROWSER%\" (",
+        'if not exist "%BROWSER%" set BROWSER=%ProgramFiles%\\Google\\Chrome\\Application\\chrome.exe',
+        'if not exist "%BROWSER%" (',
         "  echo Nao foi encontrado Microsoft Edge ou Google Chrome.",
         "  pause",
         "  exit /b 1",
         ")",
-        f"if not exist \"{windows_path(images_dir)}\" mkdir \"{windows_path(images_dir)}\"",
+        f'if not exist "{windows_path(images_dir)}" mkdir "{windows_path(images_dir)}"',
     ]
 
     for image_name, variant_path in variants.items():
         image_path = images_dir / image_name
         lines.append(
-            "\"%BROWSER%\" --headless --disable-gpu --hide-scrollbars "
+            '"%BROWSER%" --headless --disable-gpu --hide-scrollbars '
             "--window-size=1600,1000 --virtual-time-budget=2500 "
-            f"--screenshot=\"{windows_path(image_path)}\" "
-            f"\"{windows_file_url(variant_path)}\""
+            f'--screenshot="{windows_path(image_path)}" '
+            f'"{windows_file_url(variant_path)}"'
         )
 
-    lines.extend([
-        "echo.",
-        f"echo Prints gerados em: {windows_path(images_dir)}",
-        "pause",
-    ])
+    lines.extend(
+        [
+            "echo.",
+            f"echo Prints gerados em: {windows_path(images_dir)}",
+            "pause",
+        ]
+    )
     bat_path.write_text("\r\n".join(lines) + "\r\n", encoding="utf-8")
     return bat_path
 
@@ -583,8 +600,16 @@ def load_font(size: int, bold: bool = False):
     from PIL import ImageFont
 
     candidates = [
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-        "/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf",
+        (
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+            if bold
+            else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+        ),
+        (
+            "/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf"
+            if bold
+            else "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf"
+        ),
     ]
 
     for candidate in candidates:

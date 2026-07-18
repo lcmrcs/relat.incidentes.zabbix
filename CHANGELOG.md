@@ -6,6 +6,22 @@ Este arquivo registra mudanças relevantes de forma simples, para facilitar acom
 
 ## Em Desenvolvimento
 
+### Adicionado
+
+- Modelo testável para evento, incidente único e recorrência, com chave lógica
+  determinística e normalizada.
+- Casos fictícios para abertos, resolvidos, recuperação ausente, timestamps
+  inválidos, agrupamento e indicadores exclusivos do passivo aberto.
+
+### Corrigido
+
+- Duração de incidentes resolvidos agora termina na resolução e não continua
+  envelhecendo a cada nova geração.
+- Indicadores de idade e faixas temporais agora consideram somente incidentes
+  abertos.
+- Excel e detalhes do HTML agora distinguem abertura, resolução, duração total
+  e idade do passivo aberto; o PDF usa a duração congelada da mesma linha.
+
 ### Planejado
 
 - Melhorar a geração do PDF executivo, com layout mais fiel ao HTML.

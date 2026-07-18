@@ -10,7 +10,6 @@ from datetime import datetime
 
 from classifiers import EQUIPMENT_ORDER
 
-
 SEVERITY_SCORE = {
     "Não classificada": 5,
     "Informação": 10,
@@ -155,9 +154,7 @@ def build_age_summary(incidents):
 
     now = datetime.now().timestamp()
     dated_incidents = [
-        item
-        for item in incidents
-        if item.get("timestamp")
+        item for item in incidents if item.get("status") == "Aberto" and item.get("timestamp")
     ]
 
     if not dated_incidents:
@@ -186,8 +183,7 @@ def build_age_summary(incidents):
 
     sorted_by_age = sorted(dated_incidents, key=lambda item: item["timestamp"])
     ages = [
-        max(0, now - item["timestamp"])
-        for item in dated_incidents
+        item.get("open_age_seconds", max(0, now - item["timestamp"])) for item in dated_incidents
     ]
 
     return {
@@ -238,18 +234,16 @@ def build_period_comparison(incidents, total):
             if item.get("age_seconds", 0) >= start
             and (end is None or item.get("age_seconds", 0) < end)
         ]
-        high_count = sum(
-            1
-            for item in items
-            if item.get("severity") in {"Alta", "Desastre"}
+        high_count = sum(1 for item in items if item.get("severity") in {"Alta", "Desastre"})
+        comparison.append(
+            {
+                "label": label,
+                "total": len(items),
+                "percent": round((len(items) / total) * 100, 1) if total else 0,
+                "high": high_count,
+                "open": len(items),
+            }
         )
-        comparison.append({
-            "label": label,
-            "total": len(items),
-            "percent": round((len(items) / total) * 100, 1) if total else 0,
-            "high": high_count,
-            "open": len(items),
-        })
 
     leading = max(comparison, key=lambda item: item["total"], default=None)
 
@@ -268,46 +262,39 @@ def build_recurrence_summary(incidents, recurrence_counter, total):
     """
 
     recurrent_items = []
+    seen_keys = set()
 
     for item in incidents:
-        key = (
-            item.get("host", "N/A"),
-            item.get("incident_type") or item.get("incident", "N/A"),
-        )
-        count = recurrence_counter[key]
+        key = item.get("incident_key")
+        count = recurrence_counter.get(key, 0)
 
-        if count <= 1:
+        if not key or count <= 1 or key in seen_keys:
             continue
 
-        recurrent_items.append({
-            "host": item.get("host", "N/A"),
-            "unit": item.get("unit", "N/A"),
-            "equipment": item.get("equipment", "N/A"),
-            "incident_type": key[1],
-            "total": count,
-            "percent": round((count / total) * 100, 1) if total else 0,
-            "oldest_label": item.get("age_label", "-"),
-            "score": calculate_priority_score(item, count),
-        })
+        seen_keys.add(key)
 
-    unique = {}
-
-    for item in recurrent_items:
-        unique_key = (item["host"], item["incident_type"])
-        current = unique.get(unique_key)
-
-        if not current or item["score"] > current["score"]:
-            unique[unique_key] = item
+        recurrent_items.append(
+            {
+                "host": item.get("host", "N/A"),
+                "unit": item.get("unit", "N/A"),
+                "equipment": item.get("equipment", "N/A"),
+                "incident_type": item.get("incident_type") or item.get("incident", "N/A"),
+                "total": count,
+                "percent": round((count / total) * 100, 1) if total else 0,
+                "oldest_label": item.get("age_label", "-"),
+                "score": calculate_priority_score(item, count),
+            }
+        )
 
     top_items = sorted(
-        unique.values(),
+        recurrent_items,
         key=lambda item: (item["total"], item["score"]),
         reverse=True,
     )[:8]
 
     return {
-        "total_recurrent_events": sum(item["total"] for item in top_items),
-        "affected_hosts": len(top_items),
+        "total_recurrent_events": sum(count - 1 for count in recurrence_counter.values()),
+        "affected_hosts": len({item["host"] for item in recurrent_items}),
         "top": top_items,
     }
 
@@ -320,27 +307,27 @@ def build_priority_summary(incidents, recurrence_counter):
     ranked = []
 
     for item in incidents:
-        recurrence_key = (
-            item.get("host", "N/A"),
-            item.get("incident_type") or item.get("incident", "N/A"),
-        )
+        recurrence_key = item.get("incident_key")
         score = calculate_priority_score(
             item,
             recurrence_counter.get(recurrence_key, 1),
         )
         level = priority_level(score)
-        ranked.append({
-            "score": level["score"],
-            "label": level["label"],
-            "class": level["class"],
-            "host": item.get("host", "N/A"),
-            "unit": item.get("unit", "N/A"),
-            "equipment": item.get("equipment", "N/A"),
-            "incident_type": item.get("incident_type") or item.get("incident", "N/A"),
-            "severity": item.get("severity", "N/A"),
-            "age_label": item.get("age_label", "-"),
-            "eventid": item.get("eventid", ""),
-        })
+        ranked.append(
+            {
+                "score": level["score"],
+                "label": level["label"],
+                "class": level["class"],
+                "host": item.get("host", "N/A"),
+                "unit": item.get("unit", "N/A"),
+                "equipment": item.get("equipment", "N/A"),
+                "incident_type": item.get("incident_type") or item.get("incident", "N/A"),
+                "severity": item.get("severity", "N/A"),
+                "age_label": item.get("age_label", "-"),
+                "open_age_label": item.get("open_age_label", item.get("age_label", "-")),
+                "eventid": item.get("eventid", ""),
+            }
+        )
 
     by_level = Counter(item["label"] for item in ranked)
     top = sorted(
@@ -355,10 +342,14 @@ def build_priority_summary(incidents, recurrence_counter):
         "high": by_level.get("Alta", 0),
         "medium": by_level.get("Média", 0),
         "normal": by_level.get("Normal", 0),
-        "average_score": round(
-            sum(item["score"] for item in ranked) / len(ranked),
-            1,
-        ) if ranked else 0,
+        "average_score": (
+            round(
+                sum(item["score"] for item in ranked) / len(ranked),
+                1,
+            )
+            if ranked
+            else 0
+        ),
     }
 
 
@@ -387,20 +378,18 @@ def build_unit_criticality_map(incidents, recurrence_counter):
                 "incidents": [],
                 "severity_counter": Counter(),
                 "equipment_counter": Counter(),
-                "recurrent_events": 0,
+                "recurrence_keys": set(),
                 "max_age_seconds": 0,
             }
 
-        recurrence_key = (
-            item.get("host", "N/A"),
-            item.get("incident_type") or item.get("incident", "N/A"),
-        )
+        recurrence_key = item.get("incident_key")
         recurrence_count = recurrence_counter.get(recurrence_key, 1)
 
         units[unit]["incidents"].append(item)
         units[unit]["severity_counter"][item.get("severity", "N/A")] += 1
         units[unit]["equipment_counter"][item.get("equipment", "N/A")] += 1
-        units[unit]["recurrent_events"] += max(0, recurrence_count - 1)
+        if recurrence_count > 1:
+            units[unit]["recurrence_keys"].add(recurrence_key)
         units[unit]["max_age_seconds"] = max(
             units[unit]["max_age_seconds"],
             item.get("age_seconds", 0) or 0,
@@ -410,26 +399,25 @@ def build_unit_criticality_map(incidents, recurrence_counter):
         (len(data["incidents"]) for data in units.values()),
         default=0,
     )
-    max_recurrence = max(
-        (data["recurrent_events"] for data in units.values()),
-        default=0,
-    )
+    for data in units.values():
+        data["recurrent_events"] = sum(
+            recurrence_counter[key] - 1 for key in data["recurrence_keys"]
+        )
+
+    max_recurrence = max((data["recurrent_events"] for data in units.values()), default=0)
 
     ranked = []
 
     for data in units.values():
         incident_total = len(data["incidents"])
         severity_average = (
-            sum(
-                SEVERITY_SCORE.get(item.get("severity"), 8)
-                for item in data["incidents"]
-            ) / incident_total
+            sum(SEVERITY_SCORE.get(item.get("severity"), 8) for item in data["incidents"])
+            / incident_total
             if incident_total
             else 0
         )
         age_average = (
-            sum(item.get("age_seconds", 0) or 0 for item in data["incidents"])
-            / incident_total
+            sum(item.get("age_seconds", 0) or 0 for item in data["incidents"]) / incident_total
             if incident_total
             else 0
         )
@@ -448,22 +436,14 @@ def build_unit_criticality_map(incidents, recurrence_counter):
             age_score = 8
 
         equipment_average = (
-            sum(
-                EQUIPMENT_IMPACT_SCORE.get(item.get("equipment"), 34)
-                for item in data["incidents"]
-            ) / incident_total
+            sum(EQUIPMENT_IMPACT_SCORE.get(item.get("equipment"), 34) for item in data["incidents"])
+            / incident_total
             if incident_total
             else 0
         )
-        volume_score = (
-            (incident_total / max_volume) * 100
-            if max_volume
-            else 0
-        )
+        volume_score = (incident_total / max_volume) * 100 if max_volume else 0
         recurrence_score = (
-            (data["recurrent_events"] / max_recurrence) * 100
-            if max_recurrence
-            else 0
+            (data["recurrent_events"] / max_recurrence) * 100 if max_recurrence else 0
         )
 
         score = (
@@ -485,32 +465,34 @@ def build_unit_criticality_map(incidents, recurrence_counter):
             for name, count in data["severity_counter"].most_common(3)
         ]
 
-        ranked.append({
-            "name": data["name"],
-            "code": data["code"],
-            "score": level["score"],
-            "level": level["label"],
-            "class": level["class"],
-            "total": incident_total,
-            "severity_average": round(severity_average, 1),
-            "age_label": format_age(age_average),
-            "oldest_label": format_age(data["max_age_seconds"]),
-            "recurrence": data["recurrent_events"],
-            "top_equipment": top_equipment[0][0] if top_equipment else "-",
-            "top_equipment_total": top_equipment[0][1] if top_equipment else 0,
-            "affected_equipment_count": len(data["equipment_counter"]),
-            "equipment_mix": equipment_mix,
-            "top_severity": top_severity[0][0] if top_severity else "-",
-            "top_severity_total": top_severity[0][1] if top_severity else 0,
-            "severity_mix": severity_mix,
-            "factors": {
-                "volume": round(volume_score),
-                "severity": round(severity_average),
-                "age": round(age_score),
-                "recurrence": round(recurrence_score),
-                "equipment": round(equipment_average),
-            },
-        })
+        ranked.append(
+            {
+                "name": data["name"],
+                "code": data["code"],
+                "score": level["score"],
+                "level": level["label"],
+                "class": level["class"],
+                "total": incident_total,
+                "severity_average": round(severity_average, 1),
+                "age_label": format_age(age_average),
+                "oldest_label": format_age(data["max_age_seconds"]),
+                "recurrence": data["recurrent_events"],
+                "top_equipment": top_equipment[0][0] if top_equipment else "-",
+                "top_equipment_total": top_equipment[0][1] if top_equipment else 0,
+                "affected_equipment_count": len(data["equipment_counter"]),
+                "equipment_mix": equipment_mix,
+                "top_severity": top_severity[0][0] if top_severity else "-",
+                "top_severity_total": top_severity[0][1] if top_severity else 0,
+                "severity_mix": severity_mix,
+                "factors": {
+                    "volume": round(volume_score),
+                    "severity": round(severity_average),
+                    "age": round(age_score),
+                    "recurrence": round(recurrence_score),
+                    "equipment": round(equipment_average),
+                },
+            }
+        )
 
     ranked = sorted(
         ranked,
@@ -526,10 +508,14 @@ def build_unit_criticality_map(incidents, recurrence_counter):
         "high": by_level.get("Prioridade alta", 0),
         "medium": by_level.get("Acompanhamento ativo", 0),
         "normal": by_level.get("Monitoramento normal", 0),
-        "average_score": round(
-            sum(item["score"] for item in ranked) / len(ranked),
-            1,
-        ) if ranked else 0,
+        "average_score": (
+            round(
+                sum(item["score"] for item in ranked) / len(ranked),
+                1,
+            )
+            if ranked
+            else 0
+        ),
     }
 
 
@@ -567,20 +553,12 @@ def build_unit_executive_rankings(incidents):
             units[unit]["oldest_label"] = item.get("age_label") or format_age(age_seconds)
 
     aging_rank = sorted(
-        (
-            data
-            for data in units.values()
-            if data["oldest_seconds"] > 0
-        ),
+        (data for data in units.values() if data["oldest_seconds"] > 0),
         key=lambda item: (item["oldest_seconds"], item["total"]),
         reverse=True,
     )
     high_rank = sorted(
-        (
-            data
-            for data in units.values()
-            if data["high_total"] > 0
-        ),
+        (data for data in units.values() if data["high_total"] > 0),
         key=lambda item: (item["high_total"], item["total"]),
         reverse=True,
     )
@@ -590,11 +568,15 @@ def build_unit_executive_rankings(incidents):
             {
                 "name": item["name"],
                 "total": item["oldest_label"],
-                "percent": round(
-                    (item["oldest_seconds"] / aging_rank[0]["oldest_seconds"]) * 100,
-                    1,
-                ) if aging_rank else 0,
-                "detail": f'{item["total"]} incidentes',
+                "percent": (
+                    round(
+                        (item["oldest_seconds"] / aging_rank[0]["oldest_seconds"]) * 100,
+                        1,
+                    )
+                    if aging_rank
+                    else 0
+                ),
+                "detail": f"{item['total']} incidentes",
             }
             for item in aging_rank[:8]
         ],
@@ -602,11 +584,15 @@ def build_unit_executive_rankings(incidents):
             {
                 "name": item["name"],
                 "total": item["high_total"],
-                "percent": round(
-                    (item["high_total"] / high_rank[0]["high_total"]) * 100,
-                    1,
-                ) if high_rank else 0,
-                "detail": f'{item["total"]} incidentes',
+                "percent": (
+                    round(
+                        (item["high_total"] / high_rank[0]["high_total"]) * 100,
+                        1,
+                    )
+                    if high_rank
+                    else 0
+                ),
+                "detail": f"{item['total']} incidentes",
             }
             for item in high_rank[:8]
         ],
@@ -621,76 +607,50 @@ def build_report_summary(incidents):
     totais por severidade, equipamento e hosts mais afetados.
     """
 
+    grouped_incidents = {}
+    for item in incidents:
+        grouped_incidents.setdefault(item["incident_key"], []).append(item)
+
+    # Uma condição é aberta se ao menos uma ocorrência do agrupamento continua aberta.
     unique_incidents = {
-        item["incident_key"]: item
-        for item in incidents
+        key: next((item for item in items if item.get("status") == "Aberto"), items[-1])
+        for key, items in grouped_incidents.items()
     }
 
     unique_total = len(unique_incidents)
-    unique_open = sum(
-        1
-        for item in unique_incidents.values()
-        if item["status"] == "Aberto"
-    )
+    unique_open = sum(1 for item in unique_incidents.values() if item["status"] == "Aberto")
     unique_resolved = unique_total - unique_open
     repeated_events = max(0, len(incidents) - unique_total)
 
-    severity_counter = Counter(
-        item["severity"]
-        for item in incidents
-    )
-    status_counter = Counter(
-        item["status"]
-        for item in incidents
-    )
-    unit_counter = Counter(
-        item["unit"]
-        for item in incidents
-    )
-    equipment_counter = Counter(
-        item["equipment"]
-        for item in incidents
-    )
-    incident_counter = Counter(
-        item.get("incident_type", item["incident"])
-        for item in incidents
-    )
-    host_counter = Counter(
-        item["host"]
-        for item in incidents
-        if item["host"] != "N/A"
-    )
+    severity_counter = Counter(item["severity"] for item in incidents)
+    status_counter = Counter(item["status"] for item in incidents)
+    unit_counter = Counter(item["unit"] for item in incidents)
+    equipment_counter = Counter(item["equipment"] for item in incidents)
+    incident_counter = Counter(item.get("incident_type", item["incident"]) for item in incidents)
+    host_counter = Counter(item["host"] for item in incidents if item["host"] != "N/A")
     recurrence_counter = Counter(
-        (
-            item.get("host", "N/A"),
-            item.get("incident_type", item["incident"]),
-        )
-        for item in incidents
-        if item.get("host") != "N/A"
+        item.get("incident_key") for item in incidents if item.get("incident_key")
     )
 
     total = len(incidents)
-    avg_events_per_incident = (
-        round(total / unique_total, 1)
-        if unique_total
-        else 0
-    )
-    age_summary = build_age_summary(incidents)
-    period_comparison = build_period_comparison(incidents, total)
+    avg_events_per_incident = round(total / unique_total, 1) if unique_total else 0
+    open_incidents = [item for item in incidents if item.get("status") == "Aberto"]
+    age_summary = build_age_summary(open_incidents)
+    period_comparison = build_period_comparison(open_incidents, len(open_incidents))
     recurrence_summary = build_recurrence_summary(
         incidents,
         recurrence_counter,
         total,
     )
     priority_summary = build_priority_summary(
-        incidents,
+        open_incidents,
         recurrence_counter,
     )
     unit_criticality = build_unit_criticality_map(
-        incidents,
+        open_incidents,
         recurrence_counter,
     )
-    unit_rankings = build_unit_executive_rankings(incidents)
+    unit_rankings = build_unit_executive_rankings(open_incidents)
 
     def format_counter(counter, preferred_order=None):
         """
@@ -702,21 +662,14 @@ def build_report_summary(incidents):
         ordered_items = []
 
         if preferred_order:
-            ordered_items.extend([
-                (name, counter[name])
-                for name in preferred_order
-                if counter.get(name, 0)
-            ])
+            ordered_items.extend(
+                [(name, counter[name]) for name in preferred_order if counter.get(name, 0)]
+            )
 
-        ordered_names = {
-            name
-            for name, _ in ordered_items
-        }
-        ordered_items.extend([
-            (name, count)
-            for name, count in counter.most_common()
-            if name not in ordered_names
-        ])
+        ordered_names = {name for name, _ in ordered_items}
+        ordered_items.extend(
+            [(name, count) for name, count in counter.most_common() if name not in ordered_names]
+        )
 
         return [
             {

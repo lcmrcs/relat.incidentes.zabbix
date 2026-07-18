@@ -24,6 +24,10 @@
             timestamp: Number(row.dataset.timestamp) || 0,
             ageSeconds: Number(row.dataset.ageSeconds) || 0,
             ageLabel: row.dataset.ageLabel || "-",
+            durationSeconds: Number(row.dataset.durationSeconds) || 0,
+            durationLabel: row.dataset.durationLabel || "-",
+            openAgeSeconds: Number(row.dataset.openAgeSeconds) || 0,
+            openAgeLabel: row.dataset.openAgeLabel || "-",
             unitCode: row.dataset.unitCode,
             equipment: row.dataset.equipment,
             status: row.dataset.status,
@@ -217,15 +221,19 @@
         }
 
         function getPriority(item) {
-            if (item.severity === "Desastre" || item.ageSeconds >= 2592000) {
+            if (item.status !== "Aberto") {
+                return { label: "Encerrada", rank: 0, className: "normal" };
+            }
+
+            if (item.severity === "Desastre" || item.openAgeSeconds >= 2592000) {
                 return { label: "Crítica", rank: 3, className: "critica" };
             }
 
-            if (item.severity === "Alta" || item.ageSeconds >= 604800) {
+            if (item.severity === "Alta" || item.openAgeSeconds >= 604800) {
                 return { label: "Alta", rank: 2, className: "alta" };
             }
 
-            if (item.severity === "Média" || item.ageSeconds >= 86400) {
+            if (item.severity === "Média" || item.openAgeSeconds >= 86400) {
                 return { label: "Média", rank: 1, className: "media" };
             }
 
@@ -317,7 +325,8 @@
                 (filters.incidentType === "all" ||
                     item.incidentType === filters.incidentType) &&
                 (filters.age === "all" ||
-                    isAgeInRange(item.ageSeconds, filters.ageRange)) &&
+                    (item.status === "Aberto" &&
+                    isAgeInRange(item.openAgeSeconds, filters.ageRange))) &&
                 (!filters.searchText ||
                     item.searchText.includes(filters.searchText))
             );
@@ -384,7 +393,8 @@
                     addCount(counts.age, "all");
 
                     ageRanges.forEach(({ value, range }) => {
-                        if (isAgeInRange(item.ageSeconds, range)) {
+                        if (item.status === "Aberto" &&
+                            isAgeInRange(item.openAgeSeconds, range)) {
                             addCount(counts.age, value);
                         }
                     });
@@ -444,7 +454,7 @@
                     visible += 1;
                     visibleItems.push(item);
 
-                    if (item.timestamp) {
+                    if (item.status === "Aberto" && item.timestamp) {
                         visibleAges.push(Math.max(0, nowSeconds - item.timestamp));
                     }
                 }
@@ -798,7 +808,8 @@
                 "Incidente",
                 "Severidade",
                 "Prioridade",
-                "Tempo offline",
+                "Duração total",
+                "Idade do passivo aberto",
                 "Resolvido em",
                 "Evento",
             ];
@@ -815,7 +826,8 @@
                     item.incident,
                     item.severity,
                     item.priority,
-                    item.ageLabel,
+                    item.durationLabel,
+                    item.openAgeLabel,
                     item.resolvedAt,
                     item.eventid,
                 ].map(sanitizeCsvValue).join(";")),
@@ -913,6 +925,18 @@
                 });
             }
 
+            fields.push({
+                label: "Duração total",
+                value: button.dataset.durationLabel || button.dataset.ageLabel,
+            });
+
+            if (button.dataset.openAgeLabel && button.dataset.openAgeLabel !== "-") {
+                fields.push({
+                    label: "Idade do passivo aberto",
+                    value: button.dataset.openAgeLabel,
+                });
+            }
+
             dialogBody.replaceChildren();
 
             const heroElement = document.createElement("section");
@@ -943,7 +967,9 @@
             heroTitleElement.textContent = button.dataset.incident || "Incidente sem descrição";
             heroMetaElement.textContent = `${button.dataset.host || "-"} • ${button.dataset.unit || "-"}`;
             statusPill.textContent = button.dataset.status || "-";
-            agePill.textContent = `Offline: ${button.dataset.ageLabel || "-"}`;
+            agePill.textContent = button.dataset.status === "Aberto"
+                ? `Passivo aberto: ${button.dataset.openAgeLabel || "-"}`
+                : `Duração: ${button.dataset.durationLabel || "-"}`;
             eventPill.textContent = `Evento: ${button.dataset.eventid || "-"}`;
 
             if (zabbixEventUrl) {

@@ -1,0 +1,28 @@
+{
+  "editor.formatOnSave": true,
+  "python.defaultInterpreterPath": "${workspaceFolder}/zabbix-report/venv/bin/python",
+  "python.testing.unittestEnabled": true,
+  "python.testing.unittestArgs": [
+    "-s",
+    "zabbix-report/tests",
+    "-p",
+    "test_*.py"
+  ],
+  "ruff.organizeImports": true,
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit",
+      "source.fixAll.ruff": "explicit"
+    }
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
+}
