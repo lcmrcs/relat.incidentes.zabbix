@@ -6,11 +6,13 @@ a pedir "busque problemas", "busque hosts" e "busque catálogo" sem carregar
 todos os detalhes JSON-RPC no meio do fluxo do relatório.
 """
 
+import logging
 from datetime import datetime
 
 import requests
 
 REQUEST_TIMEOUT = 60
+LOGGER = logging.getLogger("zabbix-report.api")
 
 
 class ZabbixClient:
@@ -47,34 +49,36 @@ class ZabbixClient:
             )
 
         except requests.exceptions.ConnectionError:
+            LOGGER.error("Falha de conexão durante operação da API")
             print(f"ERRO: não foi possível conectar ao Zabbix ({error_context}).")
             raise SystemExit(1) from None
 
         except requests.exceptions.Timeout:
+            LOGGER.error("Tempo excedido durante operação da API")
             print(f"ERRO: tempo de conexão excedido ({error_context}).")
             raise SystemExit(1) from None
 
         except requests.exceptions.RequestException as error:
+            LOGGER.error("Falha segura durante operação da API: %s", type(error).__name__)
             print(f"ERRO: falha na requisição ao Zabbix ({error_context}).")
-            print(error)
             raise SystemExit(1) from None
 
         if response.status_code != 200:
+            LOGGER.error("Resposta HTTP inesperada da API: %d", response.status_code)
             print(f"Erro HTTP em {error_context}: {response.status_code}")
-            print(response.text)
             raise SystemExit(1)
 
         try:
             data = response.json()
 
         except ValueError:
+            LOGGER.error("Resposta não JSON recebida da API")
             print(f"ERRO: resposta JSON inválida em {error_context}.")
-            print(response.text)
             raise SystemExit(1) from None
 
         if "error" in data:
-            print(f"Erro retornado pela API Zabbix em {error_context}:")
-            print(data["error"])
+            LOGGER.error("API retornou erro JSON-RPC")
+            print(f"Erro retornado pela API Zabbix em {error_context}.")
             raise SystemExit(1)
 
         return data
@@ -135,7 +139,8 @@ class ZabbixClient:
             "id": 1,
         }
 
-        return self.call(payload, request_context).get("result", [])
+        result = self.call(payload, request_context).get("result", [])
+        return result if isinstance(result, list) else []
 
     def get_recovery_dates(self, problems):
         """
@@ -148,7 +153,7 @@ class ZabbixClient:
             {
                 item.get("r_eventid")
                 for item in problems
-                if item.get("r_eventid") and item.get("r_eventid") != "0"
+                if isinstance(item, dict) and item.get("r_eventid") and item.get("r_eventid") != "0"
             }
         )
         resolved_at_by_event = {}
@@ -169,10 +174,15 @@ class ZabbixClient:
 
         data = self.call(payload, "buscar datas de resolução")
 
-        for event in data.get("result", []):
-            resolved_at_by_event[event["eventid"]] = datetime.fromtimestamp(
-                int(event["clock"])
-            ).strftime("%d/%m/%Y %H:%M")
+        for event in data.get("result", []) or []:
+            if not isinstance(event, dict) or not event.get("eventid"):
+                continue
+            try:
+                resolved_at_by_event[event["eventid"]] = datetime.fromtimestamp(
+                    int(event.get("clock"))
+                ).strftime("%d/%m/%Y %H:%M")
+            except (TypeError, ValueError, OSError, OverflowError):
+                resolved_at_by_event[event["eventid"]] = event.get("clock")
 
         return resolved_at_by_event
 
@@ -186,7 +196,13 @@ class ZabbixClient:
         - host_details_by_id: hostid -> host com tags
         """
 
-        trigger_ids = sorted({item.get("objectid") for item in problems if item.get("objectid")})
+        trigger_ids = sorted(
+            {
+                item.get("objectid")
+                for item in problems
+                if isinstance(item, dict) and item.get("objectid")
+            }
+        )
 
         hosts_by_trigger = {}
         host_ids_by_trigger = {}

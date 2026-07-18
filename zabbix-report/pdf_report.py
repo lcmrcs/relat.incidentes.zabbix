@@ -92,7 +92,7 @@ def add_pdf_text(commands, x, y, text, size=8, font="F1", color=(0.05, 0.14, 0.2
     )
 
 
-def build_summary_pdf_page(summary, generated, period_label, total_pages):
+def build_summary_pdf_page(summary, generated, period_label, total_pages, integrity=None):
     """
     Monta a página executiva do PDF com indicadores agregados.
 
@@ -213,6 +213,32 @@ def build_summary_pdf_page(summary, generated, period_label, total_pages):
             add_pdf_text(commands, card_x + 8, y + 35, value, 16, "F2", accent)
 
     age = summary["age"]
+    integrity = integrity or {
+        "label": "Dados validados",
+        "processed": summary["event_total"],
+        "discarded": 0,
+    }
+    add_pdf_text(
+        commands,
+        566,
+        540,
+        f"Integridade: {integrity['label']} · {integrity['processed']} processados · {integrity['discarded']} descartados",
+        7,
+        "F2",
+        muted,
+    )
+    resolved_duration = summary.get("resolved_duration", {})
+    add_pdf_text(
+        commands,
+        566,
+        528,
+        "Resolvidos: "
+        f"{resolved_duration.get('total', 0)} · média {resolved_duration.get('average_label', '-')} · "
+        f"mediana {resolved_duration.get('median_label', '-')} · maior {resolved_duration.get('maximum_label', '-')}",
+        7,
+        "F1",
+        muted,
+    )
     draw_metric_group(
         "OPERAÇÃO",
         [("INCIDENTES ABERTOS", summary["unique_open"])],
@@ -486,7 +512,7 @@ def build_pdf_page(rows, page_number, total_pages, generated):
     return b"".join(commands)
 
 
-def write_pdf_report(filename, incidents, generated, summary, period_label):
+def write_pdf_report(filename, incidents, generated, summary, period_label, integrity_summary=None):
     """
     Escreve o arquivo PDF completo no disco.
 
@@ -506,7 +532,9 @@ def write_pdf_report(filename, incidents, generated, summary, period_label):
     total_pages = len(pages) + 1
 
     # Primeiro stream: resumo executivo. Depois: páginas com as linhas.
-    page_streams = [build_summary_pdf_page(summary, generated, period_label, total_pages)]
+    page_streams = [
+        build_summary_pdf_page(summary, generated, period_label, total_pages, integrity_summary)
+    ]
     page_streams.extend(
         [
             build_pdf_page(rows, index + 2, total_pages, generated)

@@ -520,6 +520,21 @@ python zabbix-report/zabbix_report.py --periodo historico --status abertos
 
 Os testes automatizados usam somente dados fictícios e não acessam o Zabbix.
 
+### Integridade e duração histórica
+
+Antes de construir os incidentes, a coleta valida identificadores, timestamps,
+recuperações, hosts, unidades, equipamentos e severidades. Dados recuperáveis
+são normalizados com aviso; duplicatas e registros sem rastreabilidade ou tempo
+confiável são descartados sem interromper os demais registros.
+
+O mesmo resumo de integridade alimenta o selo e modal do HTML, a aba
+`Integridade dos Dados` do Excel e o resumo compacto do PDF. Os avisos mostram
+somente categorias e quantidades, nunca payloads, tokens, URLs ou endereços.
+
+A inteligência operacional também apresenta a duração histórica dos resolvidos
+com média, mediana, maior duração e faixas. Essa análise é separada da idade do
+passivo aberto.
+
 Ao adicionar ou ajustar regras:
 
 - use `classifiers.py` para novas classificações;

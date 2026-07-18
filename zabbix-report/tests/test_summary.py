@@ -6,7 +6,12 @@ from unittest.mock import patch
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_DIR))
 
-from summary import build_age_summary, build_report_summary, format_age  # noqa: E402
+from summary import (  # noqa: E402
+    build_age_summary,
+    build_report_summary,
+    build_resolved_duration_summary,
+    format_age,
+)
 
 NOW = 10_000_000
 
@@ -201,6 +206,20 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual(summary["unique_resolved"], 0)
         self.assertEqual(summary["recurrence"]["total_recurrent_events"], 1)
         self.assertEqual(summary["recurrence"]["affected_hosts"], 1)
+
+    def test_resolved_duration_has_average_median_maximum_and_ranges(self):
+        incidents = [
+            incident("r1", status="Resolvido", age_seconds=1800),
+            incident("r2", status="Resolvido", age_seconds=2 * 3600),
+            incident("r3", status="Resolvido", age_seconds=2 * 86400),
+            incident("open", age_seconds=100 * 86400),
+        ]
+        result = build_resolved_duration_summary(incidents)
+        self.assertEqual(result["total"], 3)
+        self.assertEqual(result["average_seconds"], 60600)
+        self.assertEqual(result["median_seconds"], 7200)
+        self.assertEqual(result["maximum_seconds"], 172800)
+        self.assertEqual([item["total"] for item in result["ranges"]], [1, 1, 0, 1, 0, 0])
 
 
 if __name__ == "__main__":

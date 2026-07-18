@@ -41,6 +41,75 @@
             --motion-med: 260ms ease;
         }
 
+        .integrity-badge {
+            border-color: rgb(43 138 62 / 0.38);
+            color: #e8fff0;
+        }
+
+        .integrity-badge.integrity-warning {
+            border-color: rgb(214 161 0 / 0.58);
+            color: #fff3bf;
+        }
+
+        .integrity-badge.integrity-incomplete {
+            border-color: rgb(201 42 42 / 0.62);
+            color: #ffe3e3;
+        }
+
+        .integrity-modal {
+            width: min(720px, calc(100% - 32px));
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            background: var(--surface);
+            color: var(--text);
+            box-shadow: var(--shadow-lg);
+            padding: 0;
+        }
+
+        .integrity-summary {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .integrity-details {
+            display: grid;
+            gap: 8px;
+            max-height: 360px;
+            overflow: auto;
+            padding: 16px 20px;
+        }
+
+        .integrity-details article {
+            border: 1px solid var(--line-soft);
+            border-radius: 12px;
+            background: var(--surface-soft);
+            padding: 10px 12px;
+        }
+
+        .integrity-details article div {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .integrity-details article p,
+        .integrity-privacy {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .integrity-privacy {
+            border-top: 1px solid var(--line-soft);
+            margin: 0;
+            padding: 12px 20px 16px;
+        }
+
+        body.theme-dark .integrity-modal,
+        body.theme-dark .integrity-details article {
+            background: var(--surface);
+            border-color: var(--line);
+        }
+
         * {
             box-sizing: border-box;
             scrollbar-color: rgb(8 127 140 / 0.72) rgb(8 127 140 / 0.08);

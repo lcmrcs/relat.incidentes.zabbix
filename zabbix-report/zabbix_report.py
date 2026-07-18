@@ -8,6 +8,7 @@ em módulos separados para facilitar leitura, manutenção e testes.
 
 import argparse
 import base64
+import logging
 import os
 import re
 import unicodedata
@@ -22,6 +23,7 @@ from classifiers import (
     classify_incident_type,
     classify_unit_group,
 )
+from data_integrity import validate_problem_records
 from dotenv import load_dotenv
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from openpyxl.chart import BarChart, DoughnutChart, Reference
@@ -31,6 +33,9 @@ from openpyxl.worksheet.table import Table, TableStyleInfo
 from pdf_report import write_pdf_report
 from summary import build_report_summary, format_age
 from zabbix_api import ZabbixClient
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+LOGGER = logging.getLogger("zabbix-report")
 
 # ==================================================
 # CAMINHOS DO PROJETO
@@ -722,7 +727,84 @@ def build_excel_intelligence_frames(summary):
         ("Distribuição temporal", comparison),
         ("Padrões recorrentes", recurrence),
         ("Prioridades operacionais", priority),
+        (
+            "Duração histórica dos resolvidos",
+            pd.DataFrame(
+                [
+                    {
+                        "Faixa": "Total resolvidos",
+                        "Total": summary["resolved_duration"]["total"],
+                        "Percentual": "",
+                    },
+                    {
+                        "Faixa": "Duração média",
+                        "Total": summary["resolved_duration"]["average_label"],
+                        "Percentual": "",
+                    },
+                    {
+                        "Faixa": "Duração mediana",
+                        "Total": summary["resolved_duration"]["median_label"],
+                        "Percentual": "",
+                    },
+                    {
+                        "Faixa": "Maior duração",
+                        "Total": summary["resolved_duration"]["maximum_label"],
+                        "Percentual": "",
+                    },
+                ]
+                + [
+                    {
+                        "Faixa": item["label"],
+                        "Total": item["total"],
+                        "Percentual": item["percent"],
+                    }
+                    for item in summary["resolved_duration"]["ranges"]
+                ],
+                columns=["Faixa", "Total", "Percentual"],
+            ),
+        ),
     ]
+
+
+def build_integrity_frame(integrity):
+    """Cria a visão tabular canônica de integridade usada pelo Excel."""
+
+    rows = [
+        {
+            "Categoria": "Registros recebidos",
+            "Quantidade": integrity["received"],
+            "Tratamento": "Validação",
+            "Impacto": "Base da coleta",
+        },
+        {
+            "Categoria": "Registros processados",
+            "Quantidade": integrity["processed"],
+            "Tratamento": "Mantidos",
+            "Impacto": "Usados no relatório",
+        },
+        {
+            "Categoria": "Registros ajustados",
+            "Quantidade": integrity["adjusted"],
+            "Tratamento": "Fallback seguro",
+            "Impacto": "Mantidos com normalização",
+        },
+        {
+            "Categoria": "Registros descartados",
+            "Quantidade": integrity["discarded"],
+            "Tratamento": "Descartados",
+            "Impacto": "Relatório pode ficar incompleto",
+        },
+    ]
+    rows.extend(
+        {
+            "Categoria": item["category"],
+            "Quantidade": item["quantity"],
+            "Tratamento": item["treatment"],
+            "Impacto": item["impact"],
+        }
+        for item in integrity["issues"]
+    )
+    return pd.DataFrame(rows, columns=["Categoria", "Quantidade", "Tratamento", "Impacto"])
 
 
 def build_excel_criticality_frame(summary):
@@ -1088,6 +1170,7 @@ def export_excel(
     summary,
     generated,
     period_label,
+    integrity_summary=None,
 ):
     """
     Gera a planilha Excel com abas separadas por finalidade.
@@ -1097,6 +1180,13 @@ def export_excel(
     """
 
     with pd.ExcelWriter(path, engine="openpyxl") as writer:
+        integrity_summary = integrity_summary or {
+            "received": len(all_incidents),
+            "processed": len(all_incidents),
+            "adjusted": 0,
+            "discarded": 0,
+            "issues": [],
+        }
         pd.DataFrame(
             build_excel_summary_rows(summary, generated, period_label),
             columns=["Indicador", "Valor"],
@@ -1156,6 +1246,10 @@ def export_excel(
             index=False,
         )
 
+        build_integrity_frame(integrity_summary).to_excel(
+            writer, sheet_name="Integridade dos Dados", index=False
+        )
+
         incidents_to_excel_frame(main_incidents).to_excel(
             writer,
             sheet_name="Unidades",
@@ -1197,6 +1291,7 @@ def render_html(
     confea_incidents,
     confea_summary,
     zabbix_web_url,
+    integrity_summary=None,
 ):
     """
     Renderiza o template HTML com os dados já processados.
@@ -1225,6 +1320,17 @@ def render_html(
         zabbix_logo_data_uri=load_zabbix_logo_data_uri(),
         confea_logo_data_uri=load_confea_logo_data_uri(),
         zabbix_web_url=zabbix_web_url,
+        integrity=integrity_summary
+        or {
+            "level": "valid",
+            "label": "Dados validados",
+            "warning_count": 0,
+            "received": len(main_incidents),
+            "processed": len(main_incidents),
+            "adjusted": 0,
+            "discarded": 0,
+            "issues": [],
+        },
     )
 
     with open(path, "w", encoding="utf-8") as file:
@@ -1252,8 +1358,10 @@ def main():
 
     client = ZabbixClient(zabbix_url, zabbix_token)
 
+    LOGGER.info("Iniciando coleta de eventos do Zabbix")
     print("Conectando ao Zabbix...")
     problems = client.get_problems(args.status, time_from, time_till)
+    LOGGER.info("Coleta concluída: %d registro(s) recebido(s)", len(problems))
     resolved_at_by_event = client.get_recovery_dates(problems)
     (
         hosts_by_trigger,
@@ -1264,6 +1372,25 @@ def main():
 
     print("Processando incidentes...")
     unit_catalog = build_unit_catalog(all_host_details_by_id)
+    problems, integrity_summary = validate_problem_records(
+        problems,
+        hosts_by_trigger,
+        host_ids_by_trigger,
+        host_details_by_id,
+        resolved_at_by_event,
+        unit_catalog,
+        today,
+    )
+    LOGGER.info(
+        "Validação concluída: %d processado(s), %d ajustado(s), %d descartado(s)",
+        integrity_summary["processed"],
+        integrity_summary["adjusted"],
+        integrity_summary["discarded"],
+    )
+    if integrity_summary["warning_count"]:
+        LOGGER.warning(
+            "Foram identificados %d aviso(s) de integridade", integrity_summary["warning_count"]
+        )
     incidents = build_incidents(
         problems,
         hosts_by_trigger,
@@ -1304,39 +1431,57 @@ def main():
     html_name = REPORTS_DIR / f"{base_name}.html"
     pdf_name = REPORTS_DIR / f"{base_name}.pdf"
 
-    export_excel(
-        excel_name,
-        scoped_incidents,
-        main_incidents,
-        zabbix_incidents,
-        confea_incidents,
-        summary,
-        generated,
-        period_label,
-    )
+    try:
+        export_excel(
+            excel_name,
+            scoped_incidents,
+            main_incidents,
+            zabbix_incidents,
+            confea_incidents,
+            summary,
+            generated,
+            period_label,
+            integrity_summary,
+        )
+    except Exception as error:
+        LOGGER.error("Falha na exportação Excel: %s", type(error).__name__)
+        raise
+    LOGGER.info("Exportação Excel concluída")
     print(f"Excel gerado: {excel_name}")
 
-    render_html(
-        html_name,
-        generated,
-        period_label,
-        main_incidents,
-        summary,
-        zabbix_incidents,
-        zabbix_summary,
-        confea_incidents,
-        confea_summary,
-        zabbix_web_url,
-    )
+    try:
+        render_html(
+            html_name,
+            generated,
+            period_label,
+            main_incidents,
+            summary,
+            zabbix_incidents,
+            zabbix_summary,
+            confea_incidents,
+            confea_summary,
+            zabbix_web_url,
+            integrity_summary,
+        )
+    except Exception as error:
+        LOGGER.error("Falha na exportação HTML: %s", type(error).__name__)
+        raise
+    LOGGER.info("Exportação HTML concluída")
     print(f"HTML gerado: {html_name}")
 
-    write_pdf_report(
-        pdf_name,
-        main_incidents,
-        generated,
-        summary,
-        period_label,
-    )
+    try:
+        write_pdf_report(
+            pdf_name,
+            main_incidents,
+            generated,
+            summary,
+            period_label,
+            integrity_summary,
+        )
+    except Exception as error:
+        LOGGER.error("Falha na exportação PDF: %s", type(error).__name__)
+        raise
+    LOGGER.info("Exportação PDF concluída")
     print(f"PDF gerado: {pdf_name}")
 
     removed_reports = cleanup_old_reports(
@@ -1361,6 +1506,7 @@ def main():
     print(f"Excel: {excel_name}")
     print(f"HTML: {html_name}")
     print(f"PDF: {pdf_name}")
+    LOGGER.info("Geração do relatório concluída")
 
 
 if __name__ == "__main__":

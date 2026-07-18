@@ -7,6 +7,7 @@ evita divergência entre os formatos de saída.
 
 from collections import Counter
 from datetime import datetime
+from statistics import median
 
 from classifiers import EQUIPMENT_ORDER
 
@@ -253,6 +254,48 @@ def build_period_comparison(incidents, total):
         "leading_total": leading["total"] if leading else 0,
         "aging_total": sum(item["total"] for item in comparison[-2:]),
         "fresh_total": comparison[0]["total"] if comparison else 0,
+    }
+
+
+def build_resolved_duration_summary(incidents):
+    """Resume indisponibilidades encerradas sem misturá-las ao passivo aberto."""
+
+    durations = [
+        max(0, item.get("duration_seconds", 0) or 0)
+        for item in incidents
+        if item.get("status") == "Resolvido"
+    ]
+    ranges = [
+        ("Até 1h", lambda value: value <= 3600),
+        ("1–4h", lambda value: 3600 < value <= 4 * 3600),
+        ("4–24h", lambda value: 4 * 3600 < value <= 86400),
+        ("1–3d", lambda value: 86400 < value <= 3 * 86400),
+        ("3–7d", lambda value: 3 * 86400 < value <= 7 * 86400),
+        ("Acima de 7d", lambda value: value > 7 * 86400),
+    ]
+    distribution = [
+        {
+            "label": label,
+            "total": sum(1 for value in durations if matches(value)),
+        }
+        for label, matches in ranges
+    ]
+    total = len(durations)
+    for item in distribution:
+        item["percent"] = round((item["total"] / total) * 100, 1) if total else 0
+
+    average = sum(durations) / total if total else 0
+    median_value = median(durations) if durations else 0
+    maximum = max(durations, default=0)
+    return {
+        "total": total,
+        "average_seconds": average,
+        "average_label": format_age(average) if total else "-",
+        "median_seconds": median_value,
+        "median_label": format_age(median_value) if total else "-",
+        "maximum_seconds": maximum,
+        "maximum_label": format_age(maximum) if total else "-",
+        "ranges": distribution,
     }
 
 
@@ -636,6 +679,7 @@ def build_report_summary(incidents):
     avg_events_per_incident = round(total / unique_total, 1) if unique_total else 0
     open_incidents = [item for item in incidents if item.get("status") == "Aberto"]
     age_summary = build_age_summary(open_incidents)
+    resolved_duration = build_resolved_duration_summary(incidents)
     period_comparison = build_period_comparison(open_incidents, len(open_incidents))
     recurrence_summary = build_recurrence_summary(
         incidents,
@@ -689,6 +733,7 @@ def build_report_summary(incidents):
         "repeated_events": repeated_events,
         "avg_events_per_incident": avg_events_per_incident,
         "age": age_summary,
+        "resolved_duration": resolved_duration,
         "unclassified": severity_counter.get("Não classificada", 0),
         "information": severity_counter.get("Informação", 0),
         "attention": severity_counter.get("Atenção", 0),

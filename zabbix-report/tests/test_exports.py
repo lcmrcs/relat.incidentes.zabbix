@@ -64,6 +64,7 @@ class ExportTests(unittest.TestCase):
                 "Rankings",
                 "Inteligência",
                 "Criticidade",
+                "Integridade dos Dados",
                 "Unidades",
                 "Todos",
             ],
@@ -72,6 +73,7 @@ class ExportTests(unittest.TestCase):
         self.assertEqual(workbook["Inteligência"]["A1"].value, "Distribuição temporal")
         self.assertEqual(workbook["Criticidade"]["A1"].value, "Score")
         self.assertEqual(workbook["Criticidade"]["B1"].value, "Faixa operacional")
+        self.assertEqual(workbook["Integridade dos Dados"]["A1"].value, "Categoria")
         self.assertEqual(workbook["Unidades"]["A1"].value, "Data de abertura")
         self.assertEqual(workbook["Unidades"]["B1"].value, "Data de resolução")
         self.assertEqual(workbook["Unidades"]["K1"].value, "Duração total")
@@ -113,6 +115,31 @@ class ExportTests(unittest.TestCase):
         }
         incidents = [sample_incident(), resolved]
         summary = build_report_summary(incidents)
+        integrity = {
+            "received": 3,
+            "processed": 2,
+            "adjusted": 1,
+            "discarded": 1,
+            "duplicates": 1,
+            "invalid_timestamps": 0,
+            "inconsistent_recoveries": 0,
+            "unidentified_hosts": 0,
+            "unidentified_units": 0,
+            "unidentified_equipment": 0,
+            "unknown_severities": 0,
+            "warning_count": 1,
+            "level": "incomplete",
+            "label": "Relatório possivelmente incompleto",
+            "issues": [
+                {
+                    "key": "duplicate_eventid",
+                    "category": "Evento duplicado",
+                    "quantity": 1,
+                    "treatment": "Duplicata descartada",
+                    "impact": "Evita contagem repetida.",
+                }
+            ],
+        }
 
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_dir = Path(temp_dir)
@@ -131,6 +158,7 @@ class ExportTests(unittest.TestCase):
                 [],
                 build_report_summary([]),
                 "https://zabbix.example.test",
+                integrity,
             )
             export_excel(
                 excel_path,
@@ -141,6 +169,7 @@ class ExportTests(unittest.TestCase):
                 summary,
                 "26/06/2026 14:16",
                 "período fictício",
+                integrity,
             )
             write_pdf_report(
                 pdf_path,
@@ -148,6 +177,7 @@ class ExportTests(unittest.TestCase):
                 "26/06/2026 14:16",
                 summary,
                 "período fictício",
+                integrity,
             )
 
             html = html_path.read_text(encoding="utf-8")
@@ -155,6 +185,9 @@ class ExportTests(unittest.TestCase):
             pdf = pdf_path.read_bytes()
 
         self.assertIn('data-duration-label="1h 0min"', html)
+        self.assertIn("Relatório possivelmente incompleto", html)
+        self.assertNotIn("Duração dos incidentes resolvidos", html)
+        self.assertNotIn("resolved-duration-track", html)
         self.assertIn('data-open-age-label="1h 0min"', html)
         self.assertIn('data-duration-label="2h 0min"', html)
         self.assertIn('data-open-age-label="-"', html)
@@ -162,8 +195,11 @@ class ExportTests(unittest.TestCase):
         self.assertEqual(workbook["Unidades"]["L2"].value, "1h 0min")
         self.assertEqual(workbook["Unidades"]["K3"].value, "2h 0min")
         self.assertEqual(workbook["Unidades"]["L3"].value, "-")
+        self.assertEqual(workbook["Integridade dos Dados"]["B5"].value, 1)
         self.assertIn(b"1h 0min", pdf)
         self.assertIn(b"2h 0min", pdf)
+        self.assertIn(b"possivelmente incompleto", pdf)
+        self.assertIn(b"mediana", pdf)
 
 
 if __name__ == "__main__":
