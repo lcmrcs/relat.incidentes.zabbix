@@ -110,8 +110,24 @@ zabbix-report/reports/
 
 Formatos:
 - `.html`: relatorio interativo com filtros.
-- `.pdf`: relatorio formal para envio.
+- `.pdf`: relatorio executivo compacto para envio.
 - `.xlsx`: planilha com os dados.
+
+Para gerar também o anexo técnico PDF com todos os eventos:
+
+```bash
+python zabbix-report/zabbix_report.py --periodo historico --status abertos --pdf-detalhado
+```
+
+Arquivos PDF:
+
+```text
+report_AAAA-MM-DD_periodo.pdf
+report_AAAA-MM-DD_periodo_anexo_tecnico.pdf
+```
+
+Sem `--pdf-detalhado`, somente o PDF executivo é criado. O HTML e o Excel
+continuam contendo o detalhamento operacional completo.
 
 Para guardar mais de um conjunto de relatórios, use:
 
@@ -350,7 +366,7 @@ Controla o visual e a interatividade do HTML.
 zabbix-report/pdf_report.py
 ```
 
-Gera o PDF operacional.
+Gera o PDF executivo compacto e o anexo técnico opcional.
 
 ```text
 COMANDOS.md

@@ -30,7 +30,7 @@ from openpyxl.chart import BarChart, DoughnutChart, Reference
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.table import Table, TableStyleInfo
-from pdf_report import write_pdf_report
+from pdf_report import technical_pdf_name, write_pdf_report, write_technical_pdf_report
 from summary import build_report_summary, format_age
 from zabbix_api import ZabbixClient
 
@@ -206,7 +206,10 @@ def cleanup_old_reports(current_base_name, keep_count=1):
         if path.suffix.lower() not in {".html", ".pdf", ".xlsx"}:
             continue
 
-        report_groups.setdefault(path.stem, []).append(path)
+        # O anexo técnico pertence ao mesmo conjunto do PDF executivo e não
+        # pode ser removido logo após uma execução com --pdf-detalhado.
+        group_name = path.stem.removesuffix("_anexo_tecnico")
+        report_groups.setdefault(group_name, []).append(path)
 
     if current_base_name not in report_groups:
         report_groups[current_base_name] = []
@@ -339,6 +342,14 @@ def parse_args():
         help=(
             "Quantidade de conjuntos antigos que devem permanecer na pasta "
             "reports. Padrão: 1, mantendo apenas o relatório mais recente."
+        ),
+    )
+    parser.add_argument(
+        "--pdf-detalhado",
+        action="store_true",
+        help=(
+            "Gera, além do PDF executivo, um anexo técnico separado com todos "
+            "os eventos do escopo."
         ),
     )
 
@@ -1430,6 +1441,7 @@ def main():
     excel_name = REPORTS_DIR / f"{base_name}.xlsx"
     html_name = REPORTS_DIR / f"{base_name}.html"
     pdf_name = REPORTS_DIR / f"{base_name}.pdf"
+    technical_pdf = technical_pdf_name(pdf_name)
 
     try:
         export_excel(
@@ -1477,12 +1489,29 @@ def main():
             summary,
             period_label,
             integrity_summary,
+            {
+                "Servidor Zabbix": zabbix_summary,
+                "CONFEA VPN": confea_summary,
+            },
         )
     except Exception as error:
         LOGGER.error("Falha na exportação PDF: %s", type(error).__name__)
         raise
     LOGGER.info("Exportação PDF concluída")
     print(f"PDF gerado: {pdf_name}")
+
+    if args.pdf_detalhado:
+        try:
+            write_technical_pdf_report(
+                technical_pdf,
+                scoped_incidents,
+                generated,
+            )
+        except Exception as error:
+            LOGGER.error("Falha na exportação do anexo técnico PDF: %s", type(error).__name__)
+            raise
+        LOGGER.info("Exportação do anexo técnico PDF concluída")
+        print(f"Anexo técnico PDF gerado: {technical_pdf}")
 
     removed_reports = cleanup_old_reports(
         base_name,

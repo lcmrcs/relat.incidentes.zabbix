@@ -48,6 +48,24 @@ class ReportCleanupTests(unittest.TestCase):
                 ],
             )
 
+    def test_cleanup_treats_technical_annex_as_part_of_current_group(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            reports_dir = Path(temp_dir)
+            current_pdf = reports_dir / "report_2026-07-24_7d.pdf"
+            annex_pdf = reports_dir / "report_2026-07-24_7d_anexo_tecnico.pdf"
+            current_pdf.write_bytes(b"pdf")
+            annex_pdf.write_bytes(b"annex")
+
+            with patch.object(zabbix_report, "REPORTS_DIR", reports_dir):
+                removed = zabbix_report.cleanup_old_reports(
+                    "report_2026-07-24_7d",
+                    keep_count=1,
+                )
+
+            self.assertEqual(removed, [])
+            self.assertTrue(current_pdf.exists())
+            self.assertTrue(annex_pdf.exists())
+
 
 if __name__ == "__main__":
     unittest.main()

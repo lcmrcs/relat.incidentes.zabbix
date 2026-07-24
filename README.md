@@ -357,8 +357,22 @@ report_AAAA-MM-DD_periodo.xlsx
 Finalidade de cada formato:
 
 - `.html`: relatório interativo para análise, filtros e busca.
-- `.pdf`: versão formal para apresentação e envio.
+- `.pdf`: versão executiva compacta para apresentação e envio.
 - `.xlsx`: planilha para análise detalhada dos dados.
+
+O PDF principal resume os indicadores canônicos, prioridades, recorrências e
+criticidade, sem repetir todos os eventos. Para gerar também o detalhamento
+técnico em arquivo separado:
+
+```bash
+python zabbix-report/zabbix_report.py --periodo 7d --pdf-detalhado
+```
+
+O arquivo adicional segue o padrão:
+
+```text
+report_AAAA-MM-DD_periodo_anexo_tecnico.pdf
+```
 
 Como a pasta `reports/` é uma área de saída gerada automaticamente, relatórios
 antigos são removidos conforme a política definida por `--manter-relatorios`.
@@ -531,9 +545,21 @@ O mesmo resumo de integridade alimenta o selo e modal do HTML, a aba
 `Integridade dos Dados` do Excel e o resumo compacto do PDF. Os avisos mostram
 somente categorias e quantidades, nunca payloads, tokens, URLs ou endereços.
 
-A inteligência operacional também apresenta a duração histórica dos resolvidos
-com média, mediana, maior duração e faixas. Essa análise é separada da idade do
-passivo aberto.
+A duração histórica dos resolvidos permanece disponível nos dados canônicos e
+nas exportações adequadas, sempre separada da idade do passivo aberto.
+
+### Estratégia do PDF
+
+O projeto mantém um gerador PDF nativo e sem serviços externos. Essa abordagem
+foi preservada por oferecer o melhor equilíbrio atual entre portabilidade no
+Windows/WSL, estabilidade e manutenção, sem exigir navegador ou motor de
+conversão HTML. O PDF executivo usa apenas campos já consolidados por
+`summary.py`; o anexo técnico recebe a lista de eventos sem recalcular
+indicadores.
+
+Seções executivas sem conteúdo são omitidas, os rankings têm limites fixos e o
+número de páginas do documento principal não cresce com o volume de eventos.
+HTML e Excel continuam sendo as fontes de detalhamento interativo e tabular.
 
 Ao adicionar ou ajustar regras:
 
@@ -559,7 +585,6 @@ segurança para manter o projeto organizado.
 
 Melhorias previstas:
 
-- Aprimorar o PDF executivo.
 - Adicionar testes automatizados mais completos.
 - Melhorar performance do HTML para grandes volumes.
 - Criar rotina de geração agendada.
