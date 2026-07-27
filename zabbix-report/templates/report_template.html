@@ -858,6 +858,14 @@
             </table>
         </section>
         <nav class="table-pagination" aria-label="Paginação dos incidentes">
+            <label class="page-size-control">
+                <span>Linhas por página</span>
+                <select data-page-size aria-label="Quantidade de incidentes por página">
+                    <option value="50">50</option>
+                    <option value="100" selected>100</option>
+                    <option value="250">250</option>
+                </select>
+            </label>
             <button type="button" data-page-previous>Anterior</button>
             <span data-page-status>Página 1 de 1</span>
             <button type="button" data-page-next>Próxima</button>

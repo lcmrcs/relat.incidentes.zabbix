@@ -8,6 +8,13 @@ Este arquivo registra mudanças relevantes de forma simples, para facilitar acom
 
 ### Adicionado
 
+- Validação funcional em Microsoft Edge real com massas fictícias de 0, 10,
+  7.171 e 20.000 registros, métricas por mediana, captura de console e prova de
+  impressão PDF nativa.
+- Script `scripts/validate_html_browser.py` para testar tema persistente, busca,
+  filtros combinados, ordenação, paginação, modais, CSV, impressão e operação
+  offline sem acessar o Zabbix.
+- Controle compacto de 50, 100 ou 250 linhas por página na tabela operacional.
 - Benchmark reproduzível de Excel e HTML com massas fictícias de 0, 10, 7.171
   e 20.000 registros, três execuções e comparação por mediana.
 - Medições internas da exportação Excel para DataFrames, abas, estilos,
@@ -39,6 +46,8 @@ Este arquivo registra mudanças relevantes de forma simples, para facilitar acom
 
 ### Corrigido
 
+- Impressões acima de 5.000 registros filtrados agora são interrompidas com
+  orientação clara para exportar o conjunto completo por CSV.
 - Exportação Excel otimizada por reutilização de estilos, menos atribuições por
   célula e amostragem segura de larguras, preservando abas e acabamento.
 - HTML operacional reduzido para uma única fonte compacta de dados e paginação

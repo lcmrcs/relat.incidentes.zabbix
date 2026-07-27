@@ -402,9 +402,28 @@ O relatório HTML contém:
 - janela separada para Servidor Zabbix;
 - janela separada para CONFEA VPN.
 
-A tabela operacional materializa até 100 linhas por página para manter a
-navegação leve em grandes volumes. Busca, filtros, contadores, ordenação,
+A tabela operacional materializa 50, 100 ou 250 linhas por página para manter
+a navegação leve em grandes volumes. Busca, filtros, contadores, ordenação,
 modais e CSV continuam considerando o conjunto completo de incidentes.
+
+Relatórios com mais de 5.000 linhas filtradas não são expandidos para impressão
+direta, evitando travamentos do navegador. O CSV permanece disponível com todo
+o resultado filtrado.
+
+## Validação em Navegador
+
+A suíte da Sprint 6 abre relatórios locais com dados fictícios no Edge ou
+Chrome do Windows, sem acessar o Zabbix:
+
+```bash
+python scripts/validate_html_browser.py
+```
+
+Ela cobre 0, 10, 7.171 e 20.000 registros, repete o cenário de 7.171 três
+vezes, testa as interações essenciais e grava os resultados em
+`VALIDACAO_NAVEGADOR_SPRINT_6.json` e `VALIDACAO_NAVEGADOR_SPRINT_6.md`.
+Essa validação é destinada ao desenvolvimento e não adiciona dependências ao
+fluxo normal de geração.
 
 ## Classificação de Equipamentos
 

@@ -114,10 +114,13 @@ class HtmlOptimizationTests(unittest.TestCase):
         self.assertEqual(extract_payload(html), build_html_incident_payload(incidents))
         self.assertEqual(html.count('id="incident-data"'), 1)
         self.assertNotRegex(html, r"<tr\s+data-equipment=")
-        self.assertIn("const pageSize = 100;", html)
+        self.assertIn("let pageSize = 100;", html)
+        self.assertIn('data-page-size aria-label="Quantidade de incidentes por página"', html)
         self.assertIn("renderIncidentRows(pageItems);", html)
         self.assertIn("renderIncidentRows(filteredRows);", html)
         self.assertIn("const visibleItems = getSortedRows().filter(rowMatches);", html)
+        self.assertIn("const printLimit = 5000;", html)
+        self.assertIn("Use Baixar CSV", html)
 
     def test_payload_escapes_script_termination_without_losing_data(self):
         incident = fake_incident(1)

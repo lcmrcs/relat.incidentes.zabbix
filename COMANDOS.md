@@ -278,7 +278,26 @@ Ou pelo terminal, ajustando o nome do arquivo:
 cmd.exe /c start "" "C:\Users\chip\Desktop\lcmrcsWorkspace\relat.incidentes.zabbix\zabbix-report\reports\report_2026-06-15_historico_abertos.html"
 ```
 
-## 10. O que existe no HTML
+## 10. Validar o HTML em navegador real
+
+No WSL, com o ambiente virtual ativo:
+
+```bash
+python scripts/validate_html_browser.py
+```
+
+O comando usa Edge ou Chrome já instalado no Windows, abre somente relatórios
+fictícios locais e valida os cenários de 0, 10, 7.171 e 20.000 registros. Os
+resultados ficam em:
+
+```text
+VALIDACAO_NAVEGADOR_SPRINT_6.json
+VALIDACAO_NAVEGADOR_SPRINT_6.md
+```
+
+Essa rotina não acessa o Zabbix e não é necessária para a geração normal.
+
+## 11. O que existe no HTML
 
 O HTML atual possui:
 - Resumo executivo.
@@ -294,7 +313,7 @@ O HTML atual possui:
 - Janela separada para CONFEA VPN.
 - Exportacao CSV dos dados filtrados.
 
-## 11. Tipos de incidente consolidados
+## 12. Tipos de incidente consolidados
 
 O painel "Tipos de Incidente" nao deve contar cada texto tecnico isolado do
 Zabbix. Ele consolida familias de problemas.
@@ -324,7 +343,7 @@ def classify_incident_type(incident):
 Quando aparecer um novo texto do Zabbix que deveria entrar em uma familia
 existente, adicione uma regra nessa funcao.
 
-## 12. Classificacao de equipamentos
+## 13. Classificacao de equipamentos
 
 Arquivo:
 

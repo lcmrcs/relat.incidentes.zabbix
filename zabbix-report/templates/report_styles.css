@@ -5692,8 +5692,32 @@
     opacity: 0.42;
 }
 
+.page-size-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: auto;
+}
+
+.page-size-control select {
+    min-height: 34px;
+    padding: 0 28px 0 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+}
+
 @media (max-width: 640px) {
     .table-pagination {
+        flex-wrap: wrap;
         justify-content: space-between;
+    }
+
+    .page-size-control {
+        width: 100%;
+        justify-content: center;
+        margin-right: 0;
     }
 }

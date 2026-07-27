@@ -64,6 +64,7 @@
         const pagePrevious = document.querySelector("[data-page-previous]");
         const pageNext = document.querySelector("[data-page-next]");
         const pageStatus = document.querySelector("[data-page-status]");
+        const pageSizeControl = document.querySelector("[data-page-size]");
         const filterSummaryItems = document.querySelectorAll("[data-filter-summary]");
         const dialog = document.getElementById("incident-dialog");
         const dialogBody = document.getElementById("incident-dialog-body");
@@ -100,7 +101,7 @@
         let filterFeedbackTimer = null;
         let sortedRowsCache = null;
         let sortedRowsCacheKey = "";
-        const pageSize = 100;
+        let pageSize = 100;
         let currentPage = 1;
         let filteredRows = [];
         let printExpanded = false;
@@ -777,6 +778,14 @@
             });
         }
 
+        if (pageSizeControl) {
+            pageSizeControl.addEventListener("change", () => {
+                pageSize = Number(pageSizeControl.value) || 100;
+                currentPage = 1;
+                renderCurrentPage();
+            });
+        }
+
         document.addEventListener("click", (event) => {
             const button = event.target.closest("[data-quick-status], [data-quick-severity], [data-quick-equipment], [data-quick-unit], [data-quick-search], [data-quick-age], [data-quick-incident-type]");
 
@@ -930,6 +939,17 @@
         }
 
         function exportPdf() {
+            const printLimit = 5000;
+
+            if (filteredRows.length > printLimit) {
+                window.alert(
+                    `A impressão foi limitada a ${printLimit.toLocaleString("pt-BR")} registros ` +
+                    "para preservar a estabilidade do navegador. Use Baixar CSV para exportar " +
+                    "todos os dados filtrados."
+                );
+                return;
+            }
+
             document.body.classList.add("pdf-exporting");
             document.body.classList.add("print-layout-ready");
             printExpanded = true;

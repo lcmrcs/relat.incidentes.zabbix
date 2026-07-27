@@ -1,0 +1,88 @@
+{
+  "generated_at": "2026-07-27T13:59:49-03:00",
+  "browser": {
+    "name": "Microsoft Edge",
+    "version": "150.0.4078.99",
+    "executable": "msedge.exe"
+  },
+  "system": "Windows 11 / WSL (6.18.33.1-microsoft-standard-WSL2)",
+  "viewport": "1600x1000",
+  "native_pdf": {
+    "passed": true,
+    "size_bytes": 9102459
+  },
+  "scenarios": [
+    {
+      "records": 0,
+      "runs": 1,
+      "passed": true,
+      "median_metrics": {
+        "dom_content_loaded_ms": 362.6,
+        "heap_used_bytes": 2883386.0,
+        "html_bytes": 1887654.0,
+        "initial_elements": 414.0,
+        "load_ms": 365.4,
+        "validation_ms": 183.2
+      },
+      "failures": [],
+      "console_messages": []
+    },
+    {
+      "records": 10,
+      "runs": 1,
+      "passed": true,
+      "median_metrics": {
+        "dom_content_loaded_ms": 399.4,
+        "filter_ms": 0.0,
+        "heap_used_bytes": 2933504.0,
+        "html_bytes": 1952240.0,
+        "initial_elements": 1173.0,
+        "load_ms": 439.0,
+        "search_ms": 180.0,
+        "sort_ms": 0.0,
+        "validation_ms": 876.6
+      },
+      "failures": [],
+      "console_messages": []
+    },
+    {
+      "records": 7171,
+      "runs": 3,
+      "passed": true,
+      "median_metrics": {
+        "dom_content_loaded_ms": 520.0,
+        "filter_ms": 0.0,
+        "heap_used_bytes": 29222328.0,
+        "html_bytes": 3948100.0,
+        "initial_elements": 2441.0,
+        "load_ms": 591.4,
+        "page_change_ms": 10.0,
+        "search_ms": 180.0,
+        "sort_ms": 0.0,
+        "validation_ms": 463.2
+      },
+      "failures": [],
+      "console_messages": []
+    },
+    {
+      "records": 20000,
+      "runs": 1,
+      "passed": true,
+      "median_metrics": {
+        "dom_content_loaded_ms": 594.6,
+        "filter_ms": 0.0,
+        "heap_used_bytes": 32026578.0,
+        "html_bytes": 7125780.0,
+        "initial_elements": 2441.0,
+        "load_ms": 600.4,
+        "page_change_ms": 9.9,
+        "search_ms": 180.0,
+        "sort_ms": 0.0,
+        "validation_ms": 835.5
+      },
+      "failures": [],
+      "console_messages": []
+    }
+  ],
+  "passed": true
+}
