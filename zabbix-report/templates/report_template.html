@@ -854,69 +854,14 @@
                         <th><span class="static-heading">Detalhes</span></th>
                     </tr>
                 </thead>
-                <tbody>
-                    {% for item in incidents %}
-                    <tr
-                        data-equipment="{{ item.equipment }}"
-                        data-status="{{ item.status }}"
-                        data-unit="{{ item.unit }}"
-                        data-unit-code="{{ item.unit_code or '-' }}"
-                        data-host="{{ item.host }}"
-                        data-incident="{{ item.incident }}"
-                        data-incident-type="{{ item.incident_type }}"
-                        data-severity="{{ item.severity }}"
-                        data-timestamp="{{ item.timestamp }}"
-                        data-age-seconds="{{ item.age_seconds }}"
-                        data-age-label="{{ item.age_label }}"
-                        data-duration-seconds="{{ item.duration_seconds }}"
-                        data-duration-label="{{ item.duration_label }}"
-                        data-open-age-seconds="{{ item.open_age_seconds }}"
-                        data-open-age-label="{{ item.open_age_label }}"
-                    >
-                        <td class="table-date">{{ item.date }}</td>
-                        <td class="table-code">{{ item.unit_code or "-" }}</td>
-                        <td class="table-unit">{{ item.unit }}</td>
-                        <td>
-                            <span class="status-badge {{ item.status | lower }}">
-                                {{ item.status }}
-                            </span>
-                        </td>
-                        <td class="table-equipment">{{ item.equipment }}</td>
-                        <td class="table-incident">{{ item.incident }}</td>
-                        <td>
-                            <span class="severity {{ item.severity | lower | replace('ã', 'a') | replace('ç', 'c') | replace('é', 'e') | replace('í', 'i') | replace(' ', '-') }}">
-                                {{ item.severity }}
-                            </span>
-                        </td>
-                        <td data-priority-cell></td>
-                        <td>
-                            <button
-                                class="details-button"
-                                type="button"
-                                data-details
-                                data-date="{{ item.date }}"
-                                data-resolved-at="{{ item.resolved_at or '-' }}"
-                                data-status="{{ item.status }}"
-                                data-unit-code="{{ item.unit_code or '-' }}"
-                                data-unit="{{ item.unit }}"
-                                data-host="{{ item.host }}"
-                                data-equipment="{{ item.equipment }}"
-                                data-incident="{{ item.incident }}"
-                                data-incident-type="{{ item.incident_type }}"
-                                data-severity="{{ item.severity }}"
-                                data-age-label="{{ item.age_label }}"
-                                data-duration-label="{{ item.duration_label }}"
-                                data-open-age-label="{{ item.open_age_label }}"
-                                data-eventid="{{ item.eventid }}"
-                            >
-                                Abrir
-                            </button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
+                <tbody></tbody>
             </table>
         </section>
+        <nav class="table-pagination" aria-label="Paginação dos incidentes">
+            <button type="button" data-page-previous>Anterior</button>
+            <span data-page-status>Página 1 de 1</span>
+            <button type="button" data-page-next>Próxima</button>
+        </nav>
         <div class="table-empty" id="table-empty" hidden>
             Nenhum registro encontrado com o filtro atual.
         </div>
@@ -1118,6 +1063,7 @@
         </div>
         <p class="integrity-privacy">Os avisos não exibem payloads, endereços, credenciais ou dados técnicos sensíveis.</p>
     </dialog>
+    <script id="incident-data" type="application/json">{{ incident_payload | tojson }}</script>
     <script>
         window.REPORT_CONFIG = {
             zabbixWebUrl: {{ zabbix_web_url | tojson }}

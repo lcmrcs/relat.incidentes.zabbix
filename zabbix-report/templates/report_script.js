@@ -17,38 +17,41 @@
             "Resolvido": 0,
             "Aberto": 1,
         };
-        const rows = document.querySelectorAll("#incidents-table tbody tr");
-        const rowData = Array.from(rows).map((row) => ({
-            row,
-            date: parseDate(row.children[0].textContent),
-            timestamp: Number(row.dataset.timestamp) || 0,
-            ageSeconds: Number(row.dataset.ageSeconds) || 0,
-            ageLabel: row.dataset.ageLabel || "-",
-            durationSeconds: Number(row.dataset.durationSeconds) || 0,
-            durationLabel: row.dataset.durationLabel || "-",
-            openAgeSeconds: Number(row.dataset.openAgeSeconds) || 0,
-            openAgeLabel: row.dataset.openAgeLabel || "-",
-            unitCode: row.dataset.unitCode,
-            equipment: row.dataset.equipment,
-            status: row.dataset.status,
-            statusRank: statusRank[row.dataset.status] ?? 0,
-            unit: row.dataset.unit,
-            host: row.dataset.host,
-            severity: row.dataset.severity,
-            severityRank: severityRank[row.dataset.severity] ?? 0,
-            incident: row.dataset.incident,
-            incidentType: row.dataset.incidentType,
-            resolvedAt: row.querySelector("[data-details]")?.dataset.resolvedAt || "-",
-            eventid: row.querySelector("[data-details]")?.dataset.eventid || "",
+        const incidentDataElement = document.getElementById("incident-data");
+        const compactIncidentData = incidentDataElement
+            ? JSON.parse(incidentDataElement.textContent || "[]")
+            : [];
+        const rowData = compactIncidentData.map((values) => ({
+            dateText: values[0] || "-",
+            date: parseDate(values[0] || ""),
+            resolvedAt: values[1] || "-",
+            status: values[2] || "N/A",
+            statusRank: statusRank[values[2]] ?? 0,
+            unitCode: values[3] || "-",
+            unit: values[4] || "N/A",
+            host: values[5] || "N/A",
+            equipment: values[6] || "N/A",
+            incident: values[7] || "N/A",
+            incidentType: values[8] || values[7] || "N/A",
+            severity: values[9] || "Não classificada",
+            severityRank: severityRank[values[9]] ?? 0,
+            timestamp: Number(values[10]) || 0,
+            ageSeconds: Number(values[11]) || 0,
+            ageLabel: values[12] || "-",
+            durationSeconds: Number(values[13]) || 0,
+            durationLabel: values[14] || "-",
+            openAgeSeconds: Number(values[15]) || 0,
+            openAgeLabel: values[16] || "-",
+            eventid: values[17] || "",
             searchText: [
-                row.dataset.unitCode,
-                row.dataset.unit,
-                row.dataset.host,
-                row.dataset.equipment,
-                row.dataset.incident,
-                row.dataset.incidentType,
-                row.dataset.severity,
-                row.dataset.status,
+                values[3],
+                values[4],
+                values[5],
+                values[6],
+                values[7],
+                values[8],
+                values[9],
+                values[2],
             ].join(" ").toLowerCase(),
         }));
         const status = document.getElementById("filter-status");
@@ -58,6 +61,9 @@
         const downloadFiltered = document.getElementById("download-filtered");
         const exportPdfButton = document.getElementById("export-pdf");
         const tableEmpty = document.getElementById("table-empty");
+        const pagePrevious = document.querySelector("[data-page-previous]");
+        const pageNext = document.querySelector("[data-page-next]");
+        const pageStatus = document.querySelector("[data-page-status]");
         const filterSummaryItems = document.querySelectorAll("[data-filter-summary]");
         const dialog = document.getElementById("incident-dialog");
         const dialogBody = document.getElementById("incident-dialog-body");
@@ -94,7 +100,10 @@
         let filterFeedbackTimer = null;
         let sortedRowsCache = null;
         let sortedRowsCacheKey = "";
-        let appliedSortKey = "";
+        const pageSize = 100;
+        let currentPage = 1;
+        let filteredRows = [];
+        let printExpanded = false;
         function getStoredPreference(key, fallback = "") {
             try {
                 return window.localStorage?.getItem(key) || fallback;
@@ -245,26 +254,116 @@
 
         rowData.forEach((item) => {
             const priority = getPriority(item);
-            const cell = item.row.querySelector("[data-priority-cell]");
-            const detailsButton = item.row.querySelector("[data-details]");
 
             item.priority = priority.label;
             item.priorityRank = priority.rank;
             item.priorityClass = priority.className;
             item.searchText = `${item.searchText} ${priority.label.toLowerCase()}`;
-
-            if (cell) {
-                const badge = document.createElement("span");
-
-                badge.className = `priority-badge ${priority.className}`;
-                badge.textContent = priority.label;
-                cell.replaceChildren(badge);
-            }
-
-            if (detailsButton) {
-                detailsButton.dataset.priority = priority.label;
-            }
         });
+
+        function normalizeClassName(value) {
+            return String(value || "")
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/\s+/g, "-")
+                .toLowerCase();
+        }
+
+        function appendTextCell(row, value, className = "") {
+            const cell = document.createElement("td");
+
+            cell.className = className;
+            cell.textContent = value || "-";
+            row.appendChild(cell);
+            return cell;
+        }
+
+        function createIncidentRow(item) {
+            const row = document.createElement("tr");
+            const statusCell = document.createElement("td");
+            const statusBadge = document.createElement("span");
+            const severityCell = document.createElement("td");
+            const severityBadge = document.createElement("span");
+            const priorityCell = document.createElement("td");
+            const priorityBadge = document.createElement("span");
+            const detailsCell = document.createElement("td");
+            const detailsButton = document.createElement("button");
+
+            appendTextCell(row, item.dateText, "table-date");
+            appendTextCell(row, item.unitCode, "table-code");
+            appendTextCell(row, item.unit, "table-unit");
+
+            statusBadge.className = `status-badge ${normalizeClassName(item.status)}`;
+            statusBadge.textContent = item.status;
+            statusCell.appendChild(statusBadge);
+            row.appendChild(statusCell);
+
+            appendTextCell(row, item.equipment, "table-equipment");
+            appendTextCell(row, item.incident, "table-incident");
+
+            severityBadge.className = `severity ${normalizeClassName(item.severity)}`;
+            severityBadge.textContent = item.severity;
+            severityCell.appendChild(severityBadge);
+            row.appendChild(severityCell);
+
+            priorityBadge.className = `priority-badge ${item.priorityClass}`;
+            priorityBadge.textContent = item.priority;
+            priorityCell.appendChild(priorityBadge);
+            row.appendChild(priorityCell);
+
+            detailsButton.className = "details-button";
+            detailsButton.type = "button";
+            detailsButton.textContent = "Abrir";
+            detailsButton.dataset.details = "";
+            detailsButton.dataset.date = item.dateText;
+            detailsButton.dataset.resolvedAt = item.resolvedAt;
+            detailsButton.dataset.status = item.status;
+            detailsButton.dataset.unitCode = item.unitCode;
+            detailsButton.dataset.unit = item.unit;
+            detailsButton.dataset.host = item.host;
+            detailsButton.dataset.equipment = item.equipment;
+            detailsButton.dataset.incident = item.incident;
+            detailsButton.dataset.incidentType = item.incidentType;
+            detailsButton.dataset.severity = item.severity;
+            detailsButton.dataset.priority = item.priority;
+            detailsButton.dataset.ageLabel = item.ageLabel;
+            detailsButton.dataset.durationLabel = item.durationLabel;
+            detailsButton.dataset.openAgeLabel = item.openAgeLabel;
+            detailsButton.dataset.eventid = item.eventid;
+            detailsCell.appendChild(detailsButton);
+            row.appendChild(detailsCell);
+            return row;
+        }
+
+        function renderIncidentRows(items) {
+            if (!tableBody) {
+                return;
+            }
+
+            const fragment = document.createDocumentFragment();
+            items.forEach((item) => fragment.appendChild(createIncidentRow(item)));
+            tableBody.replaceChildren(fragment);
+        }
+
+        function renderCurrentPage() {
+            const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+
+            currentPage = Math.min(Math.max(1, currentPage), totalPages);
+            const start = (currentPage - 1) * pageSize;
+            const pageItems = filteredRows.slice(start, start + pageSize);
+
+            renderIncidentRows(pageItems);
+            if (pageStatus) {
+                pageStatus.textContent =
+                    `Página ${currentPage} de ${totalPages} · ${filteredRows.length} registros`;
+            }
+            if (pagePrevious) {
+                pagePrevious.disabled = currentPage <= 1;
+            }
+            if (pageNext) {
+                pageNext.disabled = currentPage >= totalPages;
+            }
+        }
 
         function addCount(map, key) {
             map.set(key, (map.get(key) || 0) + 1);
@@ -440,28 +539,22 @@
         }
 
         function updateFilters() {
-            let visible = 0;
             const visibleAges = [];
-            const visibleItems = [];
             const nowSeconds = Date.now() / 1000;
             const filters = getPreparedFilters();
+            const visibleItems = getSortedRows().filter((item) =>
+                rowMatchesPrepared(item, filters)
+            );
+            const visible = visibleItems.length;
 
-            rowData.forEach((item) => {
-                const matches = rowMatchesPrepared(item, filters);
-
-                if (item.row.hidden === matches) {
-                    item.row.hidden = !matches;
-                }
-
-                if (matches) {
-                    visible += 1;
-                    visibleItems.push(item);
-
-                    if (item.status === "Aberto" && item.timestamp) {
-                        visibleAges.push(Math.max(0, nowSeconds - item.timestamp));
-                    }
+            visibleItems.forEach((item) => {
+                if (item.status === "Aberto" && item.timestamp) {
+                    visibleAges.push(Math.max(0, nowSeconds - item.timestamp));
                 }
             });
+            filteredRows = visibleItems;
+            currentPage = 1;
+            renderCurrentPage();
 
             equipmentButtons.forEach((button) => {
                 button.classList.toggle(
@@ -500,7 +593,6 @@
 
             const counts = getCountScope();
 
-            applySort();
             updateSortButtons();
             updateButtonCounts(equipmentButtons, "equipmentFilter", counts.equipment);
             updateButtonCounts(statusButtons, "statusFilter", counts.status);
@@ -572,12 +664,6 @@
             });
         }
 
-        function getVisibleRows() {
-            const filters = getPreparedFilters();
-
-            return rowData.filter((item) => rowMatchesPrepared(item, filters));
-        }
-
         function compareValues(first, second) {
             if (typeof first === "number" && typeof second === "number") {
                 return first - second;
@@ -588,28 +674,6 @@
                 "pt-BR",
                 { numeric: true, sensitivity: "base" }
             );
-        }
-
-        function applySort() {
-            if (!tableBody) {
-                return;
-            }
-
-            const cacheKey = `${activeSort.key}:${activeSort.direction}`;
-
-            if (appliedSortKey === cacheKey) {
-                return;
-            }
-
-            const sortedRows = getSortedRows();
-            const fragment = document.createDocumentFragment();
-
-            sortedRows.forEach((item) => {
-                fragment.appendChild(item.row);
-            });
-
-            tableBody.appendChild(fragment);
-            appliedSortKey = cacheKey;
         }
 
         function getSortedRows() {
@@ -698,6 +762,20 @@
                 updateFilters();
             });
         });
+
+        if (pagePrevious) {
+            pagePrevious.addEventListener("click", () => {
+                currentPage -= 1;
+                renderCurrentPage();
+            });
+        }
+
+        if (pageNext) {
+            pageNext.addEventListener("click", () => {
+                currentPage += 1;
+                renderCurrentPage();
+            });
+        }
 
         document.addEventListener("click", (event) => {
             const button = event.target.closest("[data-quick-status], [data-quick-severity], [data-quick-equipment], [data-quick-unit], [data-quick-search], [data-quick-age], [data-quick-incident-type]");
@@ -819,7 +897,7 @@
             const lines = [
                 headers.map(sanitizeCsvValue).join(";"),
                 ...visibleItems.map((item) => [
-                    item.row.children[0].textContent.trim(),
+                    item.dateText,
                     item.unitCode,
                     item.unit,
                     item.status,
@@ -854,6 +932,8 @@
         function exportPdf() {
             document.body.classList.add("pdf-exporting");
             document.body.classList.add("print-layout-ready");
+            printExpanded = true;
+            renderIncidentRows(filteredRows);
 
             window.setTimeout(() => {
                 window.print();
@@ -863,6 +943,10 @@
         window.addEventListener("afterprint", () => {
             document.body.classList.remove("pdf-exporting");
             document.body.classList.remove("print-layout-ready");
+            if (printExpanded) {
+                printExpanded = false;
+                renderCurrentPage();
+            }
         });
 
         if (exportPdfButton) {

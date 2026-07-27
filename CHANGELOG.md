@@ -8,6 +8,18 @@ Este arquivo registra mudanças relevantes de forma simples, para facilitar acom
 
 ### Adicionado
 
+- Benchmark reproduzível de Excel e HTML com massas fictícias de 0, 10, 7.171
+  e 20.000 registros, três execuções e comparação por mediana.
+- Medições internas da exportação Excel para DataFrames, abas, estilos,
+  larguras, tabelas, formatação condicional, gráficos e salvamento.
+- Testes de equivalência da fonte compacta do HTML, paginação, grande volume,
+  escape seguro, filtros, modal e CSV.
+- Observabilidade centralizada com duração por etapa, chamadas da API, tamanhos,
+  páginas, gargalos e avisos objetivos de desempenho.
+- Resumo compacto de execução exibido no terminal em todas as gerações.
+- Diagnóstico JSON seguro e opcional por meio de `--diagnostico`.
+- Testes determinísticos com relógio, API, arquivos e falhas simulados, sem
+  acesso ao Zabbix real.
 - PDF Executivo 2.0 com capa, indicadores, rankings limitados, prioridades,
   recorrências, criticidade, integridade e conclusão em páginas compactas.
 - Anexo técnico PDF separado e opcional por meio de `--pdf-detalhado`, com
@@ -27,6 +39,10 @@ Este arquivo registra mudanças relevantes de forma simples, para facilitar acom
 
 ### Corrigido
 
+- Exportação Excel otimizada por reutilização de estilos, menos atribuições por
+  célula e amostragem segura de larguras, preservando abas e acabamento.
+- HTML operacional reduzido para uma única fonte compacta de dados e paginação
+  de 100 linhas, sem limitar filtros, contadores, ordenação, modais ou CSV.
 - O PDF principal não cresce mais conforme o total de eventos e não inclui a
   tabela operacional completa por padrão.
 - Limites de conteúdo e quebra de texto evitam cortes e sobreposições no PDF.

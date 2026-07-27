@@ -12,6 +12,7 @@ import logging
 import os
 import re
 import unicodedata
+from contextlib import nullcontext
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -26,8 +27,9 @@ from classifiers import (
 from data_integrity import validate_problem_records
 from dotenv import load_dotenv
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+from observability import ExecutionDiagnostics, write_optional_diagnostic
 from openpyxl.chart import BarChart, DoughnutChart, Reference
-from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+from openpyxl.styles import Alignment, Border, Font, NamedStyle, PatternFill, Side
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.table import Table, TableStyleInfo
 from pdf_report import technical_pdf_name, write_pdf_report, write_technical_pdf_report
@@ -203,12 +205,12 @@ def cleanup_old_reports(current_base_name, keep_count=1):
     report_groups = {}
 
     for path in REPORTS_DIR.glob("report_*"):
-        if path.suffix.lower() not in {".html", ".pdf", ".xlsx"}:
+        if path.suffix.lower() not in {".html", ".pdf", ".xlsx", ".json"}:
             continue
 
         # O anexo técnico pertence ao mesmo conjunto do PDF executivo e não
         # pode ser removido logo após uma execução com --pdf-detalhado.
-        group_name = path.stem.removesuffix("_anexo_tecnico")
+        group_name = path.stem.removesuffix("_anexo_tecnico").removesuffix("_diagnostico")
         report_groups.setdefault(group_name, []).append(path)
 
     if current_base_name not in report_groups:
@@ -350,6 +352,13 @@ def parse_args():
         help=(
             "Gera, além do PDF executivo, um anexo técnico separado com todos "
             "os eventos do escopo."
+        ),
+    )
+    parser.add_argument(
+        "--diagnostico",
+        action="store_true",
+        help=(
+            "Gera um JSON seguro com tempos, chamadas da API, tamanhos e " "gargalos da execução."
         ),
     )
 
@@ -903,7 +912,7 @@ def excel_level_colors(level):
     return colors.get(str(level), ("64748B", "FFFFFF"))
 
 
-def style_excel_workbook(writer):
+def style_excel_workbook(writer, diagnostics=None):
     """
     Aplica acabamento visual, filtros e congelamento em todas as abas.
 
@@ -930,48 +939,115 @@ def style_excel_workbook(writer):
         top=Side(style="thin", color=border_color),
         bottom=Side(style="thin", color=border_color),
     )
+    measure = diagnostics.measure if diagnostics else lambda _name: nullcontext()
 
-    for sheet_index, worksheet in enumerate(workbook.worksheets):
-        worksheet.sheet_view.showGridLines = False
-        worksheet.freeze_panes = "A2"
-        worksheet.sheet_view.zoomScale = 90
-
-        if (
-            worksheet.title not in {"Resumo Executivo", "Rankings", "Inteligência"}
-            and worksheet.max_row > 1
-            and worksheet.max_column > 1
-        ):
-            worksheet.auto_filter.ref = worksheet.dimensions
-
-        for cell in worksheet[1]:
-            cell.fill = header_fill
-            cell.font = Font(color="FFFFFF", bold=True)
-            cell.alignment = Alignment(horizontal="center", vertical="center")
-            cell.border = thin_border
-
-        for row in worksheet.iter_rows(min_row=2):
-            for cell in row:
-                cell.alignment = Alignment(vertical="top", wrap_text=True)
-                cell.border = thin_border
-                if cell.row % 2 == 0:
-                    cell.fill = soft_fill
-
-        for column_cells in worksheet.columns:
-            column_letter = get_column_letter(column_cells[0].column)
-            max_length = max(len(str(cell.value or "")) for cell in column_cells[:80])
-            worksheet.column_dimensions[column_letter].width = min(
-                max(max_length + 3, 13),
-                42,
+    def register_style(name, font=None, fill=None, alignment=None):
+        if name in workbook.named_styles:
+            named_style = workbook._named_styles[name]
+        else:
+            named_style = NamedStyle(
+                name=name,
+                font=font or Font(),
+                fill=fill or PatternFill(),
+                border=thin_border,
+                alignment=alignment or Alignment(vertical="top", wrap_text=True),
             )
+            workbook.add_named_style(named_style)
+        return named_style._style
 
-        if (
-            worksheet.title not in {"Resumo Executivo", "Rankings", "Inteligência"}
-            and worksheet.max_row > 1
-            and worksheet.max_column > 1
-        ):
-            table_ref = worksheet.dimensions
-            table_name = f"Tabela{sheet_index + 1}"
-            table = Table(displayName=table_name, ref=table_ref)
+    header_style = register_style(
+        "NocHeader",
+        font=Font(color="FFFFFF", bold=True),
+        fill=header_fill,
+        alignment=Alignment(horizontal="center", vertical="center"),
+    )
+    body_style = register_style("NocBody")
+    body_even_style = register_style("NocBodyEven", fill=soft_fill)
+    severity_styles = {
+        severity: register_style(
+            f"NocSeverity{index}",
+            font=Font(color="FFFFFF", bold=True),
+            fill=PatternFill("solid", fgColor=color),
+            alignment=Alignment(horizontal="center", vertical="top", wrap_text=True),
+        )
+        for index, (severity, color) in enumerate(EXCEL_SEVERITY_COLORS.items())
+    }
+    status_styles = {
+        "Aberto": register_style(
+            "NocStatusOpen",
+            font=Font(color="B91C1C", bold=True),
+            fill=PatternFill("solid", fgColor="FEE2E2"),
+        ),
+        "Resolvido": register_style(
+            "NocStatusResolved",
+            font=Font(color="166534", bold=True),
+            fill=PatternFill("solid", fgColor="DCFCE7"),
+        ),
+    }
+    level_styles = {}
+    for index, level in enumerate(
+        (
+            "Intervenção imediata",
+            "Prioridade alta",
+            "Acompanhamento ativo",
+            "Monitoramento normal",
+        )
+    ):
+        fill_color, font_color = excel_level_colors(level)
+        level_styles[level] = register_style(
+            f"NocLevel{index}",
+            font=Font(color=font_color, bold=True),
+            fill=PatternFill("solid", fgColor=fill_color),
+            alignment=Alignment(horizontal="center", vertical="center"),
+        )
+    score_styles = {
+        False: register_style(
+            "NocScore",
+            font=Font(color="073B43", bold=True, size=13),
+            alignment=Alignment(horizontal="center", vertical="center"),
+        ),
+        True: register_style(
+            "NocScoreEven",
+            font=Font(color="073B43", bold=True, size=13),
+            fill=soft_fill,
+            alignment=Alignment(horizontal="center", vertical="center"),
+        ),
+    }
+
+    with measure("excel_base_styles"):
+        for worksheet in workbook.worksheets:
+            worksheet.sheet_view.showGridLines = False
+            worksheet.freeze_panes = "A2"
+            worksheet.sheet_view.zoomScale = 90
+            for cell in worksheet[1]:
+                cell._style = header_style
+            for row in worksheet.iter_rows(min_row=2):
+                row_style = body_even_style if row[0].row % 2 == 0 else body_style
+                for cell in row:
+                    cell._style = row_style
+            worksheet.row_dimensions[1].height = 24
+
+    with measure("excel_column_widths"):
+        for worksheet in workbook.worksheets:
+            for column_cells in worksheet.columns:
+                column_letter = get_column_letter(column_cells[0].column)
+                max_length = max(len(str(cell.value or "")) for cell in column_cells[:80])
+                worksheet.column_dimensions[column_letter].width = min(
+                    max(max_length + 3, 13),
+                    42,
+                )
+
+    data_sheets = [
+        (sheet_index, worksheet)
+        for sheet_index, worksheet in enumerate(workbook.worksheets)
+        if worksheet.title not in {"Resumo Executivo", "Rankings", "Inteligência"}
+        and worksheet.max_row > 1
+        and worksheet.max_column > 1
+    ]
+    with measure("excel_tables"):
+        for sheet_index, worksheet in data_sheets:
+            worksheet.auto_filter.ref = worksheet.dimensions
+            table = Table(displayName=f"Tabela{sheet_index + 1}", ref=worksheet.dimensions)
             table.tableStyleInfo = TableStyleInfo(
                 name="TableStyleMedium2",
                 showFirstColumn=False,
@@ -981,6 +1057,8 @@ def style_excel_workbook(writer):
             )
             worksheet.add_table(table)
 
+    with measure("excel_conditional_formatting"):
+        for _, worksheet in data_sheets:
             headers = [cell.value for cell in worksheet[1]]
             severity_index = headers.index("Severidade") + 1 if "Severidade" in headers else None
             status_index = headers.index("Status") + 1 if "Status" in headers else None
@@ -992,33 +1070,24 @@ def style_excel_workbook(writer):
             for row in worksheet.iter_rows(min_row=2):
                 if severity_index:
                     severity_cell = row[severity_index - 1]
-                    color = EXCEL_SEVERITY_COLORS.get(str(severity_cell.value), "64748B")
-                    severity_cell.fill = PatternFill("solid", fgColor=color)
-                    severity_cell.font = Font(color="FFFFFF", bold=True)
-                    severity_cell.alignment = Alignment(horizontal="center")
+                    severity_cell._style = severity_styles.get(
+                        str(severity_cell.value),
+                        body_even_style if severity_cell.row % 2 == 0 else body_style,
+                    )
 
                 if status_index:
                     status_cell = row[status_index - 1]
-                    if status_cell.value == "Aberto":
-                        status_cell.fill = PatternFill("solid", fgColor="FEE2E2")
-                        status_cell.font = Font(color="B91C1C", bold=True)
-                    elif status_cell.value == "Resolvido":
-                        status_cell.fill = PatternFill("solid", fgColor="DCFCE7")
-                        status_cell.font = Font(color="166534", bold=True)
+                    if status_cell.value in status_styles:
+                        status_cell._style = status_styles[status_cell.value]
 
                 if level_index:
                     level_cell = row[level_index - 1]
-                    fill_color, font_color = excel_level_colors(level_cell.value)
-                    level_cell.fill = PatternFill("solid", fgColor=fill_color)
-                    level_cell.font = Font(color=font_color, bold=True)
-                    level_cell.alignment = Alignment(horizontal="center", vertical="center")
+                    if level_cell.value in level_styles:
+                        level_cell._style = level_styles[level_cell.value]
 
                 if score_index:
                     score_cell = row[score_index - 1]
-                    score_cell.font = Font(color="073B43", bold=True, size=13)
-                    score_cell.alignment = Alignment(horizontal="center", vertical="center")
-
-        worksheet.row_dimensions[1].height = 24
+                    score_cell._style = score_styles[score_cell.row % 2 == 0]
 
     summary_sheet = workbook["Resumo Executivo"]
     summary_sheet.freeze_panes = None
@@ -1182,6 +1251,7 @@ def export_excel(
     generated,
     period_label,
     integrity_summary=None,
+    diagnostics=None,
 ):
     """
     Gera a planilha Excel com abas separadas por finalidade.
@@ -1190,23 +1260,20 @@ def export_excel(
     isolam infraestrutura especial. A aba Todos preserva a visão completa.
     """
 
-    with pd.ExcelWriter(path, engine="openpyxl") as writer:
-        integrity_summary = integrity_summary or {
-            "received": len(all_incidents),
-            "processed": len(all_incidents),
-            "adjusted": 0,
-            "discarded": 0,
-            "issues": [],
-        }
-        pd.DataFrame(
+    measure = diagnostics.measure if diagnostics else lambda _name: nullcontext()
+    integrity_summary = integrity_summary or {
+        "received": len(all_incidents),
+        "processed": len(all_incidents),
+        "adjusted": 0,
+        "discarded": 0,
+        "issues": [],
+    }
+
+    with measure("excel_dataframes"):
+        summary_frame = pd.DataFrame(
             build_excel_summary_rows(summary, generated, period_label),
             columns=["Indicador", "Valor"],
-        ).to_excel(
-            writer,
-            sheet_name="Resumo Executivo",
-            index=False,
         )
-
         rankings_frames = [
             ("Severidade", counter_to_excel_frame(summary["severity"])),
             ("Equipamentos", counter_to_excel_frame(summary["top_equipment"])),
@@ -1214,81 +1281,102 @@ def export_excel(
             ("Unidades", counter_to_excel_frame(summary["top_units"])),
             ("Hosts", counter_to_excel_frame(summary["top_hosts"])),
         ]
-        start_row = 0
+        intelligence_frames = build_excel_intelligence_frames(summary)
+        criticality_frame = build_excel_criticality_frame(summary)
+        integrity_frame = build_integrity_frame(integrity_summary)
+        main_frame = incidents_to_excel_frame(main_incidents)
+        zabbix_frame = incidents_to_excel_frame(zabbix_incidents) if zabbix_incidents else None
+        confea_frame = incidents_to_excel_frame(confea_incidents) if confea_incidents else None
+        all_frame = incidents_to_excel_frame(all_incidents)
 
-        for title, frame in rankings_frames:
-            pd.DataFrame([[title, "", ""]], columns=["Nome", "Total", "Percentual"]).to_excel(
+    writer = pd.ExcelWriter(path, engine="openpyxl")
+    try:
+        with measure("excel_sheet_writes"):
+            summary_frame.to_excel(
                 writer,
-                sheet_name="Rankings",
-                index=False,
-                header=start_row == 0,
-                startrow=start_row,
-            )
-            frame.to_excel(
-                writer,
-                sheet_name="Rankings",
-                index=False,
-                header=False,
-                startrow=start_row + 1,
-            )
-            start_row += len(frame) + 4
-
-        start_row = 0
-
-        for title, frame in build_excel_intelligence_frames(summary):
-            pd.DataFrame([[title]], columns=["Indicador"]).to_excel(
-                writer,
-                sheet_name="Inteligência",
-                index=False,
-                header=False,
-                startrow=start_row,
-            )
-            frame.to_excel(
-                writer,
-                sheet_name="Inteligência",
-                index=False,
-                startrow=start_row + 1,
-            )
-            start_row += len(frame) + 4
-
-        build_excel_criticality_frame(summary).to_excel(
-            writer,
-            sheet_name="Criticidade",
-            index=False,
-        )
-
-        build_integrity_frame(integrity_summary).to_excel(
-            writer, sheet_name="Integridade dos Dados", index=False
-        )
-
-        incidents_to_excel_frame(main_incidents).to_excel(
-            writer,
-            sheet_name="Unidades",
-            index=False,
-        )
-
-        if zabbix_incidents:
-            incidents_to_excel_frame(zabbix_incidents).to_excel(
-                writer,
-                sheet_name="Servidor Zabbix",
+                sheet_name="Resumo Executivo",
                 index=False,
             )
+            start_row = 0
 
-        if confea_incidents:
-            incidents_to_excel_frame(confea_incidents).to_excel(
+            for title, frame in rankings_frames:
+                pd.DataFrame(
+                    [[title, "", ""]],
+                    columns=["Nome", "Total", "Percentual"],
+                ).to_excel(
+                    writer,
+                    sheet_name="Rankings",
+                    index=False,
+                    header=start_row == 0,
+                    startrow=start_row,
+                )
+                frame.to_excel(
+                    writer,
+                    sheet_name="Rankings",
+                    index=False,
+                    header=False,
+                    startrow=start_row + 1,
+                )
+                start_row += len(frame) + 4
+
+            start_row = 0
+            for title, frame in intelligence_frames:
+                pd.DataFrame([[title]], columns=["Indicador"]).to_excel(
+                    writer,
+                    sheet_name="Inteligência",
+                    index=False,
+                    header=False,
+                    startrow=start_row,
+                )
+                frame.to_excel(
+                    writer,
+                    sheet_name="Inteligência",
+                    index=False,
+                    startrow=start_row + 1,
+                )
+                start_row += len(frame) + 4
+
+            criticality_frame.to_excel(
                 writer,
-                sheet_name="CONFEA VPN",
+                sheet_name="Criticidade",
+                index=False,
+            )
+            integrity_frame.to_excel(
+                writer,
+                sheet_name="Integridade dos Dados",
+                index=False,
+            )
+            main_frame.to_excel(
+                writer,
+                sheet_name="Unidades",
+                index=False,
+            )
+            if zabbix_frame is not None:
+                zabbix_frame.to_excel(
+                    writer,
+                    sheet_name="Servidor Zabbix",
+                    index=False,
+                )
+            if confea_frame is not None:
+                confea_frame.to_excel(
+                    writer,
+                    sheet_name="CONFEA VPN",
+                    index=False,
+                )
+            all_frame.to_excel(
+                writer,
+                sheet_name="Todos",
                 index=False,
             )
 
-        incidents_to_excel_frame(all_incidents).to_excel(
-            writer,
-            sheet_name="Todos",
-            index=False,
-        )
-
-        style_excel_workbook(writer)
-        add_excel_charts(writer)
+        style_excel_workbook(writer, diagnostics=diagnostics)
+        with measure("excel_charts"):
+            add_excel_charts(writer)
+        with measure("excel_save"):
+            writer.close()
+    except Exception:
+        writer.book.close()
+        raise
 
 
 def render_html(
@@ -1342,15 +1430,78 @@ def render_html(
             "discarded": 0,
             "issues": [],
         },
+        incident_payload=build_html_incident_payload(main_incidents),
     )
 
     with open(path, "w", encoding="utf-8") as file:
         file.write(html_output)
 
 
+def build_html_incident_payload(incidents):
+    """Compacta os incidentes em uma única fonte de dados para o navegador."""
+
+    fields = (
+        "date",
+        "resolved_at",
+        "status",
+        "unit_code",
+        "unit",
+        "host",
+        "equipment",
+        "incident",
+        "incident_type",
+        "severity",
+        "timestamp",
+        "age_seconds",
+        "age_label",
+        "duration_seconds",
+        "duration_label",
+        "open_age_seconds",
+        "open_age_label",
+        "eventid",
+    )
+    return [[item.get(field, "") for field in fields] for item in incidents]
+
+
 # ==================================================
 # EXECUÇÃO PRINCIPAL
 # ==================================================
+
+
+def execute_measured_export(diagnostics, stage, kind, path, callback, with_pages=False):
+    """Executa uma exportação, registra duração, arquivo e falha segura."""
+
+    try:
+        with diagnostics.measure(stage):
+            result = callback()
+    except Exception as error:
+        diagnostics.record_failed_file(kind, path, error)
+        LOGGER.error(
+            "Falha na etapa %s: %s",
+            diagnostics.stages[stage]["label"],
+            type(error).__name__,
+        )
+        raise
+
+    diagnostics.record_file(
+        kind,
+        path,
+        pages=result if with_pages else None,
+    )
+    LOGGER.info("%s concluída", diagnostics.stages[stage]["label"])
+    return result
+
+
+def requested_period_label(args):
+    """Resume o período solicitado sem incluir nomes de filtros operacionais."""
+
+    if args.desde:
+        period = f"desde {args.desde}"
+    elif args.dias is not None:
+        period = f"{args.dias}d"
+    else:
+        period = str(args.periodo)
+    return f"{period} · status {args.status}"
 
 
 def main():
@@ -1359,81 +1510,16 @@ def main():
     """
 
     args = parse_args()
-    zabbix_url, zabbix_token = load_config()
-    zabbix_web_url = build_zabbix_web_url(zabbix_url)
-    today = datetime.now()
-    start_date, period_name, period_slug = resolve_period(args, today)
-    period_label = format_period_label(period_name, start_date, today)
-    time_from = int(start_date.timestamp()) if start_date else None
-    time_till = int(today.timestamp())
+    diagnostics = ExecutionDiagnostics(requested_period_label(args))
 
-    client = ZabbixClient(zabbix_url, zabbix_token)
-
-    LOGGER.info("Iniciando coleta de eventos do Zabbix")
-    print("Conectando ao Zabbix...")
-    problems = client.get_problems(args.status, time_from, time_till)
-    LOGGER.info("Coleta concluída: %d registro(s) recebido(s)", len(problems))
-    resolved_at_by_event = client.get_recovery_dates(problems)
-    (
-        hosts_by_trigger,
-        host_ids_by_trigger,
-        host_details_by_id,
-    ) = client.get_trigger_hosts(problems)
-    all_host_details_by_id = client.get_all_hosts_with_tags()
-
-    print("Processando incidentes...")
-    unit_catalog = build_unit_catalog(all_host_details_by_id)
-    problems, integrity_summary = validate_problem_records(
-        problems,
-        hosts_by_trigger,
-        host_ids_by_trigger,
-        host_details_by_id,
-        resolved_at_by_event,
-        unit_catalog,
-        today,
-    )
-    LOGGER.info(
-        "Validação concluída: %d processado(s), %d ajustado(s), %d descartado(s)",
-        integrity_summary["processed"],
-        integrity_summary["adjusted"],
-        integrity_summary["discarded"],
-    )
-    if integrity_summary["warning_count"]:
-        LOGGER.warning(
-            "Foram identificados %d aviso(s) de integridade", integrity_summary["warning_count"]
-        )
-    incidents = build_incidents(
-        problems,
-        hosts_by_trigger,
-        host_ids_by_trigger,
-        host_details_by_id,
-        resolved_at_by_event,
-        unit_catalog,
-        args.status,
-        today,
-    )
-    main_incidents, zabbix_incidents, confea_incidents = split_special_groups(incidents)
-    equipment_filter = str(args.equipamento).strip() if args.equipamento else ""
-    unit_filter = str(args.unidade).strip() if args.unidade else ""
-
-    if unit_filter:
-        main_incidents = filter_by_unit(main_incidents, unit_filter)
-        zabbix_incidents = []
-        confea_incidents = []
-        period_label = f"{period_label} | Unidade: {unit_filter}"
-        period_slug = f"{period_slug}_unidade_{slugify(unit_filter)}"
-
-    if equipment_filter:
-        main_incidents = filter_by_equipment(main_incidents, equipment_filter)
-        zabbix_incidents = []
-        confea_incidents = []
-        period_label = f"{period_label} | Equipamento: {equipment_filter}"
-        period_slug = f"{period_slug}_{slugify(equipment_filter)}"
-
-    scoped_incidents = main_incidents + zabbix_incidents + confea_incidents
-    summary = build_report_summary(main_incidents)
-    zabbix_summary = build_report_summary(zabbix_incidents)
-    confea_summary = build_report_summary(confea_incidents)
+    with diagnostics.measure("configuration"):
+        zabbix_url, zabbix_token = load_config()
+        zabbix_web_url = build_zabbix_web_url(zabbix_url)
+        today = datetime.now()
+        start_date, period_name, period_slug = resolve_period(args, today)
+        period_label = format_period_label(period_name, start_date, today)
+        time_from = int(start_date.timestamp()) if start_date else None
+        time_till = int(today.timestamp())
 
     REPORTS_DIR.mkdir(exist_ok=True)
     base_name = f"report_{today.strftime('%Y-%m-%d')}_{period_slug}"
@@ -1442,100 +1528,210 @@ def main():
     html_name = REPORTS_DIR / f"{base_name}.html"
     pdf_name = REPORTS_DIR / f"{base_name}.pdf"
     technical_pdf = technical_pdf_name(pdf_name)
+    diagnostic_name = REPORTS_DIR / f"{base_name}_diagnostico.json"
 
     try:
-        export_excel(
-            excel_name,
-            scoped_incidents,
-            main_incidents,
-            zabbix_incidents,
-            confea_incidents,
-            summary,
-            generated,
-            period_label,
-            integrity_summary,
-        )
-    except Exception as error:
-        LOGGER.error("Falha na exportação Excel: %s", type(error).__name__)
-        raise
-    LOGGER.info("Exportação Excel concluída")
-    print(f"Excel gerado: {excel_name}")
+        client = ZabbixClient(zabbix_url, zabbix_token, diagnostics=diagnostics)
 
-    try:
-        render_html(
-            html_name,
-            generated,
-            period_label,
-            main_incidents,
-            summary,
-            zabbix_incidents,
-            zabbix_summary,
-            confea_incidents,
-            confea_summary,
-            zabbix_web_url,
-            integrity_summary,
-        )
-    except Exception as error:
-        LOGGER.error("Falha na exportação HTML: %s", type(error).__name__)
-        raise
-    LOGGER.info("Exportação HTML concluída")
-    print(f"HTML gerado: {html_name}")
+        LOGGER.info("Iniciando coleta de eventos do Zabbix")
+        print("Conectando ao Zabbix...")
+        with diagnostics.measure("api_collection"):
+            with diagnostics.measure("problem_search"):
+                problems = client.get_problems(args.status, time_from, time_till)
+            LOGGER.info("Coleta concluída: %d registro(s) recebido(s)", len(problems))
+            with diagnostics.measure("recovery_search"):
+                resolved_at_by_event = client.get_recovery_dates(problems)
+            with diagnostics.measure("trigger_host_search"):
+                (
+                    hosts_by_trigger,
+                    host_ids_by_trigger,
+                    host_details_by_id,
+                ) = client.get_trigger_hosts(problems)
+            with diagnostics.measure("unit_catalog"):
+                all_host_details_by_id = client.get_all_hosts_with_tags()
+                unit_catalog = build_unit_catalog(all_host_details_by_id)
 
-    try:
-        write_pdf_report(
-            pdf_name,
-            main_incidents,
-            generated,
-            summary,
-            period_label,
-            integrity_summary,
-            {
-                "Servidor Zabbix": zabbix_summary,
-                "CONFEA VPN": confea_summary,
-            },
-        )
-    except Exception as error:
-        LOGGER.error("Falha na exportação PDF: %s", type(error).__name__)
-        raise
-    LOGGER.info("Exportação PDF concluída")
-    print(f"PDF gerado: {pdf_name}")
-
-    if args.pdf_detalhado:
-        try:
-            write_technical_pdf_report(
-                technical_pdf,
-                scoped_incidents,
-                generated,
+        print("Processando incidentes...")
+        with diagnostics.measure("validation"):
+            problems, integrity_summary = validate_problem_records(
+                problems,
+                hosts_by_trigger,
+                host_ids_by_trigger,
+                host_details_by_id,
+                resolved_at_by_event,
+                unit_catalog,
+                today,
             )
-        except Exception as error:
-            LOGGER.error("Falha na exportação do anexo técnico PDF: %s", type(error).__name__)
-            raise
-        LOGGER.info("Exportação do anexo técnico PDF concluída")
-        print(f"Anexo técnico PDF gerado: {technical_pdf}")
+        diagnostics.set_record_counts(integrity_summary)
+        LOGGER.info(
+            "Validação concluída: %d processado(s), %d ajustado(s), %d descartado(s)",
+            integrity_summary["processed"],
+            integrity_summary["adjusted"],
+            integrity_summary["discarded"],
+        )
+        if integrity_summary["warning_count"]:
+            LOGGER.warning(
+                "Foram identificados %d aviso(s) de integridade",
+                integrity_summary["warning_count"],
+            )
 
-    removed_reports = cleanup_old_reports(
-        base_name,
-        keep_count=args.manter_relatorios,
-    )
+        with diagnostics.measure("incident_build"):
+            incidents = build_incidents(
+                problems,
+                hosts_by_trigger,
+                host_ids_by_trigger,
+                host_details_by_id,
+                resolved_at_by_event,
+                unit_catalog,
+                args.status,
+                today,
+            )
+            main_incidents, zabbix_incidents, confea_incidents = split_special_groups(incidents)
+            equipment_filter = str(args.equipamento).strip() if args.equipamento else ""
+            unit_filter = str(args.unidade).strip() if args.unidade else ""
 
-    if removed_reports:
-        print(f"Relatórios antigos removidos: {len(removed_reports)} arquivo(s).")
+            if unit_filter:
+                main_incidents = filter_by_unit(main_incidents, unit_filter)
+                zabbix_incidents = []
+                confea_incidents = []
+                period_label = f"{period_label} | Unidade: {unit_filter}"
+                period_slug = f"{period_slug}_unidade_{slugify(unit_filter)}"
+
+            if equipment_filter:
+                main_incidents = filter_by_equipment(main_incidents, equipment_filter)
+                zabbix_incidents = []
+                confea_incidents = []
+                period_label = f"{period_label} | Equipamento: {equipment_filter}"
+                period_slug = f"{period_slug}_{slugify(equipment_filter)}"
+
+            scoped_incidents = main_incidents + zabbix_incidents + confea_incidents
+
+        # Filtros alteram o slug e, portanto, os nomes finais dos arquivos.
+        base_name = f"report_{today.strftime('%Y-%m-%d')}_{period_slug}"
+        excel_name = REPORTS_DIR / f"{base_name}.xlsx"
+        html_name = REPORTS_DIR / f"{base_name}.html"
+        pdf_name = REPORTS_DIR / f"{base_name}.pdf"
+        technical_pdf = technical_pdf_name(pdf_name)
+        diagnostic_name = REPORTS_DIR / f"{base_name}_diagnostico.json"
+        planned_files = {
+            "excel": excel_name,
+            "html": html_name,
+            "pdf": pdf_name,
+        }
+        if args.pdf_detalhado:
+            planned_files["technical_pdf"] = technical_pdf
+        for kind, path in planned_files.items():
+            diagnostics.record_file(kind, path, completed=False)
+
+        with diagnostics.measure("summaries"):
+            summary = build_report_summary(main_incidents)
+            zabbix_summary = build_report_summary(zabbix_incidents)
+            confea_summary = build_report_summary(confea_incidents)
+        diagnostics.set_event_groups(
+            summary["event_total"],
+            zabbix_summary["event_total"],
+            confea_summary["event_total"],
+        )
+
+        execute_measured_export(
+            diagnostics,
+            "excel_export",
+            "excel",
+            excel_name,
+            lambda: export_excel(
+                excel_name,
+                scoped_incidents,
+                main_incidents,
+                zabbix_incidents,
+                confea_incidents,
+                summary,
+                generated,
+                period_label,
+                integrity_summary,
+                diagnostics,
+            ),
+        )
+        print(f"Excel gerado: {excel_name}")
+
+        execute_measured_export(
+            diagnostics,
+            "html_export",
+            "html",
+            html_name,
+            lambda: render_html(
+                html_name,
+                generated,
+                period_label,
+                main_incidents,
+                summary,
+                zabbix_incidents,
+                zabbix_summary,
+                confea_incidents,
+                confea_summary,
+                zabbix_web_url,
+                integrity_summary,
+            ),
+        )
+        print(f"HTML gerado: {html_name}")
+
+        execute_measured_export(
+            diagnostics,
+            "pdf_export",
+            "pdf",
+            pdf_name,
+            lambda: write_pdf_report(
+                pdf_name,
+                main_incidents,
+                generated,
+                summary,
+                period_label,
+                integrity_summary,
+                {
+                    "Servidor Zabbix": zabbix_summary,
+                    "CONFEA VPN": confea_summary,
+                },
+            ),
+            with_pages=True,
+        )
+        print(f"PDF gerado: {pdf_name}")
+
+        if args.pdf_detalhado:
+            execute_measured_export(
+                diagnostics,
+                "technical_pdf_export",
+                "technical_pdf",
+                technical_pdf,
+                lambda: write_technical_pdf_report(
+                    technical_pdf,
+                    scoped_incidents,
+                    generated,
+                ),
+                with_pages=True,
+            )
+            print(f"Anexo técnico PDF gerado: {technical_pdf}")
+
+        with diagnostics.measure("report_cleanup"):
+            removed_reports = cleanup_old_reports(
+                base_name,
+                keep_count=args.manter_relatorios,
+            )
+        if removed_reports:
+            print(f"Relatórios antigos removidos: {len(removed_reports)} arquivo(s).")
+
+    except (Exception, SystemExit):
+        diagnostics.finalize()
+        if write_optional_diagnostic(args.diagnostico, diagnostics, diagnostic_name):
+            LOGGER.info("Diagnóstico parcial salvo: %s", diagnostic_name.name)
+        diagnostics.print_terminal_summary()
+        raise
+
+    diagnostics.finalize()
+    if write_optional_diagnostic(args.diagnostico, diagnostics, diagnostic_name):
+        print(f"Diagnóstico gerado: {diagnostic_name}")
 
     print("\nRELATÓRIOS GERADOS COM SUCESSO")
-    print("--------------------------------")
-    print(f"Periodo: {period_label}")
-    print(f"Eventos de unidades: {summary['event_total']}")
-    print(f"Incidentes únicos de unidades: {summary['unique_total']}")
-    print(f"Incidentes únicos abertos de unidades: {summary['unique_open']}")
-    print(f"Incidentes únicos resolvidos de unidades: {summary['unique_resolved']}")
-    print(f"Eventos abertos de unidades: {summary['open']}")
-    print(f"Eventos resolvidos de unidades: {summary['resolved']}")
-    print(f"Eventos do Servidor Zabbix: {zabbix_summary['event_total']}")
-    print(f"Eventos da CONFEA VPN: {confea_summary['event_total']}")
-    print(f"Excel: {excel_name}")
-    print(f"HTML: {html_name}")
-    print(f"PDF: {pdf_name}")
-    LOGGER.info("Geração do relatório concluída")
+    diagnostics.print_terminal_summary()
+    LOGGER.info("Geração do relatório concluída em %.2fs", diagnostics.total_seconds)
 
 
 if __name__ == "__main__":

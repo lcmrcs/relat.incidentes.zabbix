@@ -7,6 +7,7 @@ todos os detalhes JSON-RPC no meio do fluxo do relatório.
 """
 
 import logging
+import time
 from datetime import datetime
 
 import requests
@@ -23,15 +24,39 @@ class ZabbixClient:
     e devolve dicionários Python já validados.
     """
 
-    def __init__(self, url, token, timeout=REQUEST_TIMEOUT):
+    def __init__(self, url, token, timeout=REQUEST_TIMEOUT, diagnostics=None):
         self.url = url
         self.token = token
         self.timeout = timeout
+        self.diagnostics = diagnostics
         self.headers = {
             "Content-Type": "application/json-rpc",
         }
 
     def call(self, payload, error_context):
+        """Mede e executa uma chamada sem registrar payload, URL ou credencial."""
+
+        clock = self.diagnostics.clock if self.diagnostics else time.perf_counter
+        started = clock()
+        success = False
+        error_type = None
+        try:
+            result = self._call(payload, error_context)
+            success = True
+            return result
+        except (Exception, SystemExit) as error:
+            error_type = type(error).__name__
+            raise
+        finally:
+            if self.diagnostics:
+                self.diagnostics.record_api_call(
+                    payload.get("method", "unknown") if isinstance(payload, dict) else "unknown",
+                    max(0.0, clock() - started),
+                    success=success,
+                    error_type=error_type,
+                )
+
+    def _call(self, payload, error_context):
         """
         Envia um payload JSON-RPC para o Zabbix e devolve o JSON validado.
 

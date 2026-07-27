@@ -110,6 +110,7 @@ de equipamento, como `Terminal Facial`, `Câmera`, `Mikrotik`, `Switch`, `NVR`,
 | --- | --- |
 | `zabbix-report/zabbix_report.py` | Script principal. Coordena coleta, tratamento e geração dos relatórios. |
 | `zabbix-report/zabbix_api.py` | Cliente responsável pela comunicação com a API do Zabbix. |
+| `zabbix-report/observability.py` | Tempos, métricas seguras, gargalos e diagnóstico opcional da execução. |
 | `zabbix-report/classifiers.py` | Regras de classificação de unidade, equipamento e tipo de incidente. |
 | `zabbix-report/summary.py` | Cálculo dos indicadores, rankings e resumos do relatório. |
 | `zabbix-report/pdf_report.py` | Geração do relatório executivo em PDF. |
@@ -117,6 +118,8 @@ de equipamento, como `Terminal Facial`, `Câmera`, `Mikrotik`, `Switch`, `NVR`,
 | `zabbix-report/templates/report_template.html` | Estrutura HTML/Jinja do relatório. |
 | `zabbix-report/templates/report_styles.css` | Estilos visuais do relatório HTML. |
 | `zabbix-report/templates/report_script.js` | Filtros, busca, ordenação, modais e exportação CSV. |
+| `scripts/benchmark_exports.py` | Benchmark reproduzível das exportações com dados fictícios. |
+| `BENCHMARK_SPRINT_5.md` | Método, resultados e limitações da otimização orientada por evidências. |
 | `scripts/check_secrets.py` | Verificação local de possíveis tokens, senhas e segredos. |
 | `COMANDOS.md` | Guia prático com comandos usados no dia a dia. |
 | `CHANGELOG.md` | Histórico das principais evoluções do projeto. |
@@ -399,6 +402,10 @@ O relatório HTML contém:
 - janela separada para Servidor Zabbix;
 - janela separada para CONFEA VPN.
 
+A tabela operacional materializa até 100 linhas por página para manter a
+navegação leve em grandes volumes. Busca, filtros, contadores, ordenação,
+modais e CSV continuam considerando o conjunto completo de incidentes.
+
 ## Classificação de Equipamentos
 
 A classificação de equipamentos fica em:
@@ -561,6 +568,24 @@ Seções executivas sem conteúdo são omitidas, os rankings têm limites fixos 
 número de páginas do documento principal não cresce com o volume de eventos.
 HTML e Excel continuam sendo as fontes de detalhamento interativo e tabular.
 
+### Observabilidade da geração
+
+Toda execução apresenta no terminal um resumo compacto com tempo total, coleta
+da API, processamento, exportações, registros, tamanhos, etapa mais demorada e
+avisos. As medições usam `time.perf_counter()` e não alteram os indicadores ou
+arquivos gerados.
+
+Para persistir as métricas técnicas ao lado dos relatórios:
+
+```bash
+python zabbix-report/zabbix_report.py --periodo 7d --diagnostico
+```
+
+O arquivo `report_..._diagnostico.json` inclui somente período solicitado,
+horários, durações, contagens, métodos da API, tamanhos, páginas, gargalo e
+avisos. Tokens, URLs, IPs, payloads, hosts e conteúdo dos incidentes não são
+armazenados. Sem `--diagnostico`, nenhum JSON é criado.
+
 Ao adicionar ou ajustar regras:
 
 - use `classifiers.py` para novas classificações;
@@ -568,6 +593,7 @@ Ao adicionar ou ajustar regras:
 - use `report_styles.css` para ajustes visuais;
 - use `report_script.js` para filtros e interações do HTML;
 - use `pdf_report.py` para melhorias no PDF;
+- use `observability.py` para métricas e limites de desempenho;
 - mantenha `zabbix_report.py` como coordenador do fluxo principal.
 
 Evite concentrar toda a lógica em um único arquivo. A separação atual facilita

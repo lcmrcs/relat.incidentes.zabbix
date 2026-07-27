@@ -129,6 +129,28 @@ report_AAAA-MM-DD_periodo_anexo_tecnico.pdf
 Sem `--pdf-detalhado`, somente o PDF executivo é criado. O HTML e o Excel
 continuam contendo o detalhamento operacional completo.
 
+Para gerar também o diagnóstico técnico seguro:
+
+```bash
+python zabbix-report/zabbix_report.py --periodo historico --status abertos --diagnostico
+```
+
+Arquivo adicional:
+
+```text
+report_AAAA-MM-DD_periodo_diagnostico.json
+```
+
+O resumo de desempenho sempre aparece no terminal. O JSON só é criado com
+`--diagnostico` e contém tempos por etapa, chamadas da API, tamanhos, páginas,
+gargalo e avisos, sem credenciais, URLs, IPs ou conteúdo dos incidentes.
+
+Os argumentos podem ser combinados:
+
+```bash
+python zabbix-report/zabbix_report.py --periodo 7d --pdf-detalhado --diagnostico
+```
+
 Para guardar mais de um conjunto de relatórios, use:
 
 ```bash
@@ -345,6 +367,12 @@ zabbix-report/zabbix_api.py
 Centraliza chamadas para a API do Zabbix.
 
 ```text
+zabbix-report/observability.py
+```
+
+Centraliza tempos, métricas seguras, avisos de gargalo e diagnóstico JSON.
+
+```text
 zabbix-report/classifiers.py
 ```
 
@@ -404,6 +432,22 @@ Ver resumo das mudancas:
 ```bash
 git diff --stat
 ```
+
+### Benchmark local das exportacoes
+
+Use somente para medir Excel e HTML com dados ficticios, sem acessar o Zabbix:
+
+```bash
+python scripts/benchmark_exports.py --runs 3 --volumes 0 10 7171 20000
+```
+
+Para salvar o resultado bruto:
+
+```bash
+python scripts/benchmark_exports.py --runs 3 --volumes 0 10 7171 20000 --output benchmark.json
+```
+
+O comparativo validado do Sprint 5 esta em `BENCHMARK_SPRINT_5.md`.
 
 ## 15. Ver arquivos alterados
 

@@ -1,3 +1,5 @@
+import json
+import re
 import sys
 import tempfile
 import unittest
@@ -8,6 +10,7 @@ from openpyxl import load_workbook
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_DIR))
 
+from observability import ExecutionDiagnostics  # noqa: E402
 from pdf_report import write_pdf_report  # noqa: E402
 from summary import build_report_summary  # noqa: E402
 from zabbix_report import export_excel, render_html  # noqa: E402
@@ -79,6 +82,39 @@ class ExportTests(unittest.TestCase):
         self.assertEqual(workbook["Unidades"]["K1"].value, "Duração total")
         self.assertEqual(workbook["Unidades"]["L1"].value, "Idade do passivo aberto")
         self.assertEqual(workbook["Unidades"]["M1"].value, "Evento Zabbix")
+
+    def test_export_excel_reports_internal_optimization_stages(self):
+        incidents = [sample_incident()]
+        summary = build_report_summary(incidents)
+        diagnostics = ExecutionDiagnostics("período fictício")
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output = Path(temp_dir) / "relatorio.xlsx"
+            export_excel(
+                output,
+                incidents,
+                incidents,
+                [],
+                [],
+                summary,
+                "26/06/2026 14:16",
+                "período fictício",
+                diagnostics=diagnostics,
+            )
+
+        measured_stages = {item["name"] for item in diagnostics.as_dict()["stages"]}
+        self.assertTrue(
+            {
+                "excel_dataframes",
+                "excel_sheet_writes",
+                "excel_base_styles",
+                "excel_column_widths",
+                "excel_tables",
+                "excel_conditional_formatting",
+                "excel_charts",
+                "excel_save",
+            }.issubset(measured_stages)
+        )
 
     def test_write_pdf_report_creates_pdf_file(self):
         incidents = [sample_incident()]
@@ -184,13 +220,22 @@ class ExportTests(unittest.TestCase):
             workbook = load_workbook(excel_path, data_only=True)
             pdf = pdf_path.read_bytes()
 
-        self.assertIn('data-duration-label="1h 0min"', html)
+        payload_match = re.search(
+            r'<script id="incident-data" type="application/json">(.*?)</script>',
+            html,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(payload_match)
+        payload = json.loads(payload_match.group(1))
+
+        self.assertEqual(payload[0][14], "1h 0min")
         self.assertIn("Relatório possivelmente incompleto", html)
         self.assertNotIn("Duração dos incidentes resolvidos", html)
         self.assertNotIn("resolved-duration-track", html)
-        self.assertIn('data-open-age-label="1h 0min"', html)
-        self.assertIn('data-duration-label="2h 0min"', html)
-        self.assertIn('data-open-age-label="-"', html)
+        self.assertEqual(payload[0][16], "1h 0min")
+        self.assertEqual(payload[1][14], "2h 0min")
+        self.assertEqual(payload[1][16], "-")
+        self.assertIn("data-page-status", html)
         self.assertEqual(workbook["Unidades"]["K2"].value, "1h 0min")
         self.assertEqual(workbook["Unidades"]["L2"].value, "1h 0min")
         self.assertEqual(workbook["Unidades"]["K3"].value, "2h 0min")

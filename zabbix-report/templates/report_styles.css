@@ -5660,3 +5660,40 @@
                 grid-template-columns: repeat(3, minmax(0, 1fr));
             }
         }
+/* Paginação local: mantém o DOM leve sem alterar o conjunto filtrado. */
+.table-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 14px 2px 4px;
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.table-pagination button {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    padding: 8px 12px;
+    font: inherit;
+    cursor: pointer;
+}
+
+.table-pagination button:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent-strong);
+}
+
+.table-pagination button:disabled {
+    cursor: default;
+    opacity: 0.42;
+}
+
+@media (max-width: 640px) {
+    .table-pagination {
+        justify-content: space-between;
+    }
+}

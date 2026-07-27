@@ -66,6 +66,28 @@ class ReportCleanupTests(unittest.TestCase):
             self.assertTrue(current_pdf.exists())
             self.assertTrue(annex_pdf.exists())
 
+    def test_cleanup_treats_diagnostic_as_part_of_report_group(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            reports_dir = Path(temp_dir)
+            current_json = reports_dir / "report_current_diagnostico.json"
+            old_json = reports_dir / "report_old_diagnostico.json"
+            current_pdf = reports_dir / "report_current.pdf"
+            old_pdf = reports_dir / "report_old.pdf"
+            for path in (current_json, old_json, current_pdf, old_pdf):
+                path.write_text("metric", encoding="utf-8")
+
+            with patch.object(zabbix_report, "REPORTS_DIR", reports_dir):
+                removed = zabbix_report.cleanup_old_reports(
+                    "report_current",
+                    keep_count=1,
+                )
+
+            self.assertEqual(
+                sorted(path.name for path in removed),
+                ["report_old.pdf", "report_old_diagnostico.json"],
+            )
+            self.assertTrue(current_json.exists())
+
 
 if __name__ == "__main__":
     unittest.main()
