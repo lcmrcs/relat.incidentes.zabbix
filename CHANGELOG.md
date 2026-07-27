@@ -8,6 +8,12 @@ Este arquivo registra mudanças relevantes de forma simples, para facilitar acom
 
 ### Adicionado
 
+- PDF Executivo 2.0 com capa, indicadores, rankings limitados, prioridades,
+  recorrências, criticidade, integridade e conclusão em páginas compactas.
+- Anexo técnico PDF separado e opcional por meio de `--pdf-detalhado`, com
+  cabeçalho repetido, paginação e detalhamento completo dos eventos.
+- Testes de volume, limite de rankings, seções vazias, paginação, nomes,
+  acentuação e proteção contra URLs ou credenciais no PDF.
 - Validação central de integridade antes da construção dos incidentes, com
   ajustes, descartes e avisos contabilizados sem expor dados sensíveis.
 - Resumo canônico de integridade no HTML, Excel e PDF.
@@ -21,6 +27,9 @@ Este arquivo registra mudanças relevantes de forma simples, para facilitar acom
 
 ### Corrigido
 
+- O PDF principal não cresce mais conforme o total de eventos e não inclui a
+  tabela operacional completa por padrão.
+- Limites de conteúdo e quebra de texto evitam cortes e sobreposições no PDF.
 - Duração de incidentes resolvidos agora termina na resolução e não continua
   envelhecendo a cada nova geração.
 - Indicadores de idade e faixas temporais agora consideram somente incidentes
@@ -30,7 +39,6 @@ Este arquivo registra mudanças relevantes de forma simples, para facilitar acom
 
 ### Planejado
 
-- Melhorar a geração do PDF executivo, com layout mais fiel ao HTML.
 - Ampliar a cobertura de testes automatizados.
 - Criar rotina de geração agendada dos relatórios.
 - Avaliar uma versão executável para uso em computadores sem conhecimento técnico.
