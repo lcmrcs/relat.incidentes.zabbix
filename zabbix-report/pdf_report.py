@@ -6,6 +6,7 @@ consulta o Zabbix nem conhece argumentos de terminal; recebe dados prontos e
 cria o arquivo PDF final.
 """
 
+
 def pdf_escape(value):
     """
     Prepara texto para ser escrito dentro de um stream PDF.
@@ -21,8 +22,7 @@ def pdf_escape(value):
     data = text.encode("cp1252", errors="replace")
 
     return (
-        data
-        .replace(b"\\", b"\\\\")
+        data.replace(b"\\", b"\\\\")
         .replace(b"(", b"\\(")
         .replace(b")", b"\\)")
         .replace(b"\r", b" ")
@@ -76,7 +76,8 @@ def add_pdf_text(commands, x, y, text, size=8, font="F1", color=(0.05, 0.14, 0.2
     # Define a cor antes de cada texto. Sem isso, o PDF reutiliza a ultima cor
     # de preenchimento usada em fundos e o texto pode ficar apagado.
     commands.append(
-        b"%.2f %.2f %.2f rg\n" % (
+        b"%.2f %.2f %.2f rg\n"
+        % (
             color[0],
             color[1],
             color[2],
@@ -86,128 +87,9 @@ def add_pdf_text(commands, x, y, text, size=8, font="F1", color=(0.05, 0.14, 0.2
     # BT/ET iniciam e encerram um bloco de texto no PDF. Td posiciona o texto,
     # Tf escolhe fonte/tamanho e Tj desenha a string escapada.
     commands.append(
-        b"BT /%b %d Tf %.2f %.2f Td (%b) Tj ET\n" % (
-            font.encode("ascii"),
-            size,
-            x,
-            y,
-            pdf_escape(text)
-        )
+        b"BT /%b %d Tf %.2f %.2f Td (%b) Tj ET\n"
+        % (font.encode("ascii"), size, x, y, pdf_escape(text))
     )
-
-
-def build_report_summary(incidents):
-    """
-    Calcula indicadores usados no HTML e na primeira página do PDF.
-
-    O resumo evita recalcular contagens em vários pontos do código e concentra
-    totais por severidade, equipamento e hosts mais afetados.
-    """
-
-    # incident_key agrupa repeticoes do mesmo problema no mesmo equipamento.
-    # Assim distinguimos "eventos gerados pelo Zabbix" de "incidentes unicos".
-    unique_incidents = {
-        item["incident_key"]: item
-        for item in incidents
-    }
-
-    unique_total = len(unique_incidents)
-    unique_open = sum(
-        1
-        for item in unique_incidents.values()
-        if item["status"] == "Aberto"
-    )
-    unique_resolved = unique_total - unique_open
-    repeated_events = max(0, len(incidents) - unique_total)
-
-    # Counter conta quantas vezes cada categoria aparece na lista de eventos.
-    severity_counter = Counter(
-        item["severity"]
-        for item in incidents
-    )
-    status_counter = Counter(
-        item["status"]
-        for item in incidents
-    )
-    unit_counter = Counter(
-        item["unit"]
-        for item in incidents
-    )
-    equipment_counter = Counter(
-        item["equipment"]
-        for item in incidents
-    )
-    host_counter = Counter(
-        item["host"]
-        for item in incidents
-        if item["host"] != "N/A"
-    )
-
-    total = len(incidents)
-    avg_events_per_incident = (
-        round(total / unique_total, 1)
-        if unique_total
-        else 0
-    )
-
-    def format_counter(counter, preferred_order=None):
-        """
-        Converte um Counter em lista de dicionários com total e percentual.
-
-        O formato em lista é mais simples de percorrer no template HTML e no PDF.
-        """
-        ordered_items = []
-
-        if preferred_order:
-            ordered_items.extend([
-                (name, counter[name])
-                for name in preferred_order
-                if counter.get(name, 0)
-            ])
-
-        ordered_names = {
-            name
-            for name, _ in ordered_items
-        }
-        ordered_items.extend([
-            (name, count)
-            for name, count in counter.most_common()
-            if name not in ordered_names
-        ])
-
-        return [
-            {
-                "name": name,
-                "total": count,
-                "percent": round((count / total) * 100, 1) if total else 0
-            }
-            for name, count in ordered_items
-        ]
-
-    return {
-        "total": total,
-        "event_total": total,
-        "unique_total": unique_total,
-        "unique_open": unique_open,
-        "unique_resolved": unique_resolved,
-        "repeated_events": repeated_events,
-        "avg_events_per_incident": avg_events_per_incident,
-        "unclassified": severity_counter.get("Não classificada", 0),
-        "information": severity_counter.get("Informação", 0),
-        "attention": severity_counter.get("Atenção", 0),
-        "critical": severity_counter.get("Desastre", 0),
-        "high": severity_counter.get("Alta", 0),
-        "medium": severity_counter.get("Média", 0),
-        "warning": severity_counter.get("Atenção", 0),
-        "open": status_counter.get("Aberto", 0),
-        "resolved": status_counter.get("Resolvido", 0),
-        "status": format_counter(status_counter),
-        "units": format_counter(unit_counter),
-        "top_units": format_counter(unit_counter)[:12],
-        "severity": format_counter(severity_counter),
-        "equipment": format_counter(equipment_counter, equipment_order),
-        "top_hosts": format_counter(host_counter)[:8],
-    }
 
 
 def build_summary_pdf_page(summary, generated, period_label, total_pages):
@@ -261,14 +143,16 @@ def build_summary_pdf_page(summary, generated, period_label, total_pages):
     for index, (label, value) in enumerate(hero_cards):
         x = 44 + (index * 254)
         commands.append(
-            b"0.08 0.31 0.35 rg %.2f %.2f %.2f 56 re f\n" % (
+            b"0.08 0.31 0.35 rg %.2f %.2f %.2f 56 re f\n"
+            % (
                 x,
                 hero_y,
                 hero_width,
             )
         )
         commands.append(
-            b"0.15 0.66 0.70 RG %.2f %.2f %.2f 56 re S\n" % (
+            b"0.15 0.66 0.70 RG %.2f %.2f %.2f 56 re S\n"
+            % (
                 x,
                 hero_y,
                 hero_width,
@@ -279,7 +163,8 @@ def build_summary_pdf_page(summary, generated, period_label, total_pages):
 
     def draw_metric_group(title, items, x, y, width, accent):
         commands.append(
-            b"%.2f %.2f %.2f rg %.2f %.2f %.2f 118 re f\n" % (
+            b"%.2f %.2f %.2f rg %.2f %.2f %.2f 118 re f\n"
+            % (
                 0.97,
                 0.99,
                 0.99,
@@ -289,7 +174,8 @@ def build_summary_pdf_page(summary, generated, period_label, total_pages):
             )
         )
         commands.append(
-            b"%.2f %.2f %.2f RG %.2f %.2f %.2f 118 re S\n" % (
+            b"%.2f %.2f %.2f RG %.2f %.2f %.2f 118 re S\n"
+            % (
                 accent[0],
                 accent[1],
                 accent[2],
@@ -305,14 +191,16 @@ def build_summary_pdf_page(summary, generated, period_label, total_pages):
         for index, (label, value) in enumerate(items):
             card_x = x + 12 + (index * (card_width + 6))
             commands.append(
-                b"0.94 0.98 0.98 rg %.2f %.2f %.2f 58 re f\n" % (
+                b"0.94 0.98 0.98 rg %.2f %.2f %.2f 58 re f\n"
+                % (
                     card_x,
                     y + 22,
                     card_width,
                 )
             )
             commands.append(
-                b"%.2f %.2f %.2f RG %.2f %.2f %.2f 58 re S\n" % (
+                b"%.2f %.2f %.2f RG %.2f %.2f %.2f 58 re S\n"
+                % (
                     accent[0],
                     accent[1],
                     accent[2],
@@ -361,14 +249,16 @@ def build_summary_pdf_page(summary, generated, period_label, total_pages):
 
     def draw_section(title, items, x, y, width=350, limit=7):
         commands.append(
-            b"0.04 0.20 0.25 rg %.2f %.2f %.2f 24 re f\n" % (
+            b"0.04 0.20 0.25 rg %.2f %.2f %.2f 24 re f\n"
+            % (
                 x,
                 y,
                 width,
             )
         )
         commands.append(
-            b"0.03 0.50 0.55 rg %.2f %.2f %.2f 3 re f\n" % (
+            b"0.03 0.50 0.55 rg %.2f %.2f %.2f 3 re f\n"
+            % (
                 x,
                 y + 21,
                 width,
@@ -385,7 +275,8 @@ def build_summary_pdf_page(summary, generated, period_label, total_pages):
             add_pdf_text(commands, x + 10, cursor, name_lines[0], 8, "F1", text)
             add_pdf_text(commands, x + width - 84, cursor, value, 8, "F2", text)
             commands.append(
-                b"0.90 0.95 0.96 RG %.2f %.2f %.2f 0.5 re S\n" % (
+                b"0.90 0.95 0.96 RG %.2f %.2f %.2f 0.5 re S\n"
+                % (
                     x + 10,
                     cursor - 5,
                     width - 20,
@@ -509,8 +400,8 @@ def build_pdf_page(rows, page_number, total_pages, generated):
         "Equipamento",
         "Tipo de incidente",
         "Sev.",
-        "Tempo",
-        "Evento"
+        "Duração",
+        "Evento",
     ]
 
     # Cada coluna define: posição X, largura visual e limite aproximado de
@@ -552,7 +443,7 @@ def build_pdf_page(rows, page_number, total_pages, generated):
                 columns[4][2],
             ),
             wrap_text(row.get("severity", ""), columns[5][2]),
-            wrap_text(row.get("age_label", ""), columns[6][2]),
+            wrap_text(row.get("duration_label", row.get("age_label", "")), columns[6][2]),
             wrap_text(row.get("eventid", ""), columns[7][2]),
         ]
 
@@ -562,7 +453,8 @@ def build_pdf_page(rows, page_number, total_pages, generated):
 
         if row_index % 2 == 0:
             commands.append(
-                b"0.98 0.99 1.00 rg 34 %.2f 776 %.2f re f\n" % (
+                b"0.98 0.99 1.00 rg 34 %.2f 776 %.2f re f\n"
+                % (
                     y - row_height + 10,
                     row_height,
                 )
@@ -570,10 +462,7 @@ def build_pdf_page(rows, page_number, total_pages, generated):
 
         # Desenha a borda da linha antes de escrever os textos.
         commands.append(
-            b"0.84 0.88 0.92 RG 34 %.2f 776 %.2f re S\n" % (
-                y - row_height + 10,
-                row_height
-            )
+            b"0.84 0.88 0.92 RG 34 %.2f 776 %.2f re S\n" % (y - row_height + 10, row_height)
         )
 
         for column_index, lines in enumerate(row_lines):
@@ -610,25 +499,20 @@ def write_pdf_report(filename, incidents, generated, summary, period_label):
     # criada separadamente e sempre aparece primeiro.
     rows_per_page = 14
     pages = [
-        incidents[index:index + rows_per_page]
+        incidents[index : index + rows_per_page]
         for index in range(0, len(incidents), rows_per_page)
     ] or [[]]
 
     total_pages = len(pages) + 1
 
     # Primeiro stream: resumo executivo. Depois: páginas com as linhas.
-    page_streams = [
-        build_summary_pdf_page(
-            summary,
-            generated,
-            period_label,
-            total_pages
-        )
-    ]
-    page_streams.extend([
-        build_pdf_page(rows, index + 2, total_pages, generated)
-        for index, rows in enumerate(pages)
-    ])
+    page_streams = [build_summary_pdf_page(summary, generated, period_label, total_pages)]
+    page_streams.extend(
+        [
+            build_pdf_page(rows, index + 2, total_pages, generated)
+            for index, rows in enumerate(pages)
+        ]
+    )
 
     # Objetos fixos do PDF: catálogo e fontes Helvetica normal/negrito.
     objects = {
@@ -654,24 +538,11 @@ def write_pdf_report(filename, incidents, generated, summary, period_label):
             b"/Contents %d 0 R >>" % content_id
         )
         # O stream guarda os comandos de desenho/texto daquela página.
-        objects[content_id] = (
-            b"<< /Length %d >>\nstream\n%bendstream" % (
-                len(stream),
-                stream
-            )
-        )
+        objects[content_id] = b"<< /Length %d >>\nstream\n%bendstream" % (len(stream), stream)
 
     # O objeto /Pages precisa listar todas as páginas filhas do documento.
-    kids = b" ".join(
-        b"%d 0 R" % page_id
-        for page_id in page_ids
-    )
-    objects[2] = (
-        b"<< /Type /Pages /Kids [%b] /Count %d >>" % (
-            kids,
-            len(page_ids)
-        )
-    )
+    kids = b" ".join(b"%d 0 R" % page_id for page_id in page_ids)
+    objects[2] = b"<< /Type /Pages /Kids [%b] /Count %d >>" % (kids, len(page_ids))
 
     # ordered_ids garante que os objetos sejam escritos em ordem previsível.
     ordered_ids = sorted(objects)
@@ -682,10 +553,7 @@ def write_pdf_report(filename, incidents, generated, summary, period_label):
         # offsets registra onde cada objeto começa; a tabela xref usa esses
         # números para que leitores de PDF encontrem os objetos.
         offsets[object_id] = len(pdf)
-        pdf.extend(b"%d 0 obj\n%b\nendobj\n" % (
-            object_id,
-            objects[object_id]
-        ))
+        pdf.extend(b"%d 0 obj\n%b\nendobj\n" % (object_id, objects[object_id]))
 
     # A tabela xref é obrigatória em PDFs clássicos e aponta para cada objeto.
     xref_offset = len(pdf)
@@ -697,10 +565,8 @@ def write_pdf_report(filename, incidents, generated, summary, period_label):
 
     # Trailer encerra o arquivo informando o objeto raiz e onde começa a xref.
     pdf.extend(
-        b"trailer\n<< /Size %d /Root 1 0 R >>\nstartxref\n%d\n%%%%EOF\n" % (
-            max(ordered_ids) + 1,
-            xref_offset
-        )
+        b"trailer\n<< /Size %d /Root 1 0 R >>\nstartxref\n%d\n%%%%EOF\n"
+        % (max(ordered_ids) + 1, xref_offset)
     )
 
     # O PDF é binário, por isso precisa ser escrito com modo "wb".

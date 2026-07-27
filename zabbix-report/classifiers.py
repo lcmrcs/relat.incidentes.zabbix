@@ -8,7 +8,6 @@ agrupamentos especiais sem mexer no fluxo principal do relatório.
 
 import re
 
-
 SEVERITY_MAP = {
     "0": "Não classificada",
     "1": "Informação",
@@ -89,48 +88,66 @@ def classify_incident_type(incident):
     if "no snmp data collection" in normalized:
         return "No SNMP data collection"
 
-    if any(term in normalized for term in [
-        "unavailable by icmp ping",
-        "indisponível por ping icmp",
-        "indisponivel por ping icmp",
-        "indisponível (sem resposta ao ping)",
-        "indisponivel (sem resposta ao ping)",
-    ]):
+    if any(
+        term in normalized
+        for term in [
+            "unavailable by icmp ping",
+            "indisponível por ping icmp",
+            "indisponivel por ping icmp",
+            "indisponível (sem resposta ao ping)",
+            "indisponivel (sem resposta ao ping)",
+        ]
+    ):
         return "Unavailable by ICMP ping"
 
-    if any(term in normalized for term in [
-        "high icmp ping loss",
-        "alta perda de pacotes",
-        "perda de pacotes",
-    ]):
+    if any(
+        term in normalized
+        for term in [
+            "high icmp ping loss",
+            "alta perda de pacotes",
+            "perda de pacotes",
+        ]
+    ):
         return "High ICMP ping loss"
 
-    if any(term in normalized for term in [
-        "high icmp ping response time",
-        "icmp ping response time",
-        "tempo de resposta icmp",
-    ]):
+    if any(
+        term in normalized
+        for term in [
+            "high icmp ping response time",
+            "icmp ping response time",
+            "tempo de resposta icmp",
+        ]
+    ):
         return "High ICMP ping response time"
 
-    if any(term in normalized for term in [
-        "temperature is above warning threshold",
-        "temperatura",
-    ]):
+    if any(
+        term in normalized
+        for term in [
+            "temperature is above warning threshold",
+            "temperatura",
+        ]
+    ):
         return "Temperature above threshold"
 
     if "high bandwidth usage" in normalized:
         return "High bandwidth usage"
 
-    if any(term in normalized for term in [
-        "ethernet has changed to lower speed",
-        "lower speed",
-    ]):
+    if any(
+        term in normalized
+        for term in [
+            "ethernet has changed to lower speed",
+            "lower speed",
+        ]
+    ):
         return "Ethernet lower speed"
 
-    if any(term in normalized for term in [
-        "link down",
-        "operational status down",
-    ]):
+    if any(
+        term in normalized
+        for term in [
+            "link down",
+            "operational status down",
+        ]
+    ):
         return "Interface down"
 
     return text
@@ -153,11 +170,7 @@ def extract_school_unit(host):
         return "Infraestrutura"
 
     code = match.group(1)
-    parts = [
-        part.strip()
-        for part in text.split("-")
-        if part.strip()
-    ]
+    parts = [part.strip() for part in text.split("-") if part.strip()]
 
     ignored = {
         "CAM",
@@ -175,11 +188,7 @@ def extract_school_unit(host):
     for part in reversed(parts[1:]):
         normalized = part.upper().replace(" ", "_")
 
-        if (
-            normalized in ignored
-            or normalized.startswith("TIPO_")
-            or "_" in normalized
-        ):
+        if normalized in ignored or normalized.startswith("TIPO_") or "_" in normalized:
             continue
 
         if re.search(r"[A-Za-zÀ-ÿ]", part):
@@ -238,9 +247,7 @@ def classify_unit_group(host, host_details, unit_catalog):
     if unit_code == "0000":
         return "ZBX", "Zabbix Server"
 
-    if "sp-hw-win" in normalized_host and (
-        "cfh" in normalized_host or "cad" in normalized_host
-    ):
+    if "sp-hw-win" in normalized_host and ("cfh" in normalized_host or "cad" in normalized_host):
         return "CONFEA", "CONFEA VPN"
 
     if not unit_code:

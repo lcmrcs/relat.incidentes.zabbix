@@ -133,7 +133,7 @@ de equipamento, como `Terminal Facial`, `Câmera`, `Mikrotik`, `Switch`, `NVR`,
 Entre na pasta do projeto:
 
 ```bash
-cd /mnt/c/Users/chip/Documents/relat.incidentes.zabbix
+cd /mnt/c/Users/chip/Desktop/lcmrcsWorkspace/relat.incidentes.zabbix
 ```
 
 Crie o arquivo `.env` a partir do exemplo:
@@ -499,12 +499,26 @@ Isso mantém o repositório mais leve e seguro.
 Comandos mais comuns:
 
 ```bash
-cd /mnt/c/Users/chip/Documents/relat.incidentes.zabbix
+cd /mnt/c/Users/chip/Desktop/lcmrcsWorkspace/relat.incidentes.zabbix
 source zabbix-report/venv/bin/activate
 python zabbix-report/zabbix_report.py --periodo historico --status abertos
 ```
 
 ## Manutenção do Projeto
+
+### Conceitos dos indicadores
+
+- **Evento**: cada ocorrência retornada pela API do Zabbix.
+- **Incidente único**: agrupamento lógico por unidade, host, equipamento e tipo
+  de incidente. A chave é normalizada, determinística e não depende da
+  severidade nem de textos variáveis como o IP no nome do evento.
+- **Recorrência**: repetição da mesma condição no período consultado.
+- **Duração total**: da abertura até a geração para eventos abertos, ou da
+  abertura até a resolução para eventos resolvidos.
+- **Idade do passivo aberto**: tempo decorrido somente para eventos ainda
+  abertos. Mais antigo, média e faixas de envelhecimento ignoram resolvidos.
+
+Os testes automatizados usam somente dados fictícios e não acessam o Zabbix.
 
 Ao adicionar ou ajustar regras:
 

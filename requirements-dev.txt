@@ -1,0 +1,10 @@
+-r zabbix-report/requirements.txt
+
+# Ferramentas para validacao e manutencao do projeto.
+black
+ruff
+pytest
+
+# Dependencias usadas para preparar material publico/sanitizado do LinkedIn.
+pillow
+playwright

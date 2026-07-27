@@ -8,8 +8,8 @@ o resultado no terminal.
 """
 
 import os
-import requests
 
+import requests
 from dotenv import load_dotenv
 
 # ==========================================
@@ -51,9 +51,7 @@ print()
 
 # A API do Zabbix usa JSON-RPC; por isso o Content-Type precisa indicar que o
 # corpo da requisição será um JSON nesse formato.
-headers = {
-    "Content-Type": "application/json-rpc"
-}
+headers = {"Content-Type": "application/json-rpc"}
 
 # ==========================================
 # PAYLOAD DE TESTE
@@ -64,27 +62,17 @@ headers = {
 # funcionando.
 payload = {
     "jsonrpc": "2.0",
-
     # host.get busca hosts cadastrados
     "method": "host.get",
-
     "params": {
-
         # quais campos retornar
-        "output": [
-            "host",
-            "name",
-            "status"
-        ],
-
+        "output": ["host", "name", "status"],
         # limitar em 5 hosts
-        "limit": 5
+        "limit": 5,
     },
-
     # token da API
     "auth": ZABBIX_TOKEN,
-
-    "id": 1
+    "id": 1,
 }
 
 print("Conectando ao Zabbix...")
@@ -98,12 +86,7 @@ try:
 
     # requests.post() envia a consulta ao endpoint do Zabbix. O timeout evita
     # que o terminal fique preso indefinidamente se o servidor não responder.
-    response = requests.post(
-        ZABBIX_URL,
-        json=payload,
-        headers=headers,
-        timeout=15
-    )
+    response = requests.post(ZABBIX_URL, json=payload, headers=headers, timeout=15)
 
 except requests.exceptions.ConnectionError:
     print("ERRO: Não foi possível conectar ao servidor.")
@@ -185,11 +168,7 @@ for index, host in enumerate(result, start=1):
 
     # No Zabbix, status "0" indica host habilitado; outros valores indicam host
     # desabilitado. A tradução deixa a saída mais legível.
-    status = (
-        "Habilitado"
-        if host["status"] == "0"
-        else "Desabilitado"
-    )
+    status = "Habilitado" if host["status"] == "0" else "Desabilitado"
 
     print(f"[{index}]")
     print(f"Host: {host['host']}")

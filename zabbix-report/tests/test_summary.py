@@ -3,12 +3,10 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_DIR))
 
 from summary import build_age_summary, build_report_summary, format_age  # noqa: E402
-
 
 NOW = 10_000_000
 
@@ -49,6 +47,10 @@ def incident(
         "timestamp": NOW - age_seconds,
         "age_seconds": age_seconds,
         "age_label": format_age(age_seconds),
+        "open_age_seconds": age_seconds if status == "Aberto" else 0,
+        "open_age_label": format_age(age_seconds) if status == "Aberto" else "-",
+        "duration_seconds": age_seconds,
+        "duration_label": format_age(age_seconds),
     }
 
 
@@ -132,12 +134,12 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual(summary["top_equipment"][0]["total"], 2)
         self.assertEqual(summary["top_units"][0]["name"], "1011-CE A")
         self.assertEqual(summary["top_incident_types"][0]["name"], "Unavailable by ICMP ping")
-        self.assertEqual(summary["period_comparison"]["fresh_total"], 4)
+        self.assertEqual(summary["period_comparison"]["fresh_total"], 3)
         self.assertEqual(summary["recurrence"]["affected_hosts"], 1)
         self.assertEqual(summary["recurrence"]["top"][0]["total"], 2)
         self.assertGreaterEqual(summary["priority"]["high"], 1)
         self.assertGreater(summary["priority"]["average_score"], 0)
-        self.assertEqual(summary["unit_criticality"]["total_units"], 2)
+        self.assertEqual(summary["unit_criticality"]["total_units"], 1)
         self.assertEqual(summary["unit_criticality"]["top"][0]["name"], "1011-CE A")
         self.assertGreaterEqual(
             summary["unit_criticality"]["top"][0]["affected_equipment_count"],
@@ -170,6 +172,35 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual(summary["unit_criticality"]["top"], [])
         self.assertEqual(summary["top_oldest_units"], [])
         self.assertEqual(summary["top_high_severity_units"], [])
+
+    @patch("summary.datetime", FixedDatetime)
+    def test_aging_indicators_ignore_resolved_events(self):
+        summary = build_report_summary(
+            [
+                incident("open", age_seconds=3600),
+                incident("resolved", status="Resolvido", age_seconds=100 * 86400),
+            ]
+        )
+        self.assertEqual(summary["age"]["oldest"]["incident_key"], "open")
+        self.assertEqual(summary["age"]["over_90d"], 0)
+        self.assertEqual(summary["period_comparison"]["fresh_total"], 1)
+
+    def test_grouping_and_recurrence_use_the_canonical_incident_key(self):
+        incidents = [
+            incident("same-condition", host="host-a"),
+            incident("same-condition", host="host-a", status="Resolvido"),
+            incident("other-condition", host="host-a", incident_type="High ICMP ping loss"),
+        ]
+
+        summary = build_report_summary(incidents)
+
+        self.assertEqual(summary["event_total"], 3)
+        self.assertEqual(summary["unique_total"], 2)
+        self.assertEqual(summary["repeated_events"], 1)
+        self.assertEqual(summary["unique_open"], 2)
+        self.assertEqual(summary["unique_resolved"], 0)
+        self.assertEqual(summary["recurrence"]["total_recurrent_events"], 1)
+        self.assertEqual(summary["recurrence"]["affected_hosts"], 1)
 
 
 if __name__ == "__main__":

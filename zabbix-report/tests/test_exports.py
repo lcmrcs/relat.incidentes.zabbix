@@ -5,13 +5,12 @@ from pathlib import Path
 
 from openpyxl import load_workbook
 
-
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_DIR))
 
 from pdf_report import write_pdf_report  # noqa: E402
 from summary import build_report_summary  # noqa: E402
-from zabbix_report import export_excel  # noqa: E402
+from zabbix_report import export_excel, render_html  # noqa: E402
 
 
 def sample_incident():
@@ -29,6 +28,10 @@ def sample_incident():
         "timestamp": 1782480000,
         "age_seconds": 3600,
         "age_label": "1h 0min",
+        "duration_seconds": 3600,
+        "duration_label": "1h 0min",
+        "open_age_seconds": 3600,
+        "open_age_label": "1h 0min",
         "resolved_at": "",
         "eventid": "123456",
     }
@@ -70,7 +73,10 @@ class ExportTests(unittest.TestCase):
         self.assertEqual(workbook["Criticidade"]["A1"].value, "Score")
         self.assertEqual(workbook["Criticidade"]["B1"].value, "Faixa operacional")
         self.assertEqual(workbook["Unidades"]["A1"].value, "Data de abertura")
-        self.assertEqual(workbook["Unidades"]["K1"].value, "Evento Zabbix")
+        self.assertEqual(workbook["Unidades"]["B1"].value, "Data de resolução")
+        self.assertEqual(workbook["Unidades"]["K1"].value, "Duração total")
+        self.assertEqual(workbook["Unidades"]["L1"].value, "Idade do passivo aberto")
+        self.assertEqual(workbook["Unidades"]["M1"].value, "Evento Zabbix")
 
     def test_write_pdf_report_creates_pdf_file(self):
         incidents = [sample_incident()]
@@ -89,6 +95,75 @@ class ExportTests(unittest.TestCase):
 
         self.assertTrue(pdf_bytes.startswith(b"%PDF-1.4"))
         self.assertIn(b"%%EOF", pdf_bytes)
+        self.assertIn(b"1h 0min", pdf_bytes)
+
+    def test_html_excel_and_pdf_consume_the_same_operational_fields(self):
+        resolved = {
+            **sample_incident(),
+            "incident_key": "1040|host|terminal facial|high icmp ping loss resolved",
+            "eventid": "123457",
+            "status": "Resolvido",
+            "resolved_at": "26/06/2026 16:16",
+            "duration_seconds": 7200,
+            "duration_label": "2h 0min",
+            "open_age_seconds": 0,
+            "open_age_label": "-",
+            "age_seconds": 0,
+            "age_label": "2h 0min",
+        }
+        incidents = [sample_incident(), resolved]
+        summary = build_report_summary(incidents)
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_dir = Path(temp_dir)
+            html_path = temp_dir / "relatorio.html"
+            excel_path = temp_dir / "relatorio.xlsx"
+            pdf_path = temp_dir / "relatorio.pdf"
+
+            render_html(
+                html_path,
+                "26/06/2026 14:16",
+                "período fictício",
+                incidents,
+                summary,
+                [],
+                build_report_summary([]),
+                [],
+                build_report_summary([]),
+                "https://zabbix.example.test",
+            )
+            export_excel(
+                excel_path,
+                incidents,
+                incidents,
+                [],
+                [],
+                summary,
+                "26/06/2026 14:16",
+                "período fictício",
+            )
+            write_pdf_report(
+                pdf_path,
+                incidents,
+                "26/06/2026 14:16",
+                summary,
+                "período fictício",
+            )
+
+            html = html_path.read_text(encoding="utf-8")
+            workbook = load_workbook(excel_path, data_only=True)
+            pdf = pdf_path.read_bytes()
+
+        self.assertIn('data-duration-label="1h 0min"', html)
+        self.assertIn('data-open-age-label="1h 0min"', html)
+        self.assertIn('data-duration-label="2h 0min"', html)
+        self.assertIn('data-open-age-label="-"', html)
+        self.assertEqual(workbook["Unidades"]["K2"].value, "1h 0min")
+        self.assertEqual(workbook["Unidades"]["L2"].value, "1h 0min")
+        self.assertEqual(workbook["Unidades"]["K3"].value, "2h 0min")
+        self.assertEqual(workbook["Unidades"]["L3"].value, "-")
+        self.assertIn(b"1h 0min", pdf)
+        self.assertIn(b"2h 0min", pdf)
 
 
 if __name__ == "__main__":

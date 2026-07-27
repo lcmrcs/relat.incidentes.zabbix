@@ -20,7 +20,6 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import unquote
 
-
 BASE_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = BASE_DIR.parent
 REPORT_SCRIPT = BASE_DIR / "zabbix_report.py"
@@ -1130,15 +1129,19 @@ def collect_known_units() -> list[dict[str, str]]:
 def render_page() -> bytes:
     """Renderiza a tela inicial com dados locais simples."""
 
-    page = HTML_PAGE.replace(
-        "__EQUIPMENTS__",
-        json.dumps(KNOWN_EQUIPMENTS, ensure_ascii=False),
-    ).replace(
-        "__UNITS__",
-        json.dumps(collect_known_units(), ensure_ascii=False),
-    ).replace(
-        "__HEALTH__",
-        json.dumps(build_health_items(), ensure_ascii=False),
+    page = (
+        HTML_PAGE.replace(
+            "__EQUIPMENTS__",
+            json.dumps(KNOWN_EQUIPMENTS, ensure_ascii=False),
+        )
+        .replace(
+            "__UNITS__",
+            json.dumps(collect_known_units(), ensure_ascii=False),
+        )
+        .replace(
+            "__HEALTH__",
+            json.dumps(build_health_items(), ensure_ascii=False),
+        )
     )
     return page.encode("utf-8")
 
@@ -1282,9 +1285,7 @@ class LauncherHandler(BaseHTTPRequestHandler):
                 timeout=1800,
             )
             output = "\n".join(
-                part
-                for part in [completed.stdout.strip(), completed.stderr.strip()]
-                if part
+                part for part in [completed.stdout.strip(), completed.stderr.strip()] if part
             )
 
             if completed.returncode != 0:

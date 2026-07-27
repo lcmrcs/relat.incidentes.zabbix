@@ -1,6 +1,5 @@
-from pathlib import Path
 import textwrap
-
+from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
 REPORTS_DIR = BASE_DIR / "reports"
@@ -41,8 +40,7 @@ DOCUMENT = [
     ("heading", "2. Estrutura de arquivos"),
     (
         "bullet",
-        "README.md: apresenta o objetivo do projeto, requisitos, instalacao e "
-        "uso basico.",
+        "README.md: apresenta o objetivo do projeto, requisitos, instalacao e " "uso basico.",
     ),
     (
         "bullet",
@@ -150,8 +148,7 @@ DOCUMENT = [
     ),
     (
         "bullet",
-        "Carregar .env: busca ZABBIX_URL e ZABBIX_TOKEN de forma segura, fora "
-        "do Git.",
+        "Carregar .env: busca ZABBIX_URL e ZABBIX_TOKEN de forma segura, fora " "do Git.",
     ),
     (
         "bullet",
@@ -212,8 +209,7 @@ DOCUMENT = [
     ),
     (
         "bullet",
-        "equipment_order: define a ordem visual do filtro de equipamento no "
-        "HTML.",
+        "equipment_order: define a ordem visual do filtro de equipamento no " "HTML.",
     ),
     (
         "bullet",
@@ -228,8 +224,7 @@ DOCUMENT = [
     ),
     (
         "bullet",
-        "extract_unit_code: pega apenas o codigo numerico inicial do host, "
-        "quando existir.",
+        "extract_unit_code: pega apenas o codigo numerico inicial do host, " "quando existir.",
     ),
     (
         "bullet",
@@ -238,8 +233,7 @@ DOCUMENT = [
     ),
     (
         "bullet",
-        "get_unit_tag_value: le a etiqueta unidade diretamente das tags do "
-        "host no Zabbix.",
+        "get_unit_tag_value: le a etiqueta unidade diretamente das tags do " "host no Zabbix.",
     ),
     (
         "bullet",
@@ -283,8 +277,7 @@ DOCUMENT = [
     ),
     (
         "bullet",
-        "build_summary_pdf_page: monta a primeira pagina do PDF com indicadores "
-        "executivos.",
+        "build_summary_pdf_page: monta a primeira pagina do PDF com indicadores " "executivos.",
     ),
     (
         "bullet",
@@ -303,8 +296,7 @@ DOCUMENT = [
     ),
     (
         "bullet",
-        "Data e status: converte timestamp para data humana e define Aberto ou "
-        "Resolvido.",
+        "Data e status: converte timestamp para data humana e define Aberto ou " "Resolvido.",
     ),
     (
         "bullet",
@@ -327,8 +319,7 @@ DOCUMENT = [
     ),
     (
         "bullet",
-        "main_incidents: contem apenas as unidades escolares, excluindo Zabbix "
-        "e CONFEA VPN.",
+        "main_incidents: contem apenas as unidades escolares, excluindo Zabbix " "e CONFEA VPN.",
     ),
     (
         "bullet",
@@ -359,8 +350,7 @@ DOCUMENT = [
     ("heading", "12. Blocos do report_template.html"),
     (
         "bullet",
-        "CSS visual: define cores, cards, tabelas, botoes, filtros, modal e "
-        "responsividade.",
+        "CSS visual: define cores, cards, tabelas, botoes, filtros, modal e " "responsividade.",
     ),
     (
         "bullet",
@@ -368,13 +358,11 @@ DOCUMENT = [
     ),
     (
         "bullet",
-        "Resumo: apresenta eventos, incidentes unicos, abertos, resolvidos e "
-        "severidades.",
+        "Resumo: apresenta eventos, incidentes unicos, abertos, resolvidos e " "severidades.",
     ),
     (
         "bullet",
-        "Indicadores: mostra listas de severidade, equipamento, host e unidade "
-        "mais afetada.",
+        "Indicadores: mostra listas de severidade, equipamento, host e unidade " "mais afetada.",
     ),
     (
         "bullet",
@@ -388,8 +376,7 @@ DOCUMENT = [
     ),
     (
         "bullet",
-        "Busca de unidade: reduz a lista visualmente enquanto o usuario digita "
-        "codigo ou nome.",
+        "Busca de unidade: reduz a lista visualmente enquanto o usuario digita " "codigo ou nome.",
     ),
     (
         "bullet",
@@ -429,8 +416,7 @@ DOCUMENT = [
     ),
     (
         "bullet",
-        "Desde uma data: python zabbix-report/zabbix_report.py --desde "
-        "2026-01-01.",
+        "Desde uma data: python zabbix-report/zabbix_report.py --desde " "2026-01-01.",
     ),
     ("heading", "14. Observacoes importantes"),
     (
@@ -536,8 +522,7 @@ def build_page_stream(page_lines, page_number, total_pages):
     """Monta o fluxo de comandos PDF de uma pagina."""
 
     commands = [
-        "BT /F1 8 Tf 48 28 Td "
-        f"({pdf_escape(f'Pagina {page_number} de {total_pages}')}) Tj ET"
+        "BT /F1 8 Tf 48 28 Td " f"({pdf_escape(f'Pagina {page_number} de {total_pages}')}) Tj ET"
     ]
 
     for kind, text, y in page_lines:
@@ -552,9 +537,7 @@ def build_page_stream(page_lines, page_number, total_pages):
         }[kind]
         x = MARGIN_X
 
-        commands.append(
-            f"BT /F1 {size} Tf {x} {y} Td ({pdf_escape(text)}) Tj ET"
-        )
+        commands.append(f"BT /F1 {size} Tf {x} {y} Td ({pdf_escape(text)}) Tj ET")
 
     return "\n".join(commands)
 
@@ -582,10 +565,7 @@ def write_pdf(path, pages):
             "/Resources << /Font << /F1 3 0 R >> >> "
             f"/Contents {content_number} 0 R >>"
         )
-        objects.append(
-            f"<< /Length {len(stream_bytes)} >>\nstream\n"
-            f"{stream}\nendstream"
-        )
+        objects.append(f"<< /Length {len(stream_bytes)} >>\nstream\n" f"{stream}\nendstream")
 
     kids = " ".join(f"{number} 0 R" for number in page_object_numbers)
     objects[1] = f"<< /Type /Pages /Kids [{kids}] /Count {total_pages} >>"

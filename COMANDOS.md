@@ -11,7 +11,7 @@ ou fazer ajustes pequenos no projeto.
 Execute sempre antes dos outros comandos:
 
 ```bash
-cd /mnt/c/Users/chip/Documents/relat.incidentes.zabbix
+cd /mnt/c/Users/chip/Desktop/lcmrcsWorkspace/relat.incidentes.zabbix
 ```
 
 Funcao:
@@ -231,13 +231,13 @@ Funcao:
 Abra pelo Explorer:
 
 ```text
-C:\Users\chip\Documents\relat.incidentes.zabbix\zabbix-report\reports
+C:\Users\chip\Desktop\lcmrcsWorkspace\relat.incidentes.zabbix\zabbix-report\reports
 ```
 
 Ou pelo terminal, ajustando o nome do arquivo:
 
 ```bash
-cmd.exe /c start "" "C:\Users\chip\Documents\relat.incidentes.zabbix\zabbix-report\reports\report_2026-06-15_historico_abertos.html"
+cmd.exe /c start "" "C:\Users\chip\Desktop\lcmrcsWorkspace\relat.incidentes.zabbix\zabbix-report\reports\report_2026-06-15_historico_abertos.html"
 ```
 
 ## 10. O que existe no HTML
@@ -534,7 +534,7 @@ SEGURANCA.md
 Gerar relatorio atual:
 
 ```bash
-cd /mnt/c/Users/chip/Documents/relat.incidentes.zabbix
+cd /mnt/c/Users/chip/Desktop/lcmrcsWorkspace/relat.incidentes.zabbix
 source zabbix-report/venv/bin/activate
 python zabbix-report/zabbix_report.py --periodo historico --status abertos
 ```
@@ -547,6 +547,10 @@ python -m unittest discover -s zabbix-report/tests -p "test_*.py"
 git diff --check
 git status
 ```
+
+O diretório `zabbix-report/tests` usa apenas dados fictícios. O arquivo
+`zabbix-report/test_zabbix_api.py` é uma verificação manual de conectividade e
+não faz parte da suíte automatizada.
 
 Salvar e enviar:
 
@@ -561,7 +565,7 @@ git push origin main
 Se voce esquecer todo o resto, lembre deste:
 
 ```bash
-cd /mnt/c/Users/chip/Documents/relat.incidentes.zabbix
+cd /mnt/c/Users/chip/Desktop/lcmrcsWorkspace/relat.incidentes.zabbix
 source zabbix-report/venv/bin/activate
 python zabbix-report/zabbix_report.py --periodo historico --status abertos
 ```

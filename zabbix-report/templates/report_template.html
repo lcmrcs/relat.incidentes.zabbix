@@ -134,7 +134,7 @@
                         </svg>
                         <div class="donut-center">
                             <strong>{{ summary.event_total }}</strong>
-                            <span>abertos</span>
+                            <span>eventos</span>
                         </div>
                     </div>
                     <div class="chart-legend">
@@ -174,23 +174,23 @@
                     <p>Idade dos incidentes abertos agrupada por janelas operacionais.</p>
                 </div>
                 <div class="age-chart" aria-label="Faixas de idade dos incidentes">
-                    <button class="age-chip" type="button" data-quick-age="0-86400" style="--age-width: {{ (summary.age.range_24h / summary.event_total * 100) | round(1) if summary.event_total else 0 }}%;">
+                    <button class="age-chip" type="button" data-quick-age="0-86400" style="--age-width: {{ (summary.age.range_24h / summary.open * 100) | round(1) if summary.open else 0 }}%;">
                         <span>24h</span>
                         <strong>{{ summary.age.range_24h }}</strong>
                     </button>
-                    <button class="age-chip" type="button" data-quick-age="86400-345600" style="--age-width: {{ (summary.age.range_1_3d / summary.event_total * 100) | round(1) if summary.event_total else 0 }}%;">
+                    <button class="age-chip" type="button" data-quick-age="86400-345600" style="--age-width: {{ (summary.age.range_1_3d / summary.open * 100) | round(1) if summary.open else 0 }}%;">
                         <span>1-3d</span>
                         <strong>{{ summary.age.range_1_3d }}</strong>
                     </button>
-                    <button class="age-chip" type="button" data-quick-age="345600-950400" style="--age-width: {{ (summary.age.range_4_10d / summary.event_total * 100) | round(1) if summary.event_total else 0 }}%;">
+                    <button class="age-chip" type="button" data-quick-age="345600-950400" style="--age-width: {{ (summary.age.range_4_10d / summary.open * 100) | round(1) if summary.open else 0 }}%;">
                         <span>4-10d</span>
                         <strong>{{ summary.age.range_4_10d }}</strong>
                     </button>
-                    <button class="age-chip" type="button" data-quick-age="950400-2678400" style="--age-width: {{ ((summary.age.range_11_20d + summary.age.range_21_30d) / summary.event_total * 100) | round(1) if summary.event_total else 0 }}%;">
+                    <button class="age-chip" type="button" data-quick-age="950400-2678400" style="--age-width: {{ ((summary.age.range_11_20d + summary.age.range_21_30d) / summary.open * 100) | round(1) if summary.open else 0 }}%;">
                         <span>11-30d</span>
                         <strong>{{ summary.age.range_11_20d + summary.age.range_21_30d }}</strong>
                     </button>
-                    <button class="age-chip" type="button" data-quick-age="2678400-" style="--age-width: {{ ((summary.age.range_31_50d + summary.age.range_51_75d + summary.age.range_76_90d + summary.age.range_over_90d) / summary.event_total * 100) | round(1) if summary.event_total else 0 }}%;">
+                    <button class="age-chip" type="button" data-quick-age="2678400-" style="--age-width: {{ ((summary.age.range_31_50d + summary.age.range_51_75d + summary.age.range_76_90d + summary.age.range_over_90d) / summary.open * 100) | round(1) if summary.open else 0 }}%;">
                         <span>+30d</span>
                         <strong>{{ summary.age.range_31_50d + summary.age.range_51_75d + summary.age.range_76_90d + summary.age.range_over_90d }}</strong>
                     </button>
@@ -378,63 +378,63 @@
                             <span class="metric-name">Últimas 24h</span>
                             <span class="metric-total">{{ summary.age.range_24h }}</span>
                         </button>
-                        <span class="bar"><span style="width: {{ (summary.age.range_24h / summary.event_total * 100) | round(1) if summary.event_total else 0 }}%;"></span></span>
+                        <span class="bar"><span style="width: {{ (summary.age.range_24h / summary.open * 100) | round(1) if summary.open else 0 }}%;"></span></span>
                     </li>
                     <li class="metric-row">
                         <button class="metric-action" type="button" data-quick-age="86400-345600">
                             <span class="metric-name">1 a 3 dias</span>
                             <span class="metric-total">{{ summary.age.range_1_3d }}</span>
                         </button>
-                        <span class="bar"><span style="width: {{ (summary.age.range_1_3d / summary.event_total * 100) | round(1) if summary.event_total else 0 }}%;"></span></span>
+                        <span class="bar"><span style="width: {{ (summary.age.range_1_3d / summary.open * 100) | round(1) if summary.open else 0 }}%;"></span></span>
                     </li>
                     <li class="metric-row">
                         <button class="metric-action" type="button" data-quick-age="345600-950400">
                             <span class="metric-name">4 a 10 dias</span>
                             <span class="metric-total">{{ summary.age.range_4_10d }}</span>
                         </button>
-                        <span class="bar"><span style="width: {{ (summary.age.range_4_10d / summary.event_total * 100) | round(1) if summary.event_total else 0 }}%;"></span></span>
+                        <span class="bar"><span style="width: {{ (summary.age.range_4_10d / summary.open * 100) | round(1) if summary.open else 0 }}%;"></span></span>
                     </li>
                     <li class="metric-row">
                         <button class="metric-action" type="button" data-quick-age="950400-1814400">
                             <span class="metric-name">11 a 20 dias</span>
                             <span class="metric-total">{{ summary.age.range_11_20d }}</span>
                         </button>
-                        <span class="bar"><span style="width: {{ (summary.age.range_11_20d / summary.event_total * 100) | round(1) if summary.event_total else 0 }}%;"></span></span>
+                        <span class="bar"><span style="width: {{ (summary.age.range_11_20d / summary.open * 100) | round(1) if summary.open else 0 }}%;"></span></span>
                     </li>
                     <li class="metric-row">
                         <button class="metric-action" type="button" data-quick-age="1814400-2678400">
                             <span class="metric-name">21 a 30 dias</span>
                             <span class="metric-total">{{ summary.age.range_21_30d }}</span>
                         </button>
-                        <span class="bar"><span style="width: {{ (summary.age.range_21_30d / summary.event_total * 100) | round(1) if summary.event_total else 0 }}%;"></span></span>
+                        <span class="bar"><span style="width: {{ (summary.age.range_21_30d / summary.open * 100) | round(1) if summary.open else 0 }}%;"></span></span>
                     </li>
                     <li class="metric-row">
                         <button class="metric-action" type="button" data-quick-age="2678400-4406400">
                             <span class="metric-name">31 a 50 dias</span>
                             <span class="metric-total">{{ summary.age.range_31_50d }}</span>
                         </button>
-                        <span class="bar"><span style="width: {{ (summary.age.range_31_50d / summary.event_total * 100) | round(1) if summary.event_total else 0 }}%;"></span></span>
+                        <span class="bar"><span style="width: {{ (summary.age.range_31_50d / summary.open * 100) | round(1) if summary.open else 0 }}%;"></span></span>
                     </li>
                     <li class="metric-row">
                         <button class="metric-action" type="button" data-quick-age="4406400-6566400">
                             <span class="metric-name">51 a 75 dias</span>
                             <span class="metric-total">{{ summary.age.range_51_75d }}</span>
                         </button>
-                        <span class="bar"><span style="width: {{ (summary.age.range_51_75d / summary.event_total * 100) | round(1) if summary.event_total else 0 }}%;"></span></span>
+                        <span class="bar"><span style="width: {{ (summary.age.range_51_75d / summary.open * 100) | round(1) if summary.open else 0 }}%;"></span></span>
                     </li>
                     <li class="metric-row">
                         <button class="metric-action" type="button" data-quick-age="6566400-7862400">
                             <span class="metric-name">76 a 90 dias</span>
                             <span class="metric-total">{{ summary.age.range_76_90d }}</span>
                         </button>
-                        <span class="bar"><span style="width: {{ (summary.age.range_76_90d / summary.event_total * 100) | round(1) if summary.event_total else 0 }}%;"></span></span>
+                        <span class="bar"><span style="width: {{ (summary.age.range_76_90d / summary.open * 100) | round(1) if summary.open else 0 }}%;"></span></span>
                     </li>
                     <li class="metric-row">
                         <button class="metric-action" type="button" data-quick-age="7862400-">
                             <span class="metric-name">+90 dias</span>
                             <span class="metric-total">{{ summary.age.range_over_90d }}</span>
                         </button>
-                        <span class="bar"><span style="width: {{ (summary.age.range_over_90d / summary.event_total * 100) | round(1) if summary.event_total else 0 }}%;"></span></span>
+                        <span class="bar"><span style="width: {{ (summary.age.range_over_90d / summary.open * 100) | round(1) if summary.open else 0 }}%;"></span></span>
                     </li>
                     <li class="metric-row">
                         <span class="metric-action">
@@ -764,7 +764,7 @@
                     </div>
 
                     <div class="filter-group filter-group-age">
-                        <p class="filter-label"><span class="filter-step">{{ 5 if has_status_filter else 4 }}</span>Tempo offline</p>
+                        <p class="filter-label"><span class="filter-step">{{ 5 if has_status_filter else 4 }}</span>Idade do passivo aberto</p>
                         <div class="filter-options">
                             <button class="filter-button active" type="button" data-age-filter="all">
                                 <span>Tudo</span>
@@ -865,6 +865,10 @@
                         data-timestamp="{{ item.timestamp }}"
                         data-age-seconds="{{ item.age_seconds }}"
                         data-age-label="{{ item.age_label }}"
+                        data-duration-seconds="{{ item.duration_seconds }}"
+                        data-duration-label="{{ item.duration_label }}"
+                        data-open-age-seconds="{{ item.open_age_seconds }}"
+                        data-open-age-label="{{ item.open_age_label }}"
                     >
                         <td class="table-date">{{ item.date }}</td>
                         <td class="table-code">{{ item.unit_code or "-" }}</td>
@@ -898,6 +902,8 @@
                                 data-incident-type="{{ item.incident_type }}"
                                 data-severity="{{ item.severity }}"
                                 data-age-label="{{ item.age_label }}"
+                                data-duration-label="{{ item.duration_label }}"
+                                data-open-age-label="{{ item.open_age_label }}"
                                 data-eventid="{{ item.eventid }}"
                             >
                                 Abrir
@@ -974,7 +980,7 @@
                         <th>Host</th>
                         <th>Incidente</th>
                         <th>Severidade</th>
-                        <th>Tempo offline</th>
+                        <th>Duração</th>
                         <th>Evento</th>
                     </tr>
                 </thead>
@@ -994,7 +1000,7 @@
                                 {{ item.severity }}
                             </span>
                         </td>
-                        <td class="modal-age">{{ item.age_label }}</td>
+                        <td class="modal-age">{{ item.duration_label }}</td>
                         <td class="modal-event">{{ item.eventid }}</td>
                     </tr>
                     {% endfor %}
@@ -1053,7 +1059,7 @@
                         <th>Host</th>
                         <th>Incidente</th>
                         <th>Severidade</th>
-                        <th>Tempo offline</th>
+                        <th>Duração</th>
                         <th>Evento</th>
                     </tr>
                 </thead>
@@ -1073,7 +1079,7 @@
                                 {{ item.severity }}
                             </span>
                         </td>
-                        <td class="modal-age">{{ item.age_label }}</td>
+                        <td class="modal-age">{{ item.duration_label }}</td>
                         <td class="modal-event">{{ item.eventid }}</td>
                     </tr>
                     {% endfor %}

@@ -10,7 +10,6 @@ from datetime import datetime
 
 import requests
 
-
 REQUEST_TIMEOUT = 60
 
 
@@ -49,16 +48,16 @@ class ZabbixClient:
 
         except requests.exceptions.ConnectionError:
             print(f"ERRO: não foi possível conectar ao Zabbix ({error_context}).")
-            raise SystemExit(1)
+            raise SystemExit(1) from None
 
         except requests.exceptions.Timeout:
             print(f"ERRO: tempo de conexão excedido ({error_context}).")
-            raise SystemExit(1)
+            raise SystemExit(1) from None
 
         except requests.exceptions.RequestException as error:
             print(f"ERRO: falha na requisição ao Zabbix ({error_context}).")
             print(error)
-            raise SystemExit(1)
+            raise SystemExit(1) from None
 
         if response.status_code != 200:
             print(f"Erro HTTP em {error_context}: {response.status_code}")
@@ -71,7 +70,7 @@ class ZabbixClient:
         except ValueError:
             print(f"ERRO: resposta JSON inválida em {error_context}.")
             print(response.text)
-            raise SystemExit(1)
+            raise SystemExit(1) from None
 
         if "error" in data:
             print(f"Erro retornado pela API Zabbix em {error_context}:")
@@ -145,11 +144,13 @@ class ZabbixClient:
         O retorno é um dicionário no formato {eventid_recuperacao: data_formatada}.
         """
 
-        recovery_event_ids = sorted({
-            item.get("r_eventid")
-            for item in problems
-            if item.get("r_eventid") and item.get("r_eventid") != "0"
-        })
+        recovery_event_ids = sorted(
+            {
+                item.get("r_eventid")
+                for item in problems
+                if item.get("r_eventid") and item.get("r_eventid") != "0"
+            }
+        )
         resolved_at_by_event = {}
 
         if not recovery_event_ids:
@@ -185,11 +186,7 @@ class ZabbixClient:
         - host_details_by_id: hostid -> host com tags
         """
 
-        trigger_ids = sorted({
-            item.get("objectid")
-            for item in problems
-            if item.get("objectid")
-        })
+        trigger_ids = sorted({item.get("objectid") for item in problems if item.get("objectid")})
 
         hosts_by_trigger = {}
         host_ids_by_trigger = {}
@@ -220,11 +217,7 @@ class ZabbixClient:
                 hosts_by_trigger[trigger["triggerid"]] = host.get("host", "N/A")
                 host_ids_by_trigger[trigger["triggerid"]] = host.get("hostid")
 
-        host_ids = sorted({
-            hostid
-            for hostid in host_ids_by_trigger.values()
-            if hostid
-        })
+        host_ids = sorted({hostid for hostid in host_ids_by_trigger.values() if hostid})
 
         if not host_ids:
             return hosts_by_trigger, host_ids_by_trigger, host_details_by_id
@@ -269,7 +262,4 @@ class ZabbixClient:
 
         data = self.call(payload, "buscar catálogo de unidades")
 
-        return {
-            host["hostid"]: host
-            for host in data.get("result", [])
-        }
+        return {host["hostid"]: host for host in data.get("result", [])}

@@ -11,18 +11,10 @@ import base64
 import os
 import re
 import unicodedata
-
-import pandas as pd
-
 from datetime import datetime, timedelta
-from dotenv import load_dotenv
-from jinja2 import Environment, FileSystemLoader, select_autoescape
-from openpyxl.chart import BarChart, DoughnutChart, Reference
-from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
-from openpyxl.utils import get_column_letter
-from openpyxl.worksheet.table import Table, TableStyleInfo
 from pathlib import Path
 
+import pandas as pd
 from classifiers import (
     SEVERITY_MAP,
     build_unit_catalog,
@@ -30,10 +22,15 @@ from classifiers import (
     classify_incident_type,
     classify_unit_group,
 )
+from dotenv import load_dotenv
+from jinja2 import Environment, FileSystemLoader, select_autoescape
+from openpyxl.chart import BarChart, DoughnutChart, Reference
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.table import Table, TableStyleInfo
 from pdf_report import write_pdf_report
 from summary import build_report_summary, format_age
 from zabbix_api import ZabbixClient
-
 
 # ==================================================
 # CAMINHOS DO PROJETO
@@ -47,6 +44,7 @@ REPORTS_DIR = BASE_DIR / "reports"
 
 EXCEL_COLUMNS = [
     ("date", "Data de abertura"),
+    ("resolved_at", "Data de resolução"),
     ("unit_code", "Código da unidade"),
     ("unit", "Unidade"),
     ("host", "Host"),
@@ -55,9 +53,49 @@ EXCEL_COLUMNS = [
     ("incident", "Incidente"),
     ("severity", "Severidade"),
     ("status", "Status"),
-    ("age_label", "Tempo offline"),
+    ("duration_label", "Duração total"),
+    ("open_age_label", "Idade do passivo aberto"),
     ("eventid", "Evento Zabbix"),
 ]
+
+
+def parse_timestamp(value):
+    """Converte timestamps Unix ou datas do relatório; valores inválidos viram None."""
+
+    if value in (None, "", "0", 0):
+        return None
+
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        try:
+            return int(datetime.strptime(str(value), "%d/%m/%Y %H:%M").timestamp())
+        except (TypeError, ValueError, OverflowError):
+            return None
+
+
+def format_timestamp(value):
+    """Formata um timestamp válido sem interromper o relatório em dados corrompidos."""
+
+    if value is None:
+        return "-"
+
+    try:
+        return datetime.fromtimestamp(value).strftime("%d/%m/%Y %H:%M")
+    except (OSError, OverflowError, ValueError):
+        return "-"
+
+
+def build_incident_key(unit_code, host, equipment, incident_type):
+    """Cria a chave lógica determinística da mesma condição no mesmo ativo."""
+
+    def normalize(value):
+        text = unicodedata.normalize("NFKD", str(value or "").strip().casefold())
+        text = text.encode("ascii", errors="ignore").decode("ascii")
+        return re.sub(r"\s+", " ", text) or "n/a"
+
+    return "|".join(normalize(value) for value in (unit_code, host, equipment, incident_type))
+
 
 EXCEL_SEVERITY_COLORS = {
     "Desastre": "7F1D1D",
@@ -209,6 +247,7 @@ def cleanup_old_reports(current_base_name, keep_count=1):
 # ARGUMENTOS E PERÍODO
 # ==================================================
 
+
 def parse_period(value):
     """
     Converte textos como 24h, 2d e 7d em um timedelta.
@@ -253,9 +292,7 @@ def parse_args():
     flexível para 24h, 2d, 5d, 7d e historico.
     """
 
-    parser = argparse.ArgumentParser(
-        description="Gera relatórios de incidentes do Zabbix."
-    )
+    parser = argparse.ArgumentParser(description="Gera relatórios de incidentes do Zabbix.")
     parser.add_argument(
         "--dias",
         type=int,
@@ -265,10 +302,7 @@ def parse_args():
     parser.add_argument(
         "--periodo",
         default="7d",
-        help=(
-            "Intervalo pesquisado. Exemplos: 24h, 2d, 5d, 7d, 30d, historico. "
-            "Padrão: 7d."
-        ),
+        help=("Intervalo pesquisado. Exemplos: 24h, 2d, 5d, 7d, 30d, historico. Padrão: 7d."),
     )
     parser.add_argument(
         "--desde",
@@ -285,17 +319,13 @@ def parse_args():
         "--equipamento",
         default=None,
         help=(
-            "Filtra o relatório por tipo de equipamento. "
-            "Exemplo: --equipamento \"Terminal Facial\"."
+            'Filtra o relatório por tipo de equipamento. Exemplo: --equipamento "Terminal Facial".'
         ),
     )
     parser.add_argument(
         "--unidade",
         default=None,
-        help=(
-            "Filtra o relatório por código ou nome da unidade escolar. "
-            "Exemplo: --unidade 1011."
-        ),
+        help=("Filtra o relatório por código ou nome da unidade escolar. Exemplo: --unidade 1011."),
     )
     parser.add_argument(
         "--manter-relatorios",
@@ -330,7 +360,7 @@ def resolve_period(args, today):
             start_date = datetime.strptime(args.desde, "%Y-%m-%d")
         except ValueError:
             print("ERRO: use --desde no formato AAAA-MM-DD. Exemplo: 2026-01-01.")
-            raise SystemExit(1)
+            raise SystemExit(1) from None
 
         period_name = f"desde {start_date.strftime('%d/%m/%Y')}"
         period_slug = f"desde_{args.desde}"
@@ -369,6 +399,7 @@ def format_period_label(period_name, start_date, today):
 # ==================================================
 # CONFIGURAÇÃO
 # ==================================================
+
 
 def load_config():
     """
@@ -409,6 +440,7 @@ def build_zabbix_web_url(zabbix_url):
 # PROCESSAMENTO DOS INCIDENTES
 # ==================================================
 
+
 def build_incidents(
     problems,
     hosts_by_trigger,
@@ -434,13 +466,18 @@ def build_incidents(
         host_details = host_details_by_id.get(host_id, {})
         incident = item.get("name", "N/A")
         severity = SEVERITY_MAP.get(item.get("severity", "0"), "Desconhecida")
-        timestamp = int(item["clock"])
-        age_seconds = max(0, int(generated_at.timestamp()) - timestamp)
-        date = datetime.fromtimestamp(timestamp).strftime("%d/%m/%Y %H:%M")
+        timestamp = parse_timestamp(item.get("clock"))
+        date = format_timestamp(timestamp)
         eventid = item.get("eventid")
         recovery_eventid = item.get("r_eventid")
         resolved_at = resolved_at_by_event.get(recovery_eventid, "")
-        status = "Resolvido" if resolved_at else "Aberto"
+        resolved_timestamp = parse_timestamp(resolved_at)
+        status = "Resolvido" if resolved_timestamp is not None else "Aberto"
+
+        generated_timestamp = int(generated_at.timestamp())
+        duration_end = resolved_timestamp if status == "Resolvido" else generated_timestamp
+        duration_seconds = max(0, duration_end - timestamp) if timestamp else 0
+        open_age_seconds = duration_seconds if status == "Aberto" and timestamp else 0
 
         if status_filter == "abertos" and status != "Aberto":
             continue
@@ -452,31 +489,37 @@ def build_incidents(
         incident_type = classify_incident_type(incident)
         unit_code, unit = classify_unit_group(host, host_details, unit_catalog)
 
-        incident_key = "|".join([
-            unit_code,
-            host,
-            equipment,
-            incident,
-            severity,
-        ])
+        incident_key = build_incident_key(unit_code, host, equipment, incident_type)
 
-        incidents.append({
-            "host": host,
-            "unit_code": unit_code,
-            "unit": unit,
-            "incident_key": incident_key,
-            "equipment": equipment,
-            "incident": incident,
-            "incident_type": incident_type,
-            "severity": severity,
-            "status": status,
-            "date": date,
-            "timestamp": timestamp,
-            "age_seconds": age_seconds,
-            "age_label": format_age(age_seconds),
-            "resolved_at": resolved_at,
-            "eventid": eventid,
-        })
+        incidents.append(
+            {
+                "host": host,
+                "unit_code": unit_code,
+                "unit": unit,
+                "incident_key": incident_key,
+                "equipment": equipment,
+                "incident": incident,
+                "incident_type": incident_type,
+                "severity": severity,
+                "status": status,
+                "date": date,
+                "timestamp": timestamp,
+                # age_* permanece como alias de compatibilidade para filtros e templates.
+                "age_seconds": open_age_seconds,
+                "age_label": (
+                    format_age(open_age_seconds)
+                    if status == "Aberto"
+                    else format_age(duration_seconds)
+                ),
+                "duration_seconds": duration_seconds,
+                "duration_label": format_age(duration_seconds),
+                "open_age_seconds": open_age_seconds,
+                "open_age_label": format_age(open_age_seconds) if status == "Aberto" else "-",
+                "resolved_timestamp": resolved_timestamp,
+                "resolved_at": resolved_at,
+                "eventid": eventid,
+            }
+        )
 
     return incidents
 
@@ -489,21 +532,9 @@ def split_special_groups(incidents):
     escolar. Separá-los mantém os indicadores escolares limpos.
     """
 
-    main_incidents = [
-        item
-        for item in incidents
-        if item["unit_code"] not in ["ZBX", "CONFEA"]
-    ]
-    zabbix_incidents = [
-        item
-        for item in incidents
-        if item["unit_code"] == "ZBX"
-    ]
-    confea_incidents = [
-        item
-        for item in incidents
-        if item["unit_code"] == "CONFEA"
-    ]
+    main_incidents = [item for item in incidents if item["unit_code"] not in ["ZBX", "CONFEA"]]
+    zabbix_incidents = [item for item in incidents if item["unit_code"] == "ZBX"]
+    confea_incidents = [item for item in incidents if item["unit_code"] == "CONFEA"]
 
     return main_incidents, zabbix_incidents, confea_incidents
 
@@ -521,11 +552,7 @@ def filter_by_equipment(incidents, equipment_name):
 
     target = str(equipment_name).strip().lower()
 
-    return [
-        item
-        for item in incidents
-        if str(item.get("equipment", "")).strip().lower() == target
-    ]
+    return [item for item in incidents if str(item.get("equipment", "")).strip().lower() == target]
 
 
 def filter_by_unit(incidents, unit_filter):
@@ -555,6 +582,7 @@ def filter_by_unit(incidents, unit_filter):
 # EXPORTAÇÃO
 # ==================================================
 
+
 def incidents_to_excel_frame(incidents):
     """
     Converte incidentes em DataFrame com nomes amigáveis para o Excel.
@@ -566,10 +594,7 @@ def incidents_to_excel_frame(incidents):
     rows = []
 
     for item in incidents:
-        rows.append({
-            label: item.get(key, "")
-            for key, label in EXCEL_COLUMNS
-        })
+        rows.append({label: item.get(key, "") for key, label in EXCEL_COLUMNS})
 
     return pd.DataFrame(rows, columns=[label for _, label in EXCEL_COLUMNS])
 
@@ -605,6 +630,11 @@ def build_excel_summary_rows(summary, generated, period_label):
         ("Período analisado", period_label),
         ("Produzido por", "Network Operations Center"),
         ("", ""),
+        ("Eventos totais", summary["event_total"]),
+        ("Incidentes únicos", summary["unique_total"]),
+        ("Eventos repetidos", summary["repeated_events"]),
+        ("Eventos abertos", summary["open"]),
+        ("Eventos resolvidos", summary["resolved"]),
         ("Incidentes abertos", summary["unique_open"]),
         ("Mais antigo aberto", age["oldest_label"]),
         ("Média de idade", age["average_label"]),
@@ -670,7 +700,7 @@ def build_excel_intelligence_frames(summary):
                 "Equipamento": item["equipment"],
                 "Tipo de incidente": item["incident_type"],
                 "Severidade": item["severity"],
-                "Tempo offline": item["age_label"],
+                "Idade do passivo aberto": item["open_age_label"],
                 "Evento": item["eventid"],
             }
             for item in summary["priority"]["top"]
@@ -683,7 +713,7 @@ def build_excel_intelligence_frames(summary):
             "Equipamento",
             "Tipo de incidente",
             "Severidade",
-            "Tempo offline",
+            "Idade do passivo aberto",
             "Evento",
         ],
     )
@@ -707,39 +737,39 @@ def build_excel_criticality_frame(summary):
 
     for item in summary["unit_criticality"]["top"]:
         equipment_mix = ", ".join(
-            f'{equipment["name"]}: {equipment["total"]}'
-            for equipment in item["equipment_mix"]
+            f"{equipment['name']}: {equipment['total']}" for equipment in item["equipment_mix"]
         )
         severity_mix = ", ".join(
-            f'{severity["name"]}: {severity["total"]}'
-            for severity in item["severity_mix"]
+            f"{severity['name']}: {severity['total']}" for severity in item["severity_mix"]
         )
         factors = item["factors"]
 
-        rows.append({
-            "Score": item["score"],
-            "Faixa operacional": item["level"],
-            "Código": item["code"],
-            "Unidade": item["name"],
-            "Incidentes": item["total"],
-            "Equipamentos afetados": item["affected_equipment_count"],
-            "Principal equipamento": (
-                f'{item["top_equipment"]} ({item["top_equipment_total"]})'
-            ),
-            "Severidade predominante": (
-                f'{item["top_severity"]} ({item["top_severity_total"]})'
-            ),
-            "Mais antigo": item["oldest_label"],
-            "Média offline": item["age_label"],
-            "Reincidência": item["recurrence"],
-            "Composição dos equipamentos": equipment_mix,
-            "Composição da severidade": severity_mix,
-            "Fator volume": f'{factors["volume"]}%',
-            "Fator severidade": f'{factors["severity"]}%',
-            "Fator tempo offline": f'{factors["age"]}%',
-            "Fator reincidência": f'{factors["recurrence"]}%',
-            "Fator equipamento": f'{factors["equipment"]}%',
-        })
+        rows.append(
+            {
+                "Score": item["score"],
+                "Faixa operacional": item["level"],
+                "Código": item["code"],
+                "Unidade": item["name"],
+                "Incidentes": item["total"],
+                "Equipamentos afetados": item["affected_equipment_count"],
+                "Principal equipamento": (
+                    f"{item['top_equipment']} ({item['top_equipment_total']})"
+                ),
+                "Severidade predominante": (
+                    f"{item['top_severity']} ({item['top_severity_total']})"
+                ),
+                "Mais antigo": item["oldest_label"],
+                "Média offline": item["age_label"],
+                "Reincidência": item["recurrence"],
+                "Composição dos equipamentos": equipment_mix,
+                "Composição da severidade": severity_mix,
+                "Fator volume": f"{factors['volume']}%",
+                "Fator severidade": f"{factors['severity']}%",
+                "Fator tempo offline": f"{factors['age']}%",
+                "Fator reincidência": f"{factors['recurrence']}%",
+                "Fator equipamento": f"{factors['equipment']}%",
+            }
+        )
 
     return pd.DataFrame(
         rows,
@@ -835,10 +865,7 @@ def style_excel_workbook(writer):
 
         for column_cells in worksheet.columns:
             column_letter = get_column_letter(column_cells[0].column)
-            max_length = max(
-                len(str(cell.value or ""))
-                for cell in column_cells[:80]
-            )
+            max_length = max(len(str(cell.value or "")) for cell in column_cells[:80])
             worksheet.column_dimensions[column_letter].width = min(
                 max(max_length + 3, 13),
                 42,
@@ -865,9 +892,7 @@ def style_excel_workbook(writer):
             severity_index = headers.index("Severidade") + 1 if "Severidade" in headers else None
             status_index = headers.index("Status") + 1 if "Status" in headers else None
             level_index = (
-                headers.index("Faixa operacional") + 1
-                if "Faixa operacional" in headers
-                else None
+                headers.index("Faixa operacional") + 1 if "Faixa operacional" in headers else None
             )
             score_index = headers.index("Score") + 1 if "Score" in headers else None
 
@@ -968,7 +993,7 @@ def style_excel_workbook(writer):
         for row in intelligence_sheet.iter_rows():
             first_cell = row[0]
             if first_cell.value and all(cell.value in (None, "") for cell in row[1:]):
-                for cell in row[:max(1, intelligence_sheet.max_column)]:
+                for cell in row[: max(1, intelligence_sheet.max_column)]:
                     cell.fill = dark_fill
                     cell.font = Font(color="FFFFFF", bold=True)
                     cell.alignment = Alignment(horizontal="left", vertical="center")
@@ -1210,6 +1235,7 @@ def render_html(
 # EXECUÇÃO PRINCIPAL
 # ==================================================
 
+
 def main():
     """
     Coordena o relatório inteiro, do terminal até os arquivos finais.
@@ -1248,9 +1274,7 @@ def main():
         args.status,
         today,
     )
-    main_incidents, zabbix_incidents, confea_incidents = split_special_groups(
-        incidents
-    )
+    main_incidents, zabbix_incidents, confea_incidents = split_special_groups(incidents)
     equipment_filter = str(args.equipamento).strip() if args.equipamento else ""
     unit_filter = str(args.unidade).strip() if args.unidade else ""
 
@@ -1321,10 +1345,7 @@ def main():
     )
 
     if removed_reports:
-        print(
-            "Relatórios antigos removidos: "
-            f"{len(removed_reports)} arquivo(s)."
-        )
+        print(f"Relatórios antigos removidos: {len(removed_reports)} arquivo(s).")
 
     print("\nRELATÓRIOS GERADOS COM SUCESSO")
     print("--------------------------------")
