@@ -69,6 +69,9 @@
         const confeaCloseButton = document.querySelector("[data-confea-close]");
         const themeToggle = document.querySelector("[data-theme-toggle]");
         const presentationToggle = document.querySelector("[data-presentation-toggle]");
+        const integrityDialog = document.getElementById("integrity-dialog");
+        const integrityOpenButton = document.querySelector("[data-integrity-open]");
+        const integrityCloseButton = document.querySelector("[data-integrity-close]");
         const scrollButtons = document.querySelectorAll("[data-scroll-target]");
         const activeFilters = {
             equipment: "all",
@@ -1026,4 +1029,9 @@
             confeaCloseButton.addEventListener("click", () => {
                 confeaDialog.close();
             });
+        }
+
+        if (integrityDialog && integrityOpenButton && integrityCloseButton) {
+            integrityOpenButton.addEventListener("click", () => integrityDialog.showModal());
+            integrityCloseButton.addEventListener("click", () => integrityDialog.close());
         }

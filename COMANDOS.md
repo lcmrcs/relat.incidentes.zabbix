@@ -552,6 +552,9 @@ O diretório `zabbix-report/tests` usa apenas dados fictícios. O arquivo
 `zabbix-report/test_zabbix_api.py` é uma verificação manual de conectividade e
 não faz parte da suíte automatizada.
 
+O gerador registra no terminal somente etapas, quantidades e categorias de
+integridade. Credenciais, URLs privadas e payloads não são incluídos nos logs.
+
 Salvar e enviar:
 
 ```bash

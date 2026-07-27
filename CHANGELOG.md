@@ -8,6 +8,12 @@ Este arquivo registra mudanças relevantes de forma simples, para facilitar acom
 
 ### Adicionado
 
+- Validação central de integridade antes da construção dos incidentes, com
+  ajustes, descartes e avisos contabilizados sem expor dados sensíveis.
+- Resumo canônico de integridade no HTML, Excel e PDF.
+- Análise histórica da duração dos resolvidos, separada do passivo aberto.
+- Logs seguros de coleta, processamento e exportação.
+
 - Modelo testável para evento, incidente único e recorrência, com chave lógica
   determinística e normalizada.
 - Casos fictícios para abertos, resolvidos, recuperação ausente, timestamps

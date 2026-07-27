@@ -51,6 +51,9 @@
                     <span class="pdf-icon" aria-hidden="true">PDF</span>
                     <span>Exportar PDF</span>
                 </button>
+                <button class="toolbar-button integrity-badge integrity-{{ integrity.level }}" type="button" data-integrity-open>
+                    {{ integrity.label }}{% if integrity.warning_count %} · {{ integrity.warning_count }}{% endif %}
+                </button>
             </div>
             <div class="toolbar-group">
                 {% if incidents %}
@@ -1088,6 +1091,33 @@
         </div>
     </dialog>
     {% endif %}
+    <dialog id="integrity-dialog" class="integrity-modal">
+        <div class="modal-header">
+            <div>
+                <h2 class="modal-title">Integridade dos Dados</h2>
+                <p class="modal-subtitle">Validação aplicada antes da construção dos incidentes.</p>
+            </div>
+            <button class="modal-close" type="button" data-integrity-close aria-label="Fechar">×</button>
+        </div>
+        <div class="modal-summary integrity-summary">
+            <div><span class="modal-summary-label">Recebidos</span><strong>{{ integrity.received }}</strong></div>
+            <div><span class="modal-summary-label">Processados</span><strong>{{ integrity.processed }}</strong></div>
+            <div><span class="modal-summary-label">Ajustados</span><strong>{{ integrity.adjusted }}</strong></div>
+            <div><span class="modal-summary-label">Descartados</span><strong>{{ integrity.discarded }}</strong></div>
+        </div>
+        <div class="integrity-details">
+            {% for item in integrity.issues %}
+            <article>
+                <div><strong>{{ item.category }}</strong><em>{{ item.quantity }}</em></div>
+                <p>{{ item.treatment }}. {{ item.impact }}</p>
+            </article>
+            {% endfor %}
+            {% if not integrity.issues %}
+            <p class="empty-insight">Nenhuma inconsistência foi identificada na coleta.</p>
+            {% endif %}
+        </div>
+        <p class="integrity-privacy">Os avisos não exibem payloads, endereços, credenciais ou dados técnicos sensíveis.</p>
+    </dialog>
     <script>
         window.REPORT_CONFIG = {
             zabbixWebUrl: {{ zabbix_web_url | tojson }}
