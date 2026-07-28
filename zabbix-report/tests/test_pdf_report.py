@@ -164,5 +164,6 @@ class ExecutivePdfTests(unittest.TestCase):
         self.assertEqual(data.count(b"Detalhamento completo dos eventos"), 2)
         self.assertEqual(data.count("Anexo técnico".encode("cp1252")), 2)
 
+
 if __name__ == "__main__":
     unittest.main()

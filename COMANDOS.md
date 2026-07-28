@@ -329,7 +329,30 @@ As capturas usam somente dados fictícios. A validação cobre os modos solar e
 lunar em 390x844, 768x1024 e 1600x1000, além do cenário desktop com zoom de
 200% e preferência por movimento reduzido.
 
-## 12. O que existe no HTML
+## 12. Validar o mesmo conjunto usado no CI
+
+Qualidade e testes:
+
+```bash
+ruff check .
+git ls-files -z '*.py' | xargs -0 -n 1 black --check
+pytest
+python scripts/check_secrets.py
+git diff --check
+```
+
+Navegador:
+
+```bash
+python scripts/validate_html_browser.py
+python scripts/validate_visual_accessibility.py
+```
+
+Os workflows também podem ser iniciados manualmente na aba **Actions** do
+GitHub. Consulte `POLITICA_BASELINES.md` antes de aprovar qualquer alteração
+nas imagens de referência.
+
+## 13. O que existe no HTML
 
 O HTML atual possui:
 - Resumo executivo.
@@ -345,7 +368,7 @@ O HTML atual possui:
 - Janela separada para CONFEA VPN.
 - Exportacao CSV dos dados filtrados.
 
-## 13. Tipos de incidente consolidados
+## 14. Tipos de incidente consolidados
 
 O painel "Tipos de Incidente" nao deve contar cada texto tecnico isolado do
 Zabbix. Ele consolida familias de problemas.
@@ -375,7 +398,7 @@ def classify_incident_type(incident):
 Quando aparecer um novo texto do Zabbix que deveria entrar em uma familia
 existente, adicione uma regra nessa funcao.
 
-## 14. Classificacao de equipamentos
+## 15. Classificacao de equipamentos
 
 Arquivo:
 

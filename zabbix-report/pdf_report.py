@@ -176,13 +176,17 @@ def _section_title(commands, x, y, title, note=None):
     return y - (28 if note else 18)
 
 
-def _ranking(commands, x, y, width, title, items, value_label="eventos", limit=EXECUTIVE_RANKING_LIMIT):
+def _ranking(
+    commands, x, y, width, title, items, value_label="eventos", limit=EXECUTIVE_RANKING_LIMIT
+):
     """Desenha ranking compacto e retorna a ordenada final."""
 
     y = _section_title(commands, x, y, title)
     visible = list(items or [])[:limit]
     if not visible:
-        add_pdf_text(commands, x, y - 8, "Sem dados relevantes no período.", 8, "F1", COLORS["muted"])
+        add_pdf_text(
+            commands, x, y - 8, "Sem dados relevantes no período.", 8, "F1", COLORS["muted"]
+        )
         return y - 28
 
     maximum = max((float(item.get("total", 0) or 0) for item in visible), default=0)
@@ -193,7 +197,9 @@ def _ranking(commands, x, y, width, title, items, value_label="eventos", limit=E
         ratio = (float(value) / maximum) if maximum else 0
         add_pdf_text(commands, x, row_y, f"{index:02d}", 8, "F2", COLORS["teal"])
         add_pdf_text(commands, x + 25, row_y, name, 8, "F1", COLORS["text"])
-        add_pdf_text(commands, x + width - 76, row_y, f"{value} {value_label}", 7, "F2", COLORS["muted"])
+        add_pdf_text(
+            commands, x + width - 76, row_y, f"{value} {value_label}", 7, "F2", COLORS["muted"]
+        )
         add_rect(commands, x + 25, row_y - 9, width - 34, 3, fill=COLORS["line"])
         add_rect(commands, x + 25, row_y - 9, (width - 34) * ratio, 3, fill=COLORS["teal"])
         y -= 30
@@ -302,7 +308,15 @@ def build_cover_page(
         COLORS["white"],
         2,
     )
-    add_pdf_text(commands, 48, 27, f"Documento executivo · {total_pages} páginas", 7, "F1", (0.62, 0.82, 0.82))
+    add_pdf_text(
+        commands,
+        48,
+        27,
+        f"Documento executivo · {total_pages} páginas",
+        7,
+        "F1",
+        (0.62, 0.82, 0.82),
+    )
     return b"".join(commands)
 
 
@@ -507,15 +521,27 @@ def build_attention_page(summary, generated, page_number, total_pages):
     if priority.get("top"):
         _priority_rows(commands, priority["top"], 36, 426, 360)
     else:
-        add_pdf_text(commands, 36, 420, "Nenhum incidente aberto priorizável.", 8, "F1", COLORS["muted"])
+        add_pdf_text(
+            commands, 36, 420, "Nenhum incidente aberto priorizável.", 8, "F1", COLORS["muted"]
+        )
     if recurrence.get("top"):
         _recurrence_rows(commands, recurrence["top"], 436, 426, 370)
     else:
-        add_pdf_text(commands, 436, 420, "Nenhuma recorrência relevante no período.", 8, "F1", COLORS["muted"])
+        add_pdf_text(
+            commands,
+            436,
+            420,
+            "Nenhuma recorrência relevante no período.",
+            8,
+            "F1",
+            COLORS["muted"],
+        )
 
     add_rect(commands, 436, 92, 370, 64, fill=COLORS["surface"])
     add_pdf_text(commands, 452, 131, "HOSTS REINCIDENTES", 7, "F2", COLORS["muted"])
-    add_pdf_text(commands, 452, 104, str(recurrence.get("affected_hosts", 0)), 18, "F2", COLORS["navy"])
+    add_pdf_text(
+        commands, 452, 104, str(recurrence.get("affected_hosts", 0)), 18, "F2", COLORS["navy"]
+    )
     add_pdf_text(
         commands,
         530,
@@ -542,11 +568,23 @@ def build_criticality_page(summary, generated, page_number, total_pages):
     items = list(criticality.get("top", []))[:7]
     y = 452
     if not items:
-        add_pdf_text(commands, 36, y, "Nenhuma unidade com passivo aberto no período.", 9, "F1", COLORS["muted"])
+        add_pdf_text(
+            commands,
+            36,
+            y,
+            "Nenhuma unidade com passivo aberto no período.",
+            9,
+            "F1",
+            COLORS["muted"],
+        )
     else:
         for index, item in enumerate(items, start=1):
             add_rect(commands, 36, y - 38, 770, 46, fill=COLORS["surface"])
-            accent = "red" if item.get("class") == "critical" else "orange" if item.get("class") == "high" else "teal"
+            accent = (
+                "red"
+                if item.get("class") == "critical"
+                else "orange" if item.get("class") == "high" else "teal"
+            )
             add_rect(commands, 36, y - 38, 5, 46, fill=COLORS[accent])
             add_pdf_text(commands, 52, y - 10, f"{index:02d}", 8, "F2", COLORS["teal"])
             add_pdf_text(
@@ -789,9 +827,7 @@ def build_executive_pdf_pages(
         summary.get(key)
         for key in ("top_equipment", "top_units", "top_incident_types", "top_hosts")
     ):
-        builders.append(
-            lambda number, total: build_impact_page(summary, generated, number, total)
-        )
+        builders.append(lambda number, total: build_impact_page(summary, generated, number, total))
     if summary.get("priority", {}).get("top") or summary.get("recurrence", {}).get("top"):
         builders.append(
             lambda number, total: build_attention_page(summary, generated, number, total)

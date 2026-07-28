@@ -455,6 +455,23 @@ resultado estruturado e o resumo ficam em
 `VALIDACAO_VISUAL_ACESSIBILIDADE_SPRINT_7.json` e
 `VALIDACAO_VISUAL_ACESSIBILIDADE_SPRINT_7.md`.
 
+## Qualidade Contínua
+
+O GitHub Actions executa checks com nomes estáveis em pushes e pull requests
+da `main`, além de permitir execução manual:
+
+- **Qualidade Python**: Ruff, Black, compilação e estrutura dos workflows;
+- **Testes**: suíte pytest limitada a `zabbix-report/tests`;
+- **Segurança**: segredos aparentes e whitespace;
+- **HTML no Navegador**: cenários fictícios da Sprint 6 no Edge do Windows;
+- **Regressão Visual**: comparação das 11 baselines sem atualização;
+- **Acessibilidade**: auditoria multirresolução da Sprint 7.
+
+Os jobs de navegador só processam dados fictícios. Em falhas, evidências
+sanitizadas são mantidas por cinco dias; em sucesso, somente resumos compactos
+são mantidos por três dias. Consulte [POLITICA_BASELINES.md](POLITICA_BASELINES.md)
+e [ACESSIBILIDADE_MANUAL.md](ACESSIBILIDADE_MANUAL.md).
+
 ## Classificação de Equipamentos
 
 A classificação de equipamentos fica em:

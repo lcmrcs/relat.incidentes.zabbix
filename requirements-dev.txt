@@ -4,6 +4,7 @@
 black
 ruff
 pytest
+pyyaml
 
 # Dependencias usadas para preparar material publico/sanitizado do LinkedIn.
 pillow

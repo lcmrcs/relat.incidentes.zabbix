@@ -8,6 +8,12 @@ Este arquivo registra mudanças relevantes de forma simples, para facilitar acom
 
 ### Adicionado
 
+- Workflows separados de qualidade técnica e navegador para push, pull request
+  e execução manual, com concurrency, timeouts, cache e permissões mínimas.
+- Checks estáveis de Qualidade Python, Testes, Segurança, HTML no Navegador,
+  Regressão Visual e Acessibilidade.
+- Artefatos sanitizados e temporários em falhas, política explícita de
+  baselines e checklist manual com NVDA.
 - Regressão visual determinística em Edge real com baselines sanitizadas para
   modos solar e lunar nas resoluções mobile, tablet e desktop.
 - Auditoria automatizada de acessibilidade e responsividade baseada em WCAG

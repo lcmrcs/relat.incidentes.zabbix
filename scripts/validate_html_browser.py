@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import html
 import json
+import os
 import platform
 import re
 import statistics
@@ -26,12 +27,40 @@ sys.path.insert(0, str(REPORT_DIR))
 from summary import build_report_summary  # noqa: E402
 from zabbix_report import render_html  # noqa: E402
 
-WINDOWS_BROWSERS = (
-    Path("/mnt/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"),
-    Path("/mnt/c/Program Files/Microsoft/Edge/Application/msedge.exe"),
-    Path("/mnt/c/Program Files/Google/Chrome/Application/chrome.exe"),
-    Path("/mnt/c/Program Files (x86)/Google/Chrome/Application/chrome.exe"),
-)
+
+def browser_candidates(
+    system_name: str | None = None,
+    environment: dict[str, str] | None = None,
+) -> tuple[Path, ...]:
+    """Retorna navegadores locais tanto no Windows nativo quanto no WSL."""
+
+    system_name = system_name or os.name
+    environment = environment or os.environ
+    if system_name == "nt":
+        roots = [
+            environment.get("PROGRAMFILES(X86)"),
+            environment.get("PROGRAMFILES"),
+            environment.get("LOCALAPPDATA"),
+        ]
+        candidates = []
+        for root in filter(None, roots):
+            base = Path(root)
+            candidates.extend(
+                (
+                    base / "Microsoft" / "Edge" / "Application" / "msedge.exe",
+                    base / "Google" / "Chrome" / "Application" / "chrome.exe",
+                )
+            )
+        return tuple(candidates)
+
+    return (
+        Path("/mnt/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"),
+        Path("/mnt/c/Program Files/Microsoft/Edge/Application/msedge.exe"),
+        Path("/mnt/c/Program Files/Google/Chrome/Application/chrome.exe"),
+        Path("/mnt/c/Program Files (x86)/Google/Chrome/Application/chrome.exe"),
+    )
+
+
 RESULT_PATTERN = re.compile(
     r'<pre id="sprint6-browser-result"[^>]*>(.*?)</pre>',
     re.DOTALL,
@@ -72,6 +101,8 @@ def fake_incident(index: int) -> dict:
 
 def windows_path(path: Path) -> str:
     text = str(path.resolve())
+    if os.name == "nt":
+        return text
     if text.startswith("/mnt/") and len(text) > 6:
         drive = text[5].upper()
         return f"{drive}:\\" + text[7:].replace("/", "\\")
@@ -83,7 +114,7 @@ def file_url(path: Path) -> str:
 
 
 def find_browser() -> Path:
-    for candidate in WINDOWS_BROWSERS:
+    for candidate in browser_candidates():
         if candidate.exists():
             return candidate
     raise FileNotFoundError("Microsoft Edge ou Google Chrome não encontrado no Windows.")
