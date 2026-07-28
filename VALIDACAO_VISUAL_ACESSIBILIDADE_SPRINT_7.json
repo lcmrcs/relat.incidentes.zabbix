@@ -1,0 +1,208 @@
+{
+  "generated_at": "2026-07-28T10:56:37-03:00",
+  "browser": {
+    "name": "Microsoft Edge",
+    "version": "150.0.4078.99",
+    "executable": "msedge.exe"
+  },
+  "system": "Windows 11 / WSL (6.18.33.1-microsoft-standard-WSL2)",
+  "visual": [
+    {
+      "passed": true,
+      "difference_percent": 0.0,
+      "reason": "",
+      "name": "desktop_solar_cabecalho",
+      "theme": "solar",
+      "resolution": "1600x1000",
+      "records": 40,
+      "baseline": "zabbix-report/tests/visual_baselines/desktop_solar_cabecalho.png"
+    },
+    {
+      "passed": true,
+      "difference_percent": 0.0,
+      "reason": "",
+      "name": "desktop_lunar_inteligencia",
+      "theme": "lunar",
+      "resolution": "1600x1000",
+      "records": 40,
+      "baseline": "zabbix-report/tests/visual_baselines/desktop_lunar_inteligencia.png"
+    },
+    {
+      "passed": true,
+      "difference_percent": 0.0,
+      "reason": "",
+      "name": "desktop_solar_rankings",
+      "theme": "solar",
+      "resolution": "1600x1000",
+      "records": 40,
+      "baseline": "zabbix-report/tests/visual_baselines/desktop_solar_rankings.png"
+    },
+    {
+      "passed": true,
+      "difference_percent": 0.0,
+      "reason": "",
+      "name": "tablet_solar_criticidade",
+      "theme": "solar",
+      "resolution": "768x1024",
+      "records": 40,
+      "baseline": "zabbix-report/tests/visual_baselines/tablet_solar_criticidade.png"
+    },
+    {
+      "passed": true,
+      "difference_percent": 0.0,
+      "reason": "",
+      "name": "tablet_lunar_filtros",
+      "theme": "lunar",
+      "resolution": "768x1024",
+      "records": 40,
+      "baseline": "zabbix-report/tests/visual_baselines/tablet_lunar_filtros.png"
+    },
+    {
+      "passed": true,
+      "difference_percent": 0.0,
+      "reason": "",
+      "name": "mobile_solar_tabela",
+      "theme": "solar",
+      "resolution": "390x844",
+      "records": 40,
+      "baseline": "zabbix-report/tests/visual_baselines/mobile_solar_tabela.png"
+    },
+    {
+      "passed": true,
+      "difference_percent": 0.0,
+      "reason": "",
+      "name": "mobile_lunar_incidente",
+      "theme": "lunar",
+      "resolution": "390x844",
+      "records": 40,
+      "baseline": "zabbix-report/tests/visual_baselines/mobile_lunar_incidente.png"
+    },
+    {
+      "passed": true,
+      "difference_percent": 0.0,
+      "reason": "",
+      "name": "desktop_solar_zabbix",
+      "theme": "solar",
+      "resolution": "1600x1000",
+      "records": 40,
+      "baseline": "zabbix-report/tests/visual_baselines/desktop_solar_zabbix.png"
+    },
+    {
+      "passed": true,
+      "difference_percent": 0.0,
+      "reason": "",
+      "name": "desktop_lunar_confea",
+      "theme": "lunar",
+      "resolution": "1600x1000",
+      "records": 40,
+      "baseline": "zabbix-report/tests/visual_baselines/desktop_lunar_confea.png"
+    },
+    {
+      "passed": true,
+      "difference_percent": 0.0,
+      "reason": "",
+      "name": "mobile_solar_vazio",
+      "theme": "solar",
+      "resolution": "390x844",
+      "records": 0,
+      "baseline": "zabbix-report/tests/visual_baselines/mobile_solar_vazio.png"
+    },
+    {
+      "passed": true,
+      "difference_percent": 0.0,
+      "reason": "",
+      "name": "desktop_lunar_grande_volume",
+      "theme": "lunar",
+      "resolution": "1600x1000",
+      "records": 7171,
+      "baseline": "zabbix-report/tests/visual_baselines/desktop_lunar_grande_volume.png"
+    }
+  ],
+  "accessibility": [
+    {
+      "passed": true,
+      "violations": [],
+      "checks": [
+        "html-lang"
+      ],
+      "theme": "solar",
+      "viewport": "496x751",
+      "zoom": 1,
+      "reduced_motion": false,
+      "offline": true,
+      "name": "mobile_solar",
+      "requested_viewport": "390x844"
+    },
+    {
+      "passed": true,
+      "violations": [],
+      "checks": [
+        "html-lang"
+      ],
+      "theme": "lunar",
+      "viewport": "496x751",
+      "zoom": 1,
+      "reduced_motion": false,
+      "offline": true,
+      "name": "mobile_lunar",
+      "requested_viewport": "390x844"
+    },
+    {
+      "passed": true,
+      "violations": [],
+      "checks": [
+        "html-lang"
+      ],
+      "theme": "solar",
+      "viewport": "742x931",
+      "zoom": 1,
+      "reduced_motion": false,
+      "offline": true,
+      "name": "tablet_solar",
+      "requested_viewport": "768x1024"
+    },
+    {
+      "passed": true,
+      "violations": [],
+      "checks": [
+        "html-lang"
+      ],
+      "theme": "lunar",
+      "viewport": "742x931",
+      "zoom": 1,
+      "reduced_motion": false,
+      "offline": true,
+      "name": "tablet_lunar",
+      "requested_viewport": "768x1024"
+    },
+    {
+      "passed": true,
+      "violations": [],
+      "checks": [
+        "html-lang"
+      ],
+      "theme": "solar",
+      "viewport": "774x407",
+      "zoom": 2,
+      "reduced_motion": true,
+      "offline": true,
+      "name": "desktop_solar",
+      "requested_viewport": "1600x1000"
+    },
+    {
+      "passed": true,
+      "violations": [],
+      "checks": [
+        "html-lang"
+      ],
+      "theme": "lunar",
+      "viewport": "774x407",
+      "zoom": 2,
+      "reduced_motion": true,
+      "offline": true,
+      "name": "desktop_lunar",
+      "requested_viewport": "1600x1000"
+    }
+  ],
+  "passed": true
+}

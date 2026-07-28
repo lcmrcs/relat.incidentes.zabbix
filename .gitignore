@@ -21,3 +21,6 @@ __pycache__/
 .pytest_cache/
 .cache/
 *.log
+
+# Evidências temporárias de regressão visual (baselines são versionadas).
+artifacts/visual-accessibility/

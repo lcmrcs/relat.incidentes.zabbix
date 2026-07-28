@@ -8,6 +8,13 @@ Este arquivo registra mudanças relevantes de forma simples, para facilitar acom
 
 ### Adicionado
 
+- Regressão visual determinística em Edge real com baselines sanitizadas para
+  modos solar e lunar nas resoluções mobile, tablet e desktop.
+- Auditoria automatizada de acessibilidade e responsividade baseada em WCAG
+  2.1 AA, incluindo foco, teclado, semântica, contraste, zoom de 200% e
+  movimento reduzido.
+- Comparação de pixels com tolerância controlada, diferenças locais e
+  atualização de baselines somente por comando explícito.
 - Validação funcional em Microsoft Edge real com massas fictícias de 0, 10,
   7.171 e 20.000 registros, métricas por mediana, captura de console e prova de
   impressão PDF nativa.
@@ -46,6 +53,11 @@ Este arquivo registra mudanças relevantes de forma simples, para facilitar acom
 
 ### Corrigido
 
+- Cabeçalhos de tabelas agora declaram escopo, mensagens dinâmicas possuem
+  regiões vivas e modais são associados explicitamente aos títulos.
+- Controles recebem foco visível consistente, buscas possuem nomes acessíveis,
+  alvos de ordenação respeitam tamanho mínimo e o foco retorna ao acionador
+  quando um modal é fechado.
 - Impressões acima de 5.000 registros filtrados agora são interrompidas com
   orientação clara para exportar o conjunto completo por CSV.
 - Exportação Excel otimizada por reutilização de estilos, menos atribuições por

@@ -425,6 +425,36 @@ vezes, testa as interações essenciais e grava os resultados em
 Essa validação é destinada ao desenvolvimento e não adiciona dependências ao
 fluxo normal de geração.
 
+### Regressão visual e acessibilidade
+
+A proteção da Sprint 7 reutiliza os relatórios fictícios e o navegador real:
+
+```bash
+# Regressão visual e acessibilidade
+python scripts/validate_visual_accessibility.py
+
+# Somente comparação visual
+python scripts/validate_visual_accessibility.py --visual-only
+
+# Somente acessibilidade e responsividade
+python scripts/validate_visual_accessibility.py --accessibility-only
+```
+
+As referências sanitizadas ficam em
+`zabbix-report/tests/visual_baselines/`. Elas nunca são substituídas durante
+uma validação comum. Depois de revisar uma mudança visual intencional, a
+atualização precisa ser explícita:
+
+```bash
+python scripts/validate_visual_accessibility.py --visual-only --update-baselines
+```
+
+Diferenças reprovadas são gravadas em
+`artifacts/visual-accessibility/diffs/`, pasta local ignorada pelo Git. O
+resultado estruturado e o resumo ficam em
+`VALIDACAO_VISUAL_ACESSIBILIDADE_SPRINT_7.json` e
+`VALIDACAO_VISUAL_ACESSIBILIDADE_SPRINT_7.md`.
+
 ## Classificação de Equipamentos
 
 A classificação de equipamentos fica em:

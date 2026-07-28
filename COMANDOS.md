@@ -297,7 +297,39 @@ VALIDACAO_NAVEGADOR_SPRINT_6.md
 
 Essa rotina não acessa o Zabbix e não é necessária para a geração normal.
 
-## 11. O que existe no HTML
+## 11. Validar regressão visual e acessibilidade
+
+Executar tudo:
+
+```bash
+python scripts/validate_visual_accessibility.py
+```
+
+Executar separadamente:
+
+```bash
+python scripts/validate_visual_accessibility.py --visual-only
+python scripts/validate_visual_accessibility.py --accessibility-only
+```
+
+Revisar diferenças geradas:
+
+```text
+artifacts/visual-accessibility/current/
+artifacts/visual-accessibility/diffs/
+```
+
+Atualizar baselines somente depois de revisar e aprovar a mudança:
+
+```bash
+python scripts/validate_visual_accessibility.py --visual-only --update-baselines
+```
+
+As capturas usam somente dados fictícios. A validação cobre os modos solar e
+lunar em 390x844, 768x1024 e 1600x1000, além do cenário desktop com zoom de
+200% e preferência por movimento reduzido.
+
+## 12. O que existe no HTML
 
 O HTML atual possui:
 - Resumo executivo.
@@ -313,7 +345,7 @@ O HTML atual possui:
 - Janela separada para CONFEA VPN.
 - Exportacao CSV dos dados filtrados.
 
-## 12. Tipos de incidente consolidados
+## 13. Tipos de incidente consolidados
 
 O painel "Tipos de Incidente" nao deve contar cada texto tecnico isolado do
 Zabbix. Ele consolida familias de problemas.
@@ -343,7 +375,7 @@ def classify_incident_type(incident):
 Quando aparecer um novo texto do Zabbix que deveria entrar em uma familia
 existente, adicione uma regra nessa funcao.
 
-## 13. Classificacao de equipamentos
+## 14. Classificacao de equipamentos
 
 Arquivo:
 

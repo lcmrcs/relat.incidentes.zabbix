@@ -641,7 +641,7 @@
                     <h2>Filtro do Relatório</h2>
                     <p>Combine filtros para investigar unidades, equipamentos, severidades e tempo offline sem perder o contexto executivo.</p>
                 </div>
-                <span class="filter-status" id="filter-status">Exibindo: {{ summary.event_total }}</span>
+                <span class="filter-status" id="filter-status" role="status" aria-live="polite">Exibindo: {{ summary.event_total }}</span>
             </div>
 
             {% set has_status_filter = summary.status | length > 1 %}
@@ -652,6 +652,7 @@
                         class="global-search"
                         id="global-search"
                         type="search"
+                        aria-label="Buscar em todos os incidentes"
                         placeholder="Host, incidente, equipamento ou severidade"
                         autocomplete="off"
                     >
@@ -717,6 +718,7 @@
                             class="unit-search"
                             id="unit-search"
                             type="search"
+                            aria-label="Pesquisar unidade por código ou nome"
                             placeholder="Pesquisar código ou nome da unidade"
                             autocomplete="off"
                         >
@@ -843,15 +845,15 @@
                 </colgroup>
                 <thead>
                     <tr>
-                        <th><button class="sort-button" type="button" data-sort-key="date">Data</button></th>
-                        <th><button class="sort-button" type="button" data-sort-key="unitCode">Código</button></th>
-                        <th><button class="sort-button" type="button" data-sort-key="unit">Unidade</button></th>
-                        <th><button class="sort-button" type="button" data-sort-key="status">Status</button></th>
-                        <th><button class="sort-button" type="button" data-sort-key="equipment">Equipamento</button></th>
-                        <th><button class="sort-button" type="button" data-sort-key="incident">Incidente</button></th>
-                        <th><button class="sort-button" type="button" data-sort-key="severityRank">Severidade</button></th>
-                        <th><button class="sort-button" type="button" data-sort-key="priorityRank">Prioridade</button></th>
-                        <th><span class="static-heading">Detalhes</span></th>
+                        <th scope="col"><button class="sort-button" type="button" data-sort-key="date">Data</button></th>
+                        <th scope="col"><button class="sort-button" type="button" data-sort-key="unitCode">Código</button></th>
+                        <th scope="col"><button class="sort-button" type="button" data-sort-key="unit">Unidade</button></th>
+                        <th scope="col"><button class="sort-button" type="button" data-sort-key="status">Status</button></th>
+                        <th scope="col"><button class="sort-button" type="button" data-sort-key="equipment">Equipamento</button></th>
+                        <th scope="col"><button class="sort-button" type="button" data-sort-key="incident">Incidente</button></th>
+                        <th scope="col"><button class="sort-button" type="button" data-sort-key="severityRank">Severidade</button></th>
+                        <th scope="col"><button class="sort-button" type="button" data-sort-key="priorityRank">Prioridade</button></th>
+                        <th scope="col"><span class="static-heading">Detalhes</span></th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -867,7 +869,7 @@
                 </select>
             </label>
             <button type="button" data-page-previous>Anterior</button>
-            <span data-page-status>Página 1 de 1</span>
+            <span data-page-status role="status" aria-live="polite">Página 1 de 1</span>
             <button type="button" data-page-next>Próxima</button>
         </nav>
         <div class="table-empty" id="table-empty" hidden>
@@ -879,15 +881,15 @@
         </section>
         {% endif %}
     </main>
-    <dialog id="incident-dialog" class="incident-modal">
+    <dialog id="incident-dialog" class="incident-modal" aria-labelledby="incident-dialog-title">
         <div class="modal-header">
-            <h2 class="modal-title">Detalhes do Incidente</h2>
+            <h2 class="modal-title" id="incident-dialog-title">Detalhes do Incidente</h2>
             <button class="modal-close" type="button" data-modal-close aria-label="Fechar">×</button>
         </div>
         <div class="modal-body incident-modal-body" id="incident-dialog-body"></div>
     </dialog>
     {% if zabbix_incidents %}
-    <dialog id="zabbix-dialog" class="zabbix-modal">
+    <dialog id="zabbix-dialog" class="zabbix-modal" aria-labelledby="zabbix-dialog-title">
         <div class="modal-header">
             <div class="zabbix-modal-title-wrap">
                 <div class="zabbix-modal-logo" aria-hidden="true">
@@ -898,7 +900,7 @@
                     {% endif %}
                 </div>
                 <div>
-                    <h2 class="modal-title">Servidor Zabbix</h2>
+                    <h2 class="modal-title" id="zabbix-dialog-title">Servidor Zabbix</h2>
                     <p class="modal-subtitle">Eventos internos separados da operação das unidades escolares.</p>
                 </div>
             </div>
@@ -931,13 +933,13 @@
                 </colgroup>
                 <thead>
                     <tr>
-                        <th>Data</th>
-                        <th>Status</th>
-                        <th>Host</th>
-                        <th>Incidente</th>
-                        <th>Severidade</th>
-                        <th>Duração</th>
-                        <th>Evento</th>
+                        <th scope="col">Data</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Host</th>
+                        <th scope="col">Incidente</th>
+                        <th scope="col">Severidade</th>
+                        <th scope="col">Duração</th>
+                        <th scope="col">Evento</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -966,7 +968,7 @@
     </dialog>
     {% endif %}
     {% if confea_incidents %}
-    <dialog id="confea-dialog" class="confea-modal">
+    <dialog id="confea-dialog" class="confea-modal" aria-labelledby="confea-dialog-title">
         <div class="modal-header confea-modal-header">
             <div class="confea-modal-title-wrap">
                 <div class="confea-modal-logo" aria-hidden="true">
@@ -977,7 +979,7 @@
                     {% endif %}
                 </div>
                 <div>
-                    <h2 class="modal-title">CONFEA VPN</h2>
+                    <h2 class="modal-title" id="confea-dialog-title">CONFEA VPN</h2>
                     <p class="modal-subtitle">Monitoramento de VMs por ping via túnel VPN.</p>
                 </div>
             </div>
@@ -1010,13 +1012,13 @@
                 </colgroup>
                 <thead>
                     <tr>
-                        <th>Data</th>
-                        <th>Status</th>
-                        <th>Host</th>
-                        <th>Incidente</th>
-                        <th>Severidade</th>
-                        <th>Duração</th>
-                        <th>Evento</th>
+                        <th scope="col">Data</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Host</th>
+                        <th scope="col">Incidente</th>
+                        <th scope="col">Severidade</th>
+                        <th scope="col">Duração</th>
+                        <th scope="col">Evento</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1044,10 +1046,10 @@
         </div>
     </dialog>
     {% endif %}
-    <dialog id="integrity-dialog" class="integrity-modal">
+    <dialog id="integrity-dialog" class="integrity-modal" aria-labelledby="integrity-dialog-title">
         <div class="modal-header">
             <div>
-                <h2 class="modal-title">Integridade dos Dados</h2>
+                <h2 class="modal-title" id="integrity-dialog-title">Integridade dos Dados</h2>
                 <p class="modal-subtitle">Validação aplicada antes da construção dos incidentes.</p>
             </div>
             <button class="modal-close" type="button" data-integrity-close aria-label="Fechar">×</button>

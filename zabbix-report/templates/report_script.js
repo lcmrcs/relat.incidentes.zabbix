@@ -105,6 +105,7 @@
         let currentPage = 1;
         let filteredRows = [];
         let printExpanded = false;
+        let lastDialogTrigger = null;
         function getStoredPreference(key, fallback = "") {
             try {
                 return window.localStorage?.getItem(key) || fallback;
@@ -1108,6 +1109,7 @@
                 fieldsGrid.append(fieldElement);
             });
 
+            lastDialogTrigger = button;
             dialog.showModal();
         });
 
@@ -1117,6 +1119,7 @@
 
         if (zabbixDialog && zabbixOpenButton && zabbixCloseButton) {
             zabbixOpenButton.addEventListener("click", () => {
+                lastDialogTrigger = zabbixOpenButton;
                 zabbixDialog.showModal();
             });
 
@@ -1127,6 +1130,7 @@
 
         if (confeaDialog && confeaOpenButton && confeaCloseButton) {
             confeaOpenButton.addEventListener("click", () => {
+                lastDialogTrigger = confeaOpenButton;
                 confeaDialog.showModal();
             });
 
@@ -1136,6 +1140,18 @@
         }
 
         if (integrityDialog && integrityOpenButton && integrityCloseButton) {
-            integrityOpenButton.addEventListener("click", () => integrityDialog.showModal());
+            integrityOpenButton.addEventListener("click", () => {
+                lastDialogTrigger = integrityOpenButton;
+                integrityDialog.showModal();
+            });
             integrityCloseButton.addEventListener("click", () => integrityDialog.close());
         }
+
+        [dialog, zabbixDialog, confeaDialog, integrityDialog]
+            .filter(Boolean)
+            .forEach((modal) => {
+                modal.addEventListener("close", () => {
+                    lastDialogTrigger?.focus();
+                    lastDialogTrigger = null;
+                });
+            });
