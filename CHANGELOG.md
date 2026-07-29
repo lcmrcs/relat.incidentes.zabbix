@@ -1,5 +1,14 @@
 # Changelog
 
+## Sprint 9 — Ativação e estabilização do CI
+
+- Auditadas as primeiras execuções reais dos workflows Linux e Windows.
+- Estabilizada a captura visual contra layout transitório e rasterização de
+  fontes entre versões do Edge, sem atualizar baselines ou ampliar o limite de
+  reprovação.
+- Documentados jobs, tempos, artefatos, cache, proteção recomendada da `main` e
+  a pendência da validação manual com NVDA.
+
 Histórico das principais evoluções do projeto **Relatório Executivo de Incidentes Zabbix**.
 
 Este arquivo registra mudanças relevantes de forma simples, para facilitar acompanhamento técnico, prestação de contas e evolução do projeto.

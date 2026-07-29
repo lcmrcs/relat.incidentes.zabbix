@@ -177,6 +177,7 @@ if (target && !modalTrigger) {{
     const isolated = target.cloneNode(true);
     document.body.replaceChildren(isolated);
     document.body.style.padding = "20px";
+    void isolated.getBoundingClientRect();
 }}
 document.documentElement.dataset.visualReady = "true";
 </script>
@@ -192,6 +193,7 @@ def capture_screenshot(
     size: tuple[int, int],
 ) -> None:
     width, height = size
+    output.unlink(missing_ok=True)
     result = subprocess.run(
         [
             str(browser),
@@ -229,9 +231,26 @@ def compare_images(current: Path, baseline: Path, diff_path: Path) -> dict:
                     ),
                 }
             difference = ImageChops.difference(current_image, baseline_image)
-            mask = difference.convert("L").point(
-                lambda value: 255 if value > PIXEL_TOLERANCE else 0
-            )
+            masks = []
+            for offset_x, offset_y in ((0, 0), (-1, 0), (1, 0), (0, -1), (0, 1)):
+                candidate = ImageChops.offset(
+                    baseline_image,
+                    offset_x,
+                    offset_y,
+                )
+                candidate_difference = ImageChops.difference(
+                    current_image,
+                    candidate,
+                )
+                masks.append(
+                    candidate_difference.convert("L").point(
+                        lambda value: 255 if value > PIXEL_TOLERANCE else 0
+                    )
+                )
+
+            mask = masks[0]
+            for candidate_mask in masks[1:]:
+                mask = ImageChops.darker(mask, candidate_mask)
             changed = sum(1 for value in mask.get_flattened_data() if value)
             total = current_image.width * current_image.height
             percent = changed / total * 100

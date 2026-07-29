@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-27T13:59:49-03:00",
+  "generated_at": "2026-07-28T17:34:22-03:00",
   "browser": {
     "name": "Microsoft Edge",
     "version": "150.0.4078.99",
@@ -9,7 +9,7 @@
   "viewport": "1600x1000",
   "native_pdf": {
     "passed": true,
-    "size_bytes": 9102459
+    "size_bytes": 9102710
   },
   "scenarios": [
     {
@@ -17,12 +17,12 @@
       "runs": 1,
       "passed": true,
       "median_metrics": {
-        "dom_content_loaded_ms": 362.6,
-        "heap_used_bytes": 2883386.0,
-        "html_bytes": 1887654.0,
+        "dom_content_loaded_ms": 401.3,
+        "heap_used_bytes": 2886029.0,
+        "html_bytes": 1888861.0,
         "initial_elements": 414.0,
-        "load_ms": 365.4,
-        "validation_ms": 183.2
+        "load_ms": 407.8,
+        "validation_ms": 187.0
       },
       "failures": [],
       "console_messages": []
@@ -32,15 +32,15 @@
       "runs": 1,
       "passed": true,
       "median_metrics": {
-        "dom_content_loaded_ms": 399.4,
+        "dom_content_loaded_ms": 393.0,
         "filter_ms": 0.0,
-        "heap_used_bytes": 2933504.0,
-        "html_bytes": 1952240.0,
+        "heap_used_bytes": 2942052.0,
+        "html_bytes": 1953703.0,
         "initial_elements": 1173.0,
-        "load_ms": 439.0,
-        "search_ms": 180.0,
+        "load_ms": 396.7,
+        "search_ms": 180.1,
         "sort_ms": 0.0,
-        "validation_ms": 876.6
+        "validation_ms": 879.5
       },
       "failures": [],
       "console_messages": []
@@ -50,16 +50,16 @@
       "runs": 3,
       "passed": true,
       "median_metrics": {
-        "dom_content_loaded_ms": 520.0,
+        "dom_content_loaded_ms": 490.3,
         "filter_ms": 0.0,
-        "heap_used_bytes": 29222328.0,
-        "html_bytes": 3948100.0,
+        "heap_used_bytes": 11871508.0,
+        "html_bytes": 3949575.0,
         "initial_elements": 2441.0,
-        "load_ms": 591.4,
-        "page_change_ms": 10.0,
+        "load_ms": 551.2,
+        "page_change_ms": 9.9,
         "search_ms": 180.0,
         "sort_ms": 0.0,
-        "validation_ms": 463.2
+        "validation_ms": 396.9
       },
       "failures": [],
       "console_messages": []
@@ -69,16 +69,16 @@
       "runs": 1,
       "passed": true,
       "median_metrics": {
-        "dom_content_loaded_ms": 594.6,
+        "dom_content_loaded_ms": 632.2,
         "filter_ms": 0.0,
-        "heap_used_bytes": 32026578.0,
-        "html_bytes": 7125780.0,
+        "heap_used_bytes": 32030832.0,
+        "html_bytes": 7127255.0,
         "initial_elements": 2441.0,
-        "load_ms": 600.4,
+        "load_ms": 652.6,
         "page_change_ms": 9.9,
         "search_ms": 180.0,
         "sort_ms": 0.0,
-        "validation_ms": 835.5
+        "validation_ms": 853.1
       },
       "failures": [],
       "console_messages": []

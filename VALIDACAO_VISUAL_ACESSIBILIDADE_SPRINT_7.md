@@ -1,6 +1,6 @@
 # Validação Visual e de Acessibilidade — Sprint 7
 
-- Data: 2026-07-28T10:56:37-03:00
+- Data: 2026-07-28T17:38:30-03:00
 - Navegador: Microsoft Edge 150.0.4078.99
 - Sistema: Windows 11 / WSL (6.18.33.1-microsoft-standard-WSL2)
 - Dados: exclusivamente fictícios e sanitizados.
@@ -10,15 +10,15 @@
 
 | Tela | Tema | Resolução | Diferença | Resultado |
 | --- | --- | --- | ---: | --- |
-| desktop_solar_cabecalho | solar | 1600x1000 | 0.0000% | Aprovado |
+| desktop_solar_cabecalho | solar | 1600x1000 | 0.0150% | Aprovado |
 | desktop_lunar_inteligencia | lunar | 1600x1000 | 0.0000% | Aprovado |
-| desktop_solar_rankings | solar | 1600x1000 | 0.0000% | Aprovado |
+| desktop_solar_rankings | solar | 1600x1000 | 0.0112% | Aprovado |
 | tablet_solar_criticidade | solar | 768x1024 | 0.0000% | Aprovado |
-| tablet_lunar_filtros | lunar | 768x1024 | 0.0000% | Aprovado |
+| tablet_lunar_filtros | lunar | 768x1024 | 0.0154% | Aprovado |
 | mobile_solar_tabela | solar | 390x844 | 0.0000% | Aprovado |
 | mobile_lunar_incidente | lunar | 390x844 | 0.0000% | Aprovado |
-| desktop_solar_zabbix | solar | 1600x1000 | 0.0000% | Aprovado |
-| desktop_lunar_confea | lunar | 1600x1000 | 0.0000% | Aprovado |
+| desktop_solar_zabbix | solar | 1600x1000 | 0.0145% | Aprovado |
+| desktop_lunar_confea | lunar | 1600x1000 | 0.0093% | Aprovado |
 | mobile_solar_vazio | solar | 390x844 | 0.0000% | Aprovado |
 | desktop_lunar_grande_volume | lunar | 1600x1000 | 0.0000% | Aprovado |
 
