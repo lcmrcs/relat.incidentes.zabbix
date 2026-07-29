@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import html
 import json
+import os
 import platform
 import re
 import shutil
@@ -41,6 +42,9 @@ RESULT_PATTERN = re.compile(
 )
 PIXEL_TOLERANCE = 18
 DIFFERENCE_LIMIT_PERCENT = 0.35
+VISUAL_STABILITY_TIMEOUT_MS = 10_000
+VISUAL_STABILITY_FRAMES = 4
+DOM_QUIET_MS = 120
 
 CAPTURES = (
     {
@@ -156,6 +160,7 @@ def inject_capture_state(
     theme: str,
     section: str | None,
     modal: str | None,
+    expected_records: int,
 ) -> None:
     document = path.read_text(encoding="utf-8")
     script = f"""
@@ -168,18 +173,217 @@ def inject_capture_state(
     }}
 </style>
 <script>
-localStorage.setItem("zabbix-report-theme", {json.dumps("dark" if theme == "lunar" else "light")});
-document.body.classList.toggle("theme-dark", {str(theme == "lunar").lower()});
-const modalTrigger = document.querySelector({json.dumps(modal)});
-modalTrigger?.click();
-const target = document.querySelector({json.dumps(section)});
-if (target && !modalTrigger) {{
-    const isolated = target.cloneNode(true);
-    document.body.replaceChildren(isolated);
-    document.body.style.padding = "20px";
-    void isolated.getBoundingClientRect();
-}}
-document.documentElement.dataset.visualReady = "true";
+(() => {{
+    const timeoutMs = {VISUAL_STABILITY_TIMEOUT_MS};
+    const stableFramesRequired = {VISUAL_STABILITY_FRAMES};
+    const domQuietMs = {DOM_QUIET_MS};
+    const expectedRecords = {expected_records};
+    const sectionSelector = {json.dumps(section)};
+    const modalSelector = {json.dumps(modal)};
+    const state = {{
+        status: "waiting",
+        phase: "initializing",
+        detail: "",
+        rowCount: 0,
+        expectedRows: 0,
+        pageStatus: "",
+        stableFrames: 0,
+        gaps: [],
+    }};
+    window.__visualStability = state;
+    document.documentElement.dataset.visualState = "waiting";
+
+    const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
+    const rounded = value => Math.round(value * 100) / 100;
+    const visibleImages = root => [...root.querySelectorAll("img")].filter(image => {{
+        const style = getComputedStyle(image);
+        const rect = image.getBoundingClientRect();
+        return style.display !== "none" && style.visibility !== "hidden" &&
+            rect.width > 0 && rect.height > 0;
+    }});
+    const decodeImages = async root => {{
+        const images = visibleImages(root);
+        await Promise.all(images.map(async image => {{
+            if (!image.complete) {{
+                await new Promise((resolve, reject) => {{
+                    image.addEventListener("load", resolve, {{ once: true }});
+                    image.addEventListener(
+                        "error",
+                        () => reject(new Error(`imagem não carregada: ${{image.currentSrc || image.src}}`)),
+                        {{ once: true }}
+                    );
+                }});
+            }}
+            if (typeof image.decode === "function") {{
+                await image.decode();
+            }}
+        }}));
+    }};
+    const rowGeometry = root => [...root.querySelectorAll("#incidents-table tbody tr")]
+        .map(row => {{
+            const rect = row.getBoundingClientRect();
+            return {{
+                top: rounded(rect.top),
+                bottom: rounded(rect.bottom),
+                left: rounded(rect.left),
+                width: rounded(rect.width),
+                height: rounded(rect.height),
+            }};
+        }});
+    const rowGaps = rows => rows.slice(1).map((row, index) => ({{
+        after: index,
+        pixels: rounded(row.top - rows[index].bottom),
+    }})).filter(gap => Math.abs(gap.pixels) > 1);
+    const sameGeometry = (first, second) =>
+        JSON.stringify(first) === JSON.stringify(second);
+    const paginationReady = root => {{
+        const pageSize = Number(document.querySelector("[data-page-size]")?.value || 100);
+        const rows = root.querySelectorAll("#incidents-table tbody tr").length;
+        const pageStatus = document.querySelector("[data-page-status]")?.textContent?.trim() || "";
+        const expectedRows = Math.min(expectedRecords, pageSize);
+        state.rowCount = rows;
+        state.expectedRows = expectedRows;
+        state.pageStatus = pageStatus;
+        return (
+            rows === expectedRows &&
+            /^Página 1 de \\d+ · \\d+ registros$/.test(pageStatus)
+        );
+    }};
+
+    if (sectionSelector !== ".table-wrap") {{
+        localStorage.setItem(
+            "zabbix-report-theme",
+            {json.dumps("dark" if theme == "lunar" else "light")}
+        );
+        document.body.classList.toggle(
+            "theme-dark",
+            {str(theme == "lunar").lower()}
+        );
+        const modalTrigger = document.querySelector(modalSelector);
+        modalTrigger?.click();
+        const target = document.querySelector(sectionSelector);
+        if (target && !modalTrigger) {{
+            const isolated = target.cloneNode(true);
+            document.body.replaceChildren(isolated);
+            document.body.style.padding = "20px";
+            void isolated.getBoundingClientRect();
+        }}
+        state.status = "ready";
+        state.phase = "ready";
+        document.documentElement.dataset.visualState = "ready";
+        return;
+    }}
+
+    const waitForStableLayout = async (root, requirePagination) => {{
+        const started = performance.now();
+        let lastMutation = performance.now();
+        let previousGeometry = null;
+        let stableFrames = 0;
+        const observer = new MutationObserver(() => {{
+            lastMutation = performance.now();
+            stableFrames = 0;
+        }});
+        observer.observe(root, {{
+            attributes: true,
+            characterData: true,
+            childList: true,
+            subtree: true,
+        }});
+
+        try {{
+            while (performance.now() - started < timeoutMs) {{
+                await nextFrame();
+                const geometry = rowGeometry(root);
+                const gaps = rowGaps(geometry);
+                const paginationOk = !requirePagination || paginationReady(root);
+                const domQuiet = performance.now() - lastMutation >= domQuietMs;
+                const dimensionsOk = geometry.every(
+                    row => row.height > 0 && row.width > 0
+                );
+                const geometryStable = previousGeometry !== null &&
+                    sameGeometry(previousGeometry, geometry);
+
+                state.gaps = gaps;
+                state.stableFrames = stableFrames;
+                if (
+                    paginationOk &&
+                    domQuiet &&
+                    dimensionsOk &&
+                    gaps.length === 0 &&
+                    geometryStable
+                ) {{
+                    stableFrames += 1;
+                    state.stableFrames = stableFrames;
+                    if (stableFrames >= stableFramesRequired) {{
+                        await nextFrame();
+                        await nextFrame();
+                        return;
+                    }}
+                }} else {{
+                    stableFrames = 0;
+                }}
+                previousGeometry = geometry;
+            }}
+        }} finally {{
+            observer.disconnect();
+        }}
+
+        throw new Error(
+            `interface não estabilizou em ${{timeoutMs}}ms; ` +
+            `linhas=${{state.rowCount}}/${{state.expectedRows}}; ` +
+            `paginação="${{state.pageStatus}}"; ` +
+            `quadros=${{state.stableFrames}}; ` +
+            `lacunas=${{JSON.stringify(state.gaps)}}`
+        );
+    }};
+
+    void (async () => {{
+        try {{
+            localStorage.setItem(
+                "zabbix-report-theme",
+                {json.dumps("dark" if theme == "lunar" else "light")}
+            );
+            document.body.classList.toggle(
+                "theme-dark",
+                {str(theme == "lunar").lower()}
+            );
+            state.phase = "document";
+            await document.fonts.ready;
+            await decodeImages(document);
+
+            const tableTarget = sectionSelector === ".table-wrap"
+                ? document.querySelector(sectionSelector)
+                : null;
+            if (tableTarget) {{
+                state.phase = "table-render";
+                await waitForStableLayout(tableTarget, true);
+            }}
+
+            const modalTrigger = document.querySelector(modalSelector);
+            modalTrigger?.click();
+            const target = document.querySelector(sectionSelector);
+            if (target && !modalTrigger) {{
+                state.phase = "isolation";
+                const isolated = target.cloneNode(true);
+                document.body.replaceChildren(isolated);
+                document.body.style.padding = "20px";
+                await decodeImages(isolated);
+                await waitForStableLayout(isolated, false);
+            }}
+
+            state.phase = "final-frames";
+            await nextFrame();
+            await nextFrame();
+            state.status = "ready";
+            state.phase = "ready";
+            document.documentElement.dataset.visualState = "ready";
+        }} catch (error) {{
+            state.status = "error";
+            state.detail = error?.stack || String(error);
+            document.documentElement.dataset.visualState = "error";
+        }}
+    }})();
+}})();
 </script>
 """
     path.write_text(document.replace("</body>", f"{script}</body>", 1), encoding="utf-8")
@@ -191,9 +395,21 @@ def capture_screenshot(
     output: Path,
     profile: Path,
     size: tuple[int, int],
+    *,
+    synchronized_table: bool,
 ) -> None:
     width, height = size
     output.unlink(missing_ok=True)
+    if os.name == "nt" and synchronized_table:
+        capture_screenshot_playwright(
+            browser,
+            fixture,
+            output,
+            profile,
+            size,
+        )
+        return
+
     result = subprocess.run(
         [
             str(browser),
@@ -205,7 +421,7 @@ def capture_screenshot(
             "--force-device-scale-factor=1",
             f"--window-size={width},{height}",
             f"--user-data-dir={windows_path(profile)}",
-            "--virtual-time-budget=2500",
+            f"--virtual-time-budget={VISUAL_STABILITY_TIMEOUT_MS + 2000}",
             f"--screenshot={windows_path(output)}",
             file_url(fixture),
         ],
@@ -216,6 +432,67 @@ def capture_screenshot(
     if result.returncode != 0 or not output.exists():
         detail = result.stderr.decode("utf-8", errors="replace")[-1000:]
         raise RuntimeError(f"Falha ao capturar {output.name}: {detail}")
+
+
+def capture_screenshot_playwright(
+    browser: Path,
+    fixture: Path,
+    output: Path,
+    profile: Path,
+    size: tuple[int, int],
+) -> None:
+    """Captura somente após o contrato de estabilidade visual da página."""
+
+    from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
+    from playwright.sync_api import sync_playwright
+
+    width, height = size
+    viewport_width = max(width, 500)
+    profile.mkdir(parents=True, exist_ok=True)
+    with sync_playwright() as playwright:
+        context = playwright.chromium.launch_persistent_context(
+            str(profile),
+            executable_path=str(browser),
+            headless=True,
+            viewport={"width": viewport_width, "height": height},
+            device_scale_factor=1,
+            args=[
+                "--disable-gpu",
+                "--hide-scrollbars",
+                "--no-first-run",
+                "--force-device-scale-factor=1",
+            ],
+        )
+        try:
+            page = context.pages[0]
+            page.goto(fixture.resolve().as_uri(), wait_until="load")
+            try:
+                page.wait_for_function(
+                    """() => (
+                        document.documentElement.dataset.visualState === "ready" ||
+                        document.documentElement.dataset.visualState === "error"
+                    )""",
+                    timeout=VISUAL_STABILITY_TIMEOUT_MS + 3000,
+                )
+            except PlaywrightTimeoutError as error:
+                diagnostic = page.evaluate("() => window.__visualStability || null")
+                raise RuntimeError(
+                    f"Timeout de estabilidade em {output.name}: "
+                    f"{json.dumps(diagnostic, ensure_ascii=False)}"
+                ) from error
+
+            diagnostic = page.evaluate("() => window.__visualStability || null")
+            if not diagnostic or diagnostic.get("status") != "ready":
+                raise RuntimeError(
+                    f"Interface instável em {output.name}: "
+                    f"{json.dumps(diagnostic, ensure_ascii=False)}"
+                )
+            page.screenshot(
+                path=str(output),
+                clip={"x": 0, "y": 0, "width": width, "height": height},
+            )
+        finally:
+            context.close()
 
 
 def compare_images(current: Path, baseline: Path, diff_path: Path) -> dict:
@@ -585,7 +862,11 @@ def write_markdown(report: dict) -> None:
             "",
         ]
     )
-    RESULT_MARKDOWN.write_text("\n".join(lines), encoding="utf-8")
+    RESULT_MARKDOWN.write_text(
+        "\n".join(lines),
+        encoding="utf-8",
+        newline="\n",
+    )
 
 
 def parse_args() -> argparse.Namespace:
@@ -627,6 +908,7 @@ def main() -> int:
                     theme=capture["theme"],
                     section=capture["section"],
                     modal=capture["modal"],
+                    expected_records=capture["records"],
                 )
                 capture_screenshot(
                     browser,
@@ -634,6 +916,7 @@ def main() -> int:
                     current,
                     temp_dir / f"profile-visual-{index}",
                     capture["size"],
+                    synchronized_table=capture["section"] == ".table-wrap",
                 )
                 if args.update_baselines:
                     shutil.copy2(current, baseline)
@@ -700,6 +983,7 @@ def main() -> int:
     RESULT_JSON.write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
+        newline="\n",
     )
     write_markdown(report)
     print(f"Resultado: {RESULT_JSON}")

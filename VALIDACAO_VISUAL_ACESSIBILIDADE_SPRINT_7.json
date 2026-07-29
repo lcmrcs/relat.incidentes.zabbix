@@ -1,21 +1,21 @@
 {
-  "generated_at": "2026-07-28T17:38:30-03:00",
+  "generated_at": "2026-07-29T10:00:26-03:00",
   "browser": {
     "name": "Microsoft Edge",
     "version": "150.0.4078.99",
     "executable": "msedge.exe"
   },
-  "system": "Windows 11 / WSL (6.18.33.1-microsoft-standard-WSL2)",
+  "system": "Windows 11 / WSL (11)",
   "visual": [
     {
       "passed": true,
-      "difference_percent": 0.015,
+      "difference_percent": 0.0105,
       "reason": "",
       "name": "desktop_solar_cabecalho",
       "theme": "solar",
       "resolution": "1600x1000",
       "records": 40,
-      "baseline": "zabbix-report/tests/visual_baselines/desktop_solar_cabecalho.png"
+      "baseline": "zabbix-report\\tests\\visual_baselines\\desktop_solar_cabecalho.png"
     },
     {
       "passed": true,
@@ -25,17 +25,17 @@
       "theme": "lunar",
       "resolution": "1600x1000",
       "records": 40,
-      "baseline": "zabbix-report/tests/visual_baselines/desktop_lunar_inteligencia.png"
+      "baseline": "zabbix-report\\tests\\visual_baselines\\desktop_lunar_inteligencia.png"
     },
     {
       "passed": true,
-      "difference_percent": 0.0112,
+      "difference_percent": 0.0044,
       "reason": "",
       "name": "desktop_solar_rankings",
       "theme": "solar",
       "resolution": "1600x1000",
       "records": 40,
-      "baseline": "zabbix-report/tests/visual_baselines/desktop_solar_rankings.png"
+      "baseline": "zabbix-report\\tests\\visual_baselines\\desktop_solar_rankings.png"
     },
     {
       "passed": true,
@@ -45,17 +45,17 @@
       "theme": "solar",
       "resolution": "768x1024",
       "records": 40,
-      "baseline": "zabbix-report/tests/visual_baselines/tablet_solar_criticidade.png"
+      "baseline": "zabbix-report\\tests\\visual_baselines\\tablet_solar_criticidade.png"
     },
     {
       "passed": true,
-      "difference_percent": 0.0154,
+      "difference_percent": 0.0103,
       "reason": "",
       "name": "tablet_lunar_filtros",
       "theme": "lunar",
       "resolution": "768x1024",
       "records": 40,
-      "baseline": "zabbix-report/tests/visual_baselines/tablet_lunar_filtros.png"
+      "baseline": "zabbix-report\\tests\\visual_baselines\\tablet_lunar_filtros.png"
     },
     {
       "passed": true,
@@ -65,7 +65,7 @@
       "theme": "solar",
       "resolution": "390x844",
       "records": 40,
-      "baseline": "zabbix-report/tests/visual_baselines/mobile_solar_tabela.png"
+      "baseline": "zabbix-report\\tests\\visual_baselines\\mobile_solar_tabela.png"
     },
     {
       "passed": true,
@@ -75,27 +75,27 @@
       "theme": "lunar",
       "resolution": "390x844",
       "records": 40,
-      "baseline": "zabbix-report/tests/visual_baselines/mobile_lunar_incidente.png"
+      "baseline": "zabbix-report\\tests\\visual_baselines\\mobile_lunar_incidente.png"
     },
     {
       "passed": true,
-      "difference_percent": 0.0145,
+      "difference_percent": 0.0146,
       "reason": "",
       "name": "desktop_solar_zabbix",
       "theme": "solar",
       "resolution": "1600x1000",
       "records": 40,
-      "baseline": "zabbix-report/tests/visual_baselines/desktop_solar_zabbix.png"
+      "baseline": "zabbix-report\\tests\\visual_baselines\\desktop_solar_zabbix.png"
     },
     {
       "passed": true,
-      "difference_percent": 0.0093,
+      "difference_percent": 0.0066,
       "reason": "",
       "name": "desktop_lunar_confea",
       "theme": "lunar",
       "resolution": "1600x1000",
       "records": 40,
-      "baseline": "zabbix-report/tests/visual_baselines/desktop_lunar_confea.png"
+      "baseline": "zabbix-report\\tests\\visual_baselines\\desktop_lunar_confea.png"
     },
     {
       "passed": true,
@@ -105,17 +105,17 @@
       "theme": "solar",
       "resolution": "390x844",
       "records": 0,
-      "baseline": "zabbix-report/tests/visual_baselines/mobile_solar_vazio.png"
+      "baseline": "zabbix-report\\tests\\visual_baselines\\mobile_solar_vazio.png"
     },
     {
       "passed": true,
-      "difference_percent": 0.0,
+      "difference_percent": 0.0508,
       "reason": "",
       "name": "desktop_lunar_grande_volume",
       "theme": "lunar",
       "resolution": "1600x1000",
       "records": 7171,
-      "baseline": "zabbix-report/tests/visual_baselines/desktop_lunar_grande_volume.png"
+      "baseline": "zabbix-report\\tests\\visual_baselines\\desktop_lunar_grande_volume.png"
     }
   ],
   "accessibility": [
