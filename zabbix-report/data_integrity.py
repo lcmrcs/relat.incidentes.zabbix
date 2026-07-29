@@ -2,9 +2,9 @@
 
 import logging
 from collections import Counter
-from datetime import datetime
 
 from classifiers import SEVERITY_MAP, classify_equipment, classify_unit_group
+from time_utils import datetime_to_unix, parse_report_timestamp
 
 LOGGER = logging.getLogger("zabbix-report.integrity")
 
@@ -58,15 +58,7 @@ ISSUE_DEFINITIONS = {
 
 
 def _timestamp(value):
-    if value in (None, "", "0", 0):
-        return None
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        try:
-            return int(datetime.strptime(str(value), "%d/%m/%Y %H:%M").timestamp())
-        except (TypeError, ValueError, OverflowError):
-            return None
+    return parse_report_timestamp(value)
 
 
 def _summary(received, processed, adjusted, discarded, counts):
@@ -122,7 +114,7 @@ def validate_problem_records(
     valid = []
     adjusted_records = set()
     discarded = 0
-    generated_timestamp = int(generated_at.timestamp())
+    generated_timestamp = datetime_to_unix(generated_at)
 
     for index, raw in enumerate(problems or []):
         if not isinstance(raw, dict):

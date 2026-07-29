@@ -341,6 +341,22 @@ python scripts/check_secrets.py
 git diff --check
 ```
 
+Compatibilidade temporal no WSL/Linux:
+
+```bash
+python -m pytest \
+  zabbix-report/tests/test_time_utils.py \
+  zabbix-report/tests/test_incident_model.py \
+  zabbix-report/tests/test_data_integrity.py \
+  zabbix-report/tests/test_summary.py
+```
+
+No PowerShell ou terminal do Windows:
+
+```powershell
+python -m pytest zabbix-report/tests/test_time_utils.py zabbix-report/tests/test_incident_model.py zabbix-report/tests/test_data_integrity.py zabbix-report/tests/test_summary.py
+```
+
 Navegador:
 
 ```bash

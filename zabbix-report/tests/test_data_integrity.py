@@ -1,16 +1,16 @@
 import json
 import sys
 import unittest
-from datetime import datetime
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_DIR))
 
 from data_integrity import validate_problem_records  # noqa: E402
+from time_utils import DISPLAY_TIMEZONE, unix_to_datetime  # noqa: E402
 from zabbix_report import build_incidents  # noqa: E402
 
-NOW = datetime.fromtimestamp(10_000)
+NOW = unix_to_datetime(10_000, target_timezone=DISPLAY_TIMEZONE)
 
 
 def event(**overrides):

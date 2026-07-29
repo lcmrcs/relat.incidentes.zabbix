@@ -6,10 +6,10 @@ evita divergência entre os formatos de saída.
 """
 
 from collections import Counter
-from datetime import datetime
 from statistics import median
 
 from classifiers import EQUIPMENT_ORDER
+from time_utils import datetime_to_unix, now_utc
 
 SEVERITY_SCORE = {
     "Não classificada": 5,
@@ -153,7 +153,7 @@ def build_age_summary(incidents):
     tempo, algo que a contagem simples não mostra.
     """
 
-    now = datetime.now().timestamp()
+    now = datetime_to_unix(now_utc())
     dated_incidents = [
         item for item in incidents if item.get("status") == "Aberto" and item.get("timestamp")
     ]

@@ -12,19 +12,13 @@ from summary import (  # noqa: E402
     build_resolved_duration_summary,
     format_age,
 )
+from time_utils import unix_to_datetime  # noqa: E402
 
 NOW = 10_000_000
 
 
-class FixedNow:
-    def timestamp(self):
-        return NOW
-
-
-class FixedDatetime:
-    @classmethod
-    def now(cls):
-        return FixedNow()
+def fixed_now():
+    return unix_to_datetime(NOW)
 
 
 def incident(
@@ -66,7 +60,7 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual(format_age(3660), "1h 1min")
         self.assertEqual(format_age(90000), "1d 1h")
 
-    @patch("summary.datetime", FixedDatetime)
+    @patch("summary.now_utc", fixed_now)
     def test_build_age_summary_counts_expected_ranges(self):
         incidents = [
             incident("24h", age_seconds=3600),
@@ -97,7 +91,7 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual(summary["over_30d"], 4)
         self.assertEqual(summary["over_90d"], 1)
 
-    @patch("summary.datetime", FixedDatetime)
+    @patch("summary.now_utc", fixed_now)
     def test_build_report_summary_calculates_totals_and_rankings(self):
         incidents = [
             incident("cam-1", equipment="Câmera", severity="Alta", unit="1011-CE A"),
@@ -178,7 +172,7 @@ class SummaryTests(unittest.TestCase):
         self.assertEqual(summary["top_oldest_units"], [])
         self.assertEqual(summary["top_high_severity_units"], [])
 
-    @patch("summary.datetime", FixedDatetime)
+    @patch("summary.now_utc", fixed_now)
     def test_aging_indicators_ignore_resolved_events(self):
         summary = build_report_summary(
             [

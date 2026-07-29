@@ -34,6 +34,12 @@ from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.table import Table, TableStyleInfo
 from pdf_report import technical_pdf_name, write_pdf_report, write_technical_pdf_report
 from summary import build_report_summary, format_age
+from time_utils import (
+    datetime_to_unix,
+    format_report_timestamp,
+    now_display,
+    parse_report_timestamp,
+)
 from zabbix_api import ZabbixClient
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -68,29 +74,12 @@ EXCEL_COLUMNS = [
 
 def parse_timestamp(value):
     """Converte timestamps Unix ou datas do relatório; valores inválidos viram None."""
-
-    if value in (None, "", "0", 0):
-        return None
-
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        try:
-            return int(datetime.strptime(str(value), "%d/%m/%Y %H:%M").timestamp())
-        except (TypeError, ValueError, OverflowError):
-            return None
+    return parse_report_timestamp(value)
 
 
 def format_timestamp(value):
     """Formata um timestamp válido sem interromper o relatório em dados corrompidos."""
-
-    if value is None:
-        return "-"
-
-    try:
-        return datetime.fromtimestamp(value).strftime("%d/%m/%Y %H:%M")
-    except (OSError, OverflowError, ValueError):
-        return "-"
+    return format_report_timestamp(value)
 
 
 def build_incident_key(unit_code, host, equipment, incident_type):
@@ -499,7 +488,7 @@ def build_incidents(
         resolved_timestamp = parse_timestamp(resolved_at)
         status = "Resolvido" if resolved_timestamp is not None else "Aberto"
 
-        generated_timestamp = int(generated_at.timestamp())
+        generated_timestamp = datetime_to_unix(generated_at)
         duration_end = resolved_timestamp if status == "Resolvido" else generated_timestamp
         duration_seconds = max(0, duration_end - timestamp) if timestamp else 0
         open_age_seconds = duration_seconds if status == "Aberto" and timestamp else 0
@@ -1515,11 +1504,11 @@ def main():
     with diagnostics.measure("configuration"):
         zabbix_url, zabbix_token = load_config()
         zabbix_web_url = build_zabbix_web_url(zabbix_url)
-        today = datetime.now()
+        today = now_display()
         start_date, period_name, period_slug = resolve_period(args, today)
         period_label = format_period_label(period_name, start_date, today)
-        time_from = int(start_date.timestamp()) if start_date else None
-        time_till = int(today.timestamp())
+        time_from = datetime_to_unix(start_date) if start_date else None
+        time_till = datetime_to_unix(today)
 
     REPORTS_DIR.mkdir(exist_ok=True)
     base_name = f"report_{today.strftime('%Y-%m-%d')}_{period_slug}"

@@ -1,5 +1,14 @@
 # Changelog
 
+## Sprint 10 — Compatibilidade multiplataforma e datas determinísticas
+
+- Centralizadas conversões temporais portáveis, com UTC como referência
+  interna e horário de Brasília explícito na apresentação.
+- Corrigido o uso de timestamps anteriores a 1970 no Windows sem alterar
+  duração, idade do passivo ou recuperação.
+- Adicionados testes temporais focais e validação equivalente em Linux e
+  Windows no GitHub Actions.
+
 ## Sprint 9 — Ativação e estabilização do CI
 
 - Auditadas as primeiras execuções reais dos workflows Linux e Windows.

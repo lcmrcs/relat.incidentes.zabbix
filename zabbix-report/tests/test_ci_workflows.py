@@ -46,12 +46,15 @@ class CiWorkflowTests(unittest.TestCase):
         names = {job["name"] for job in workflow["jobs"].values()}
 
         self.assertTrue({"Qualidade Python", "Testes", "Segurança"} <= names)
+        self.assertIn("Compatibilidade temporal (${{ matrix.os }})", names)
         self.assertIn("ruff check .", text)
         self.assertIn("xargs -0 -n 1 black --check", text)
         self.assertIn("python scripts/check_secrets.py", text)
         self.assertIn("pytest", text)
         self.assertIn("fetch-depth: 2", text)
         self.assertNotIn("test_zabbix_api.py", text)
+        self.assertIn("os: [ubuntu-latest, windows-latest]", text)
+        self.assertIn("test_time_utils.py", text)
 
     def test_browser_workflow_never_updates_baselines_and_limits_artifacts(self):
         text, workflow = self.workflow("validacao-navegador.yml")
