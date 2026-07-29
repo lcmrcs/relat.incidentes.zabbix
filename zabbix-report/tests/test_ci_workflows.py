@@ -65,6 +65,7 @@ class CiWorkflowTests(unittest.TestCase):
         self.assertIn("retention-days: 5", text)
         self.assertIn("zabbix-report/tests/visual_baselines/", text)
         self.assertIn("Remover evidência anterior", text)
+        self.assertIn("artifacts/html-browser/", text)
 
     def test_windows_browser_candidates_use_native_environment(self):
         environment = {
