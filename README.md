@@ -711,3 +711,19 @@ gráficos, rankings e separação operacional dos principais grupos de incidente
 
 Ele segue em evolução contínua, com foco em clareza, confiabilidade, segurança
 e utilidade para acompanhamento técnico e executivo.
+# Comparativo executivo entre períodos
+
+O comparativo é opcional e depende tecnicamente dos utilitários temporais
+determinísticos entregues na Sprint 10. Para ativá-lo:
+
+```bash
+python zabbix-report/zabbix_report.py --periodo 24h --comparar
+```
+
+Ele confronta o fluxo da janela selecionada com a janela imediatamente
+anterior, de mesma duração e sem sobreposição. A análise inclui ocorrências
+iniciadas e resolvidas, severidade, recorrência, unidades, equipamentos e
+duração dos encerrados. Ela não reconstrói o passivo aberto em uma data
+histórica. Cada janela possui validação de integridade independente e uma
+janela com descartes impede conclusões definitivas. `--comparar` não é
+compatível com `--periodo historico`, pois esse recorte não tem duração finita.

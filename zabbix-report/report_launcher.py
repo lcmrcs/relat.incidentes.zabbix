@@ -447,6 +447,31 @@ HTML_PAGE = r"""<!doctype html>
                 0 10px 20px rgb(8 127 140 / 0.12);
         }
 
+        .comparison-option {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-top: 18px;
+            padding: 14px 0;
+        }
+
+        .comparison-option input {
+            width: 18px;
+            height: 18px;
+            margin-top: 2px;
+            accent-color: var(--teal);
+        }
+
+        .comparison-option span {
+            display: grid;
+            gap: 3px;
+        }
+
+        .comparison-option small {
+            color: var(--muted);
+            font-weight: 500;
+        }
+
         .actions {
             display: flex;
             flex-wrap: wrap;
@@ -753,6 +778,14 @@ HTML_PAGE = r"""<!doctype html>
                         </div>
                     </label>
 
+                    <label class="comparison-option">
+                        <input id="compare" name="compare" type="checkbox">
+                        <span>
+                            <strong>Comparar com o período anterior</strong>
+                            <small>Usa uma janela adjacente de mesma duração.</small>
+                        </span>
+                    </label>
+
                     <div class="selection-summary" aria-label="Resumo da geração selecionada">
                         <div class="selection-card">
                             <span>Recorte</span>
@@ -896,6 +929,7 @@ HTML_PAGE = r"""<!doctype html>
                 equipment: equipment.value,
                 unit: unitFilter.value.trim(),
                 keep: keep.value,
+                compare: document.getElementById("compare").checked,
             };
         }
 
@@ -1181,6 +1215,7 @@ def normalize_payload(payload: dict) -> list[str]:
     status = str(payload.get("status", "abertos")).strip()
     equipment = str(payload.get("equipment", "")).strip()
     unit = str(payload.get("unit", "")).strip()
+    compare = payload.get("compare") is True
 
     try:
         keep = int(payload.get("keep", 1))
@@ -1204,7 +1239,12 @@ def normalize_payload(payload: dict) -> list[str]:
             raise ValueError("Período inválido.")
         args.extend(["--periodo", period])
 
+    if compare and period == "historico":
+        raise ValueError("Escolha um período finito para realizar a comparação.")
+
     args.extend(["--status", status])
+    if compare:
+        args.append("--comparar")
 
     if equipment:
         args.extend(["--equipamento", equipment])

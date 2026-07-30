@@ -12,7 +12,7 @@ sys.path.insert(0, str(PROJECT_DIR))
 import zabbix_report  # noqa: E402
 
 
-def args(diagnostic=False, detailed=False):
+def args(diagnostic=False, detailed=False, compare=False):
     return SimpleNamespace(
         dias=None,
         periodo="7d",
@@ -23,6 +23,7 @@ def args(diagnostic=False, detailed=False):
         manter_relatorios=1,
         pdf_detalhado=detailed,
         diagnostico=diagnostic,
+        comparar=compare,
     )
 
 
@@ -131,6 +132,21 @@ class GenerationObservabilityTests(unittest.TestCase):
             report_dir = Path(temp_dir)
             self.run_main(report_dir, args(diagnostic=False))
             self.assertEqual(list(report_dir.glob("*_diagnostico.json")), [])
+
+    def test_comparison_adds_previous_collection_only_when_enabled(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            report_dir = Path(temp_dir)
+            self.run_main(report_dir, args(diagnostic=True, compare=True))
+            diagnostic = next(report_dir.glob("*_diagnostico.json"))
+            data = json.loads(diagnostic.read_text(encoding="utf-8"))
+            stages = {item["name"] for item in data["stages"]}
+
+        self.assertEqual(data["api"]["call_count"], 7)
+        self.assertIn("comparison_previous_collection", stages)
+        self.assertIn("comparison_previous_problem_search", stages)
+        self.assertIn("comparison_previous_recovery_search", stages)
+        self.assertIn("comparison_previous_trigger_host_search", stages)
+        self.assertIn("comparison_previous_validation", stages)
 
     def test_export_failure_writes_partial_safe_diagnostic(self):
         with tempfile.TemporaryDirectory() as temp_dir:

@@ -135,6 +135,85 @@ class ExportTests(unittest.TestCase):
         self.assertIn(b"%%EOF", pdf_bytes)
         self.assertIn(b"1h 0min", pdf_bytes)
 
+    def test_comparison_model_is_shared_by_html_excel_and_pdf(self):
+        incidents = [sample_incident()]
+        summary = build_report_summary(incidents)
+        comparison = {
+            "enabled": True,
+            "quality_sufficient": True,
+            "quality_label": "Comparação com qualidade suficiente",
+            "current_label": "02/01/2026 00:00 a 02/01/2026 23:59",
+            "previous_label": "01/01/2026 00:00 a 01/01/2026 23:59",
+            "note": "Compara fluxo sem reconstruir o passivo anterior.",
+            "metrics": [
+                {
+                    "key": "started",
+                    "label": "Incidentes iniciados",
+                    "current": 12,
+                    "previous": 8,
+                    "current_label": "12",
+                    "previous_label": "8",
+                    "difference": 4,
+                    "difference_label": "+4",
+                    "percent": 50.0,
+                    "percent_label": "+50.0%",
+                    "direction": "aumento",
+                    "interpretation": "Piora observada",
+                }
+            ],
+            "unit_changes": [],
+            "equipment_changes": [],
+            "integrity": {},
+            "integrity_note": "Integridade: atual e anterior sem descartes.",
+        }
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_dir = Path(temp_dir)
+            html_path = temp_dir / "comparativo.html"
+            excel_path = temp_dir / "comparativo.xlsx"
+            pdf_path = temp_dir / "comparativo.pdf"
+            render_html(
+                html_path,
+                "02/01/2026 23:59",
+                "últimas 24 horas",
+                incidents,
+                summary,
+                [],
+                build_report_summary([]),
+                [],
+                build_report_summary([]),
+                "https://example.test",
+                comparison=comparison,
+            )
+            export_excel(
+                excel_path,
+                incidents,
+                incidents,
+                [],
+                [],
+                summary,
+                "02/01/2026 23:59",
+                "últimas 24 horas",
+                comparison=comparison,
+            )
+            write_pdf_report(
+                pdf_path,
+                incidents,
+                "02/01/2026 23:59",
+                summary,
+                "últimas 24 horas",
+                comparison=comparison,
+            )
+            html = html_path.read_text(encoding="utf-8")
+            workbook = load_workbook(excel_path, data_only=True)
+            pdf = pdf_path.read_bytes()
+
+        self.assertIn("Incidentes iniciados", html)
+        self.assertIn("+50.0%", html)
+        self.assertIn("Comparativo", workbook.sheetnames)
+        self.assertEqual(workbook["Comparativo"]["B9"].value, "12")
+        self.assertIn(b"Incidentes iniciados", pdf)
+        self.assertIn(b"+50.0%", pdf)
+
     def test_html_excel_and_pdf_consume_the_same_operational_fields(self):
         resolved = {
             **sample_incident(),

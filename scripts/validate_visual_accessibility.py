@@ -874,6 +874,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--visual-only", action="store_true")
     parser.add_argument("--accessibility-only", action="store_true")
     parser.add_argument("--update-baselines", action="store_true")
+    parser.add_argument(
+        "--capture",
+        action="append",
+        default=[],
+        help="Executa somente a captura nominal informada. Pode ser repetido.",
+    )
     return parser.parse_args()
 
 
@@ -884,6 +890,14 @@ def main() -> int:
 
     run_visual = not args.accessibility_only
     run_accessibility = not args.visual_only
+    selected_captures = CAPTURES
+    if args.capture:
+        requested = set(args.capture)
+        known = {capture["name"] for capture in CAPTURES}
+        unknown = sorted(requested - known)
+        if unknown:
+            raise SystemExit(f"Captura(s) desconhecida(s): {', '.join(unknown)}")
+        selected_captures = tuple(capture for capture in CAPTURES if capture["name"] in requested)
     browser = find_browser()
     artifacts = ROOT / "artifacts" / "visual-accessibility"
     current_dir = artifacts / "current"
@@ -897,7 +911,7 @@ def main() -> int:
     with tempfile.TemporaryDirectory(prefix=".sprint7-", dir=ROOT) as temp:
         temp_dir = Path(temp)
         if run_visual:
-            for index, capture in enumerate(CAPTURES):
+            for index, capture in enumerate(selected_captures):
                 fixture = temp_dir / f"{capture['name']}.html"
                 current = current_dir / f"{capture['name']}.png"
                 baseline = BASELINE_DIR / current.name

@@ -24,6 +24,7 @@ from classifiers import (
     classify_incident_type,
     classify_unit_group,
 )
+from comparison import build_comparison_windows, build_executive_comparison
 from data_integrity import validate_problem_records
 from dotenv import load_dotenv
 from jinja2 import Environment, FileSystemLoader, select_autoescape
@@ -349,6 +350,11 @@ def parse_args():
         help=(
             "Gera um JSON seguro com tempos, chamadas da API, tamanhos e " "gargalos da execução."
         ),
+    )
+    parser.add_argument(
+        "--comparar",
+        action="store_true",
+        help="Compara o período selecionado com a janela anterior de mesma duração.",
     )
 
     args = parser.parse_args()
@@ -1029,7 +1035,7 @@ def style_excel_workbook(writer, diagnostics=None):
     data_sheets = [
         (sheet_index, worksheet)
         for sheet_index, worksheet in enumerate(workbook.worksheets)
-        if worksheet.title not in {"Resumo Executivo", "Rankings", "Inteligência"}
+        if worksheet.title not in {"Resumo Executivo", "Rankings", "Inteligência", "Comparativo"}
         and worksheet.max_row > 1
         and worksheet.max_column > 1
     ]
@@ -1241,6 +1247,7 @@ def export_excel(
     period_label,
     integrity_summary=None,
     diagnostics=None,
+    comparison=None,
 ):
     """
     Gera a planilha Excel com abas separadas por finalidade.
@@ -1277,6 +1284,43 @@ def export_excel(
         zabbix_frame = incidents_to_excel_frame(zabbix_incidents) if zabbix_incidents else None
         confea_frame = incidents_to_excel_frame(confea_incidents) if confea_incidents else None
         all_frame = incidents_to_excel_frame(all_incidents)
+        comparison_frame = None
+        comparison_changes = []
+        if comparison:
+            comparison_frame = pd.DataFrame(
+                [
+                    {
+                        "Indicador": item["label"],
+                        "Período atual": item["current_label"],
+                        "Período anterior": item["previous_label"],
+                        "Diferença": item["difference_label"],
+                        "Variação": item["percent_label"],
+                        "Direção": item["direction"],
+                        "Interpretação": item["interpretation"],
+                    }
+                    for item in comparison["metrics"]
+                ]
+            )
+            for title, key in (
+                ("Mudanças por unidade", "unit_changes"),
+                ("Mudanças por equipamento", "equipment_changes"),
+            ):
+                comparison_changes.append(
+                    (
+                        title,
+                        pd.DataFrame(
+                            comparison[key],
+                            columns=["name", "current", "previous", "difference"],
+                        ).rename(
+                            columns={
+                                "name": "Nome",
+                                "current": "Atual",
+                                "previous": "Anterior",
+                                "difference": "Diferença",
+                            }
+                        ),
+                    )
+                )
 
     writer = pd.ExcelWriter(path, engine="openpyxl")
     try:
@@ -1335,6 +1379,39 @@ def export_excel(
                 sheet_name="Integridade dos Dados",
                 index=False,
             )
+            if comparison_frame is not None:
+                pd.DataFrame(
+                    [
+                        ["Período atual", comparison["current_label"]],
+                        ["Período anterior", comparison["previous_label"]],
+                        ["Qualidade", comparison["quality_label"]],
+                        ["Integridade", comparison.get("integrity_note", "")],
+                        ["Escopo", comparison["note"]],
+                    ],
+                    columns=["Comparativo executivo", "Valor"],
+                ).to_excel(writer, sheet_name="Comparativo", index=False)
+                comparison_frame.to_excel(
+                    writer,
+                    sheet_name="Comparativo",
+                    index=False,
+                    startrow=7,
+                )
+                comparison_row = 9 + len(comparison_frame)
+                for title, frame in comparison_changes:
+                    pd.DataFrame([[title]], columns=["Indicador"]).to_excel(
+                        writer,
+                        sheet_name="Comparativo",
+                        index=False,
+                        header=False,
+                        startrow=comparison_row,
+                    )
+                    frame.to_excel(
+                        writer,
+                        sheet_name="Comparativo",
+                        index=False,
+                        startrow=comparison_row + 1,
+                    )
+                    comparison_row += len(frame) + 4
             main_frame.to_excel(
                 writer,
                 sheet_name="Unidades",
@@ -1380,6 +1457,7 @@ def render_html(
     confea_summary,
     zabbix_web_url,
     integrity_summary=None,
+    comparison=None,
 ):
     """
     Renderiza o template HTML com os dados já processados.
@@ -1420,6 +1498,7 @@ def render_html(
             "issues": [],
         },
         incident_payload=build_html_incident_payload(main_incidents),
+        comparison=comparison,
     )
 
     with open(path, "w", encoding="utf-8") as file:
@@ -1490,7 +1569,8 @@ def requested_period_label(args):
         period = f"{args.dias}d"
     else:
         period = str(args.periodo)
-    return f"{period} · status {args.status}"
+    comparison_label = " · comparação ativa" if getattr(args, "comparar", False) else ""
+    return f"{period} · status {args.status}{comparison_label}"
 
 
 def main():
@@ -1509,6 +1589,15 @@ def main():
         period_label = format_period_label(period_name, start_date, today)
         time_from = datetime_to_unix(start_date) if start_date else None
         time_till = datetime_to_unix(today)
+        comparison_windows = None
+        if getattr(args, "comparar", False):
+            if start_date is None:
+                print(
+                    "ERRO: --comparar exige um período finito. "
+                    "Use --periodo 24h, --periodo 7d ou --desde AAAA-MM-DD."
+                )
+                raise SystemExit(1)
+            comparison_windows = build_comparison_windows(start_date, today)
 
     REPORTS_DIR.mkdir(exist_ok=True)
     base_name = f"report_{today.strftime('%Y-%m-%d')}_{period_slug}"
@@ -1526,7 +1615,8 @@ def main():
         print("Conectando ao Zabbix...")
         with diagnostics.measure("api_collection"):
             with diagnostics.measure("problem_search"):
-                problems = client.get_problems(args.status, time_from, time_till)
+                collection_status = "todos" if comparison_windows else args.status
+                problems = client.get_problems(collection_status, time_from, time_till)
             LOGGER.info("Coleta concluída: %d registro(s) recebido(s)", len(problems))
             with diagnostics.measure("recovery_search"):
                 resolved_at_by_event = client.get_recovery_dates(problems)
@@ -1539,6 +1629,32 @@ def main():
             with diagnostics.measure("unit_catalog"):
                 all_host_details_by_id = client.get_all_hosts_with_tags()
                 unit_catalog = build_unit_catalog(all_host_details_by_id)
+            previous_problems = []
+            previous_resolved_at_by_event = {}
+            previous_hosts_by_trigger = {}
+            previous_host_ids_by_trigger = {}
+            previous_host_details_by_id = {}
+            if comparison_windows:
+                LOGGER.info("Iniciando coleta do período anterior para comparação")
+                with diagnostics.measure("comparison_previous_collection"):
+                    with diagnostics.measure("comparison_previous_problem_search"):
+                        previous_problems = client.get_problems(
+                            "todos",
+                            comparison_windows["previous"]["time_from"],
+                            comparison_windows["previous"]["time_till"],
+                        )
+                    with diagnostics.measure("comparison_previous_recovery_search"):
+                        previous_resolved_at_by_event = client.get_recovery_dates(previous_problems)
+                    with diagnostics.measure("comparison_previous_trigger_host_search"):
+                        (
+                            previous_hosts_by_trigger,
+                            previous_host_ids_by_trigger,
+                            previous_host_details_by_id,
+                        ) = client.get_trigger_hosts(previous_problems)
+                LOGGER.info(
+                    "Coleta comparativa concluída: %d registro(s) no período anterior",
+                    len(previous_problems),
+                )
 
         print("Processando incidentes...")
         with diagnostics.measure("validation"):
@@ -1563,6 +1679,18 @@ def main():
                 "Foram identificados %d aviso(s) de integridade",
                 integrity_summary["warning_count"],
             )
+        previous_integrity_summary = None
+        if comparison_windows:
+            with diagnostics.measure("comparison_previous_validation"):
+                previous_problems, previous_integrity_summary = validate_problem_records(
+                    previous_problems,
+                    previous_hosts_by_trigger,
+                    previous_host_ids_by_trigger,
+                    previous_host_details_by_id,
+                    previous_resolved_at_by_event,
+                    unit_catalog,
+                    comparison_windows["previous"]["end"],
+                )
 
         with diagnostics.measure("incident_build"):
             incidents = build_incidents(
@@ -1594,6 +1722,45 @@ def main():
                 period_slug = f"{period_slug}_{slugify(equipment_filter)}"
 
             scoped_incidents = main_incidents + zabbix_incidents + confea_incidents
+            comparison = None
+            if comparison_windows:
+                comparison_current_incidents = build_incidents(
+                    problems,
+                    hosts_by_trigger,
+                    host_ids_by_trigger,
+                    host_details_by_id,
+                    resolved_at_by_event,
+                    unit_catalog,
+                    "todos",
+                    today,
+                )
+                comparison_current_main, _, _ = split_special_groups(comparison_current_incidents)
+                previous_incidents = build_incidents(
+                    previous_problems,
+                    previous_hosts_by_trigger,
+                    previous_host_ids_by_trigger,
+                    previous_host_details_by_id,
+                    previous_resolved_at_by_event,
+                    unit_catalog,
+                    "todos",
+                    comparison_windows["previous"]["end"],
+                )
+                previous_main, _, _ = split_special_groups(previous_incidents)
+                if unit_filter:
+                    comparison_current_main = filter_by_unit(comparison_current_main, unit_filter)
+                    previous_main = filter_by_unit(previous_main, unit_filter)
+                if equipment_filter:
+                    comparison_current_main = filter_by_equipment(
+                        comparison_current_main, equipment_filter
+                    )
+                    previous_main = filter_by_equipment(previous_main, equipment_filter)
+                comparison = build_executive_comparison(
+                    comparison_current_main + previous_main,
+                    previous_main + comparison_current_main,
+                    comparison_windows,
+                    integrity_summary,
+                    previous_integrity_summary,
+                )
 
         # Filtros alteram o slug e, portanto, os nomes finais dos arquivos.
         base_name = f"report_{today.strftime('%Y-%m-%d')}_{period_slug}"
@@ -1638,6 +1805,7 @@ def main():
                 period_label,
                 integrity_summary,
                 diagnostics,
+                comparison,
             ),
         )
         print(f"Excel gerado: {excel_name}")
@@ -1659,6 +1827,7 @@ def main():
                 confea_summary,
                 zabbix_web_url,
                 integrity_summary,
+                comparison,
             ),
         )
         print(f"HTML gerado: {html_name}")
@@ -1679,6 +1848,7 @@ def main():
                     "Servidor Zabbix": zabbix_summary,
                     "CONFEA VPN": confea_summary,
                 },
+                comparison,
             ),
             with_pages=True,
         )

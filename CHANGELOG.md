@@ -1,5 +1,14 @@
 # Changelog
 
+## Sprint 11 — Comparativo executivo entre períodos
+
+- Adicionado comparativo opcional de fluxo entre janelas equivalentes,
+  adjacentes e sem sobreposição, dependente da base temporal da Sprint 10.
+- Criado modelo canônico compartilhado por HTML, Excel e PDF, com tratamento
+  explícito de base zero e integridade independente por período.
+- Preservada a fotografia atual do passivo aberto, sem reconstruir estado
+  histórico sem evidência.
+
 ## Sprint 10 — Compatibilidade multiplataforma e datas determinísticas
 
 - Centralizadas conversões temporais portáveis, com UTC como referência

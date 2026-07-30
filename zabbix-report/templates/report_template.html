@@ -110,6 +110,37 @@
             {% endif %}
         </section>
 
+        {% if comparison %}
+        <section class="period-comparison" aria-labelledby="period-comparison-title">
+            <div class="comparison-heading">
+                <div>
+                    <span class="chart-kicker">Comparativo entre períodos</span>
+                    <h2 id="period-comparison-title">Mudança observada no fluxo operacional</h2>
+                </div>
+                <strong class="comparison-quality">{{ comparison.quality_label }}</strong>
+            </div>
+            <div class="comparison-windows">
+                <span><strong>Atual</strong>{{ comparison.current_label }}</span>
+                <span><strong>Anterior</strong>{{ comparison.previous_label }}</span>
+            </div>
+            <div class="comparison-table" role="table" aria-label="Indicadores comparativos">
+                {% for item in comparison.metrics[:8] %}
+                <div class="comparison-row" role="row">
+                    <strong role="cell">{{ item.label }}</strong>
+                    <span role="cell"><small>Atual</small>{{ item.current_label }}</span>
+                    <span role="cell"><small>Anterior</small>{{ item.previous_label }}</span>
+                    <span role="cell" class="comparison-direction direction-{{ item.direction | replace('ç', 'c') | replace('ã', 'a') | replace('í', 'i') | replace(' ', '-') }}">
+                        {{ item.direction }} · {{ item.percent_label }}
+                    </span>
+                    <span role="cell">{{ item.interpretation }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            <p class="comparison-note">{{ comparison.integrity_note }}</p>
+            <p class="comparison-note">{{ comparison.note }}</p>
+        </section>
+        {% endif %}
+
         <section class="visual-dashboard" aria-label="Graficos executivos do relatorio">
             <article class="chart-card chart-card-risk">
                 <div class="chart-card-heading">
