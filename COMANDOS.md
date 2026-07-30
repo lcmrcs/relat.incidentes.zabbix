@@ -722,3 +722,12 @@ cd /mnt/c/Users/chip/Desktop/lcmrcsWorkspace/relat.incidentes.zabbix
 source zabbix-report/venv/bin/activate
 python zabbix-report/zabbix_report.py --periodo historico --status abertos
 ```
+# Comparar com o período anterior
+
+```bash
+python zabbix-report/zabbix_report.py --periodo 24h --comparar
+```
+
+O comando acrescenta uma segunda coleta, referente à janela adjacente anterior
+de mesma duração. Também pode ser ativado na tela inicial em **Comparar com o
+período anterior**. Não use com `--periodo historico`.

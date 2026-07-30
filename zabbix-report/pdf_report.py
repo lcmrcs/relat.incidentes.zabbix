@@ -709,6 +709,70 @@ def build_conclusion_page(summary, generated, period_label, integrity, page_numb
     return b"".join(commands)
 
 
+def build_comparison_page(comparison, generated, page_number, total_pages):
+    """Apresenta uma leitura curta do modelo comparativo canônico."""
+
+    commands = []
+    _page_header(
+        commands,
+        "Comparativo",
+        "Fluxo entre períodos equivalentes",
+        comparison["quality_label"],
+    )
+    add_pdf_text(
+        commands, 36, 458, f"Atual: {comparison['current_label']}", 8, "F1", COLORS["text"]
+    )
+    add_pdf_text(
+        commands,
+        36,
+        444,
+        f"Anterior: {comparison['previous_label']}",
+        8,
+        "F1",
+        COLORS["muted"],
+    )
+    add_pdf_text(
+        commands,
+        36,
+        428,
+        comparison.get("integrity_note", ""),
+        7,
+        "F1",
+        COLORS["muted"],
+    )
+    y = 395
+    for item in comparison["metrics"][:8]:
+        add_pdf_text(commands, 44, y, item["label"], 8, "F2", COLORS["text"])
+        add_pdf_text(commands, 296, y, item["current_label"], 8, "F2", COLORS["teal"])
+        add_pdf_text(commands, 390, y, item["previous_label"], 8, "F1", COLORS["muted"])
+        add_pdf_text(
+            commands,
+            486,
+            y,
+            f"{item['direction']} · {item['percent_label']}",
+            8,
+            "F2",
+            COLORS["text"],
+        )
+        add_pdf_text(commands, 646, y, item["interpretation"], 7, "F1", COLORS["muted"])
+        add_rect(commands, 36, y - 10, 770, 1, fill=COLORS["line"])
+        y -= 38
+    add_wrapped_text(
+        commands,
+        36,
+        76,
+        comparison["note"],
+        112,
+        7,
+        11,
+        "F1",
+        COLORS["muted"],
+        2,
+    )
+    _page_footer(commands, page_number, total_pages, generated)
+    return b"".join(commands)
+
+
 def build_technical_page(rows, page_number, total_pages, generated):
     """Monta uma página tabular do anexo técnico."""
 
@@ -801,6 +865,7 @@ def build_executive_pdf_pages(
     period_label,
     integrity_summary=None,
     special_summaries=None,
+    comparison=None,
 ):
     """Compõe as páginas executivas; rankings e eventos nunca crescem sem limite."""
 
@@ -836,6 +901,10 @@ def build_executive_pdf_pages(
         builders.append(
             lambda number, total: build_criticality_page(summary, generated, number, total)
         )
+    if comparison:
+        builders.append(
+            lambda number, total: build_comparison_page(comparison, generated, number, total)
+        )
     builders.append(
         lambda number, total: build_conclusion_page(
             summary, generated, period_label, integrity_summary, number, total
@@ -854,6 +923,7 @@ def write_pdf_report(
     period_label,
     integrity_summary=None,
     special_summaries=None,
+    comparison=None,
 ):
     """
     Gera somente o PDF executivo.
@@ -869,6 +939,7 @@ def write_pdf_report(
         period_label,
         integrity_summary,
         special_summaries,
+        comparison,
     )
     return _write_pdf(filename, pages)
 
