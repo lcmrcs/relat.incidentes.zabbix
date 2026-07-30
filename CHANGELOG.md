@@ -1,5 +1,23 @@
 # Changelog
 
+## Sprint 10 — Compatibilidade multiplataforma e datas determinísticas
+
+- Centralizadas conversões temporais portáveis, com UTC como referência
+  interna e horário de Brasília explícito na apresentação.
+- Corrigido o uso de timestamps anteriores a 1970 no Windows sem alterar
+  duração, idade do passivo ou recuperação.
+- Adicionados testes temporais focais e validação equivalente em Linux e
+  Windows no GitHub Actions.
+
+## Sprint 9 — Ativação e estabilização do CI
+
+- Auditadas as primeiras execuções reais dos workflows Linux e Windows.
+- Estabilizada a captura visual contra layout transitório e rasterização de
+  fontes entre versões do Edge, sem atualizar baselines ou ampliar o limite de
+  reprovação.
+- Documentados jobs, tempos, artefatos, cache, proteção recomendada da `main` e
+  a pendência da validação manual com NVDA.
+
 Histórico das principais evoluções do projeto **Relatório Executivo de Incidentes Zabbix**.
 
 Este arquivo registra mudanças relevantes de forma simples, para facilitar acompanhamento técnico, prestação de contas e evolução do projeto.

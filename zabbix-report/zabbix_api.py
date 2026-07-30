@@ -8,9 +8,9 @@ todos os detalhes JSON-RPC no meio do fluxo do relatório.
 
 import logging
 import time
-from datetime import datetime
 
 import requests
+from time_utils import format_report_timestamp
 
 REQUEST_TIMEOUT = 60
 LOGGER = logging.getLogger("zabbix-report.api")
@@ -203,9 +203,9 @@ class ZabbixClient:
             if not isinstance(event, dict) or not event.get("eventid"):
                 continue
             try:
-                resolved_at_by_event[event["eventid"]] = datetime.fromtimestamp(
+                resolved_at_by_event[event["eventid"]] = format_report_timestamp(
                     int(event.get("clock"))
-                ).strftime("%d/%m/%Y %H:%M")
+                )
             except (TypeError, ValueError, OSError, OverflowError):
                 resolved_at_by_event[event["eventid"]] = event.get("clock")
 

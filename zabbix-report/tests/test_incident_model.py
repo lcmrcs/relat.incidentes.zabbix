@@ -1,14 +1,14 @@
 import sys
 import unittest
-from datetime import datetime
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_DIR))
 
+from time_utils import DISPLAY_TIMEZONE, unix_to_datetime  # noqa: E402
 from zabbix_report import build_incident_key, build_incidents  # noqa: E402
 
-GENERATED_AT = datetime.fromtimestamp(10_000)
+GENERATED_AT = unix_to_datetime(10_000, target_timezone=DISPLAY_TIMEZONE)
 
 
 def problem(**overrides):
@@ -52,6 +52,24 @@ class IncidentModelTests(unittest.TestCase):
             ("Resolvido", 2600, 0),
         )
         self.assertEqual(item["open_age_label"], "-")
+
+    def test_pre_epoch_and_same_instant_recovery_are_deterministic(self):
+        generated_at = unix_to_datetime(10, target_timezone=DISPLAY_TIMEZONE)
+        item = build_incidents(
+            [problem(clock="-10", r_eventid="recovery-1")],
+            {"trigger-1": "1011_CAMERA_01"},
+            {"trigger-1": "host-1"},
+            {"host-1": {"tags": [{"tag": "unidade", "value": "1011"}]}},
+            {"recovery-1": "-10"},
+            {"1011": "Escola Teste"},
+            "todos",
+            generated_at,
+        )[0]
+        self.assertEqual(item["timestamp"], -10)
+        self.assertEqual(item["resolved_timestamp"], -10)
+        self.assertEqual(item["status"], "Resolvido")
+        self.assertEqual(item["duration_seconds"], 0)
+        self.assertEqual(item["open_age_seconds"], 0)
 
     def test_missing_recovery_and_invalid_timestamps_are_safe(self):
         self.assertEqual(build([problem(r_eventid="missing")])[0]["status"], "Aberto")

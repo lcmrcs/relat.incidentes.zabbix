@@ -1,88 +1,187 @@
 {
-  "generated_at": "2026-07-27T13:59:49-03:00",
+  "generated_at": "2026-07-29T11:19:53-03:00",
   "browser": {
     "name": "Microsoft Edge",
     "version": "150.0.4078.99",
     "executable": "msedge.exe"
   },
-  "system": "Windows 11 / WSL (6.18.33.1-microsoft-standard-WSL2)",
+  "system": "Windows 11 / WSL (11)",
   "viewport": "1600x1000",
   "native_pdf": {
     "passed": true,
-    "size_bytes": 9102459
+    "size_bytes": 9102538
   },
   "scenarios": [
     {
       "records": 0,
       "runs": 1,
+      "runs_completed": 1,
       "passed": true,
       "median_metrics": {
-        "dom_content_loaded_ms": 362.6,
-        "heap_used_bytes": 2883386.0,
-        "html_bytes": 1887654.0,
+        "dom_content_loaded_ms": 324.7,
+        "heap_used_bytes": 3872523.0,
+        "html_bytes": 1888861.0,
         "initial_elements": 414.0,
-        "load_ms": 365.4,
-        "validation_ms": 183.2
+        "load_ms": 328.8,
+        "validation_ms": 191.5
       },
       "failures": [],
-      "console_messages": []
+      "console_messages": [],
+      "run_diagnostics": [
+        {
+          "driver_status": "closed",
+          "browser_status": "closed",
+          "process_status": "closed",
+          "page_status": "closed",
+          "stderr": "indisponível: processo gerenciado pelo Playwright",
+          "console": [],
+          "screenshot": "",
+          "duration_ms": 3943.371
+        }
+      ],
+      "stage_durations_ms": {
+        "render_1": 319.045
+      },
+      "duration_ms": 4911.604
     },
     {
       "records": 10,
       "runs": 1,
+      "runs_completed": 1,
       "passed": true,
       "median_metrics": {
-        "dom_content_loaded_ms": 399.4,
-        "filter_ms": 0.0,
-        "heap_used_bytes": 2933504.0,
-        "html_bytes": 1952240.0,
+        "dom_content_loaded_ms": 499.3,
+        "filter_ms": 1.9,
+        "heap_used_bytes": 4972200.0,
+        "html_bytes": 1953703.0,
         "initial_elements": 1173.0,
-        "load_ms": 439.0,
-        "search_ms": 180.0,
-        "sort_ms": 0.0,
-        "validation_ms": 876.6
+        "load_ms": 503.7,
+        "search_ms": 183.7,
+        "sort_ms": 97.0,
+        "validation_ms": 1613.3
       },
       "failures": [],
-      "console_messages": []
+      "console_messages": [],
+      "run_diagnostics": [
+        {
+          "driver_status": "closed",
+          "browser_status": "closed",
+          "process_status": "closed",
+          "page_status": "closed",
+          "stderr": "indisponível: processo gerenciado pelo Playwright",
+          "console": [],
+          "screenshot": "",
+          "duration_ms": 5282.709
+        }
+      ],
+      "stage_durations_ms": {
+        "render_1": 302.35,
+        "native_pdf": 25540.683
+      },
+      "duration_ms": 31554.745
     },
     {
       "records": 7171,
       "runs": 3,
+      "runs_completed": 3,
       "passed": true,
       "median_metrics": {
-        "dom_content_loaded_ms": 520.0,
-        "filter_ms": 0.0,
-        "heap_used_bytes": 29222328.0,
-        "html_bytes": 3948100.0,
+        "dom_content_loaded_ms": 458.2,
+        "filter_ms": 129.9,
+        "heap_used_bytes": 17967966.0,
+        "html_bytes": 3949575.0,
         "initial_elements": 2441.0,
-        "load_ms": 591.4,
-        "page_change_ms": 10.0,
-        "search_ms": 180.0,
-        "sort_ms": 0.0,
-        "validation_ms": 463.2
+        "load_ms": 465.0,
+        "page_change_ms": 9.0,
+        "search_ms": 203.6,
+        "sort_ms": 799.7,
+        "validation_ms": 2157.4
       },
       "failures": [],
-      "console_messages": []
+      "console_messages": [],
+      "run_diagnostics": [
+        {
+          "driver_status": "closed",
+          "browser_status": "closed",
+          "process_status": "closed",
+          "page_status": "closed",
+          "stderr": "indisponível: processo gerenciado pelo Playwright",
+          "console": [],
+          "screenshot": "",
+          "duration_ms": 5585.065
+        },
+        {
+          "driver_status": "closed",
+          "browser_status": "closed",
+          "process_status": "closed",
+          "page_status": "closed",
+          "stderr": "indisponível: processo gerenciado pelo Playwright",
+          "console": [],
+          "screenshot": "",
+          "duration_ms": 5243.223
+        },
+        {
+          "driver_status": "closed",
+          "browser_status": "closed",
+          "process_status": "closed",
+          "page_status": "closed",
+          "stderr": "indisponível: processo gerenciado pelo Playwright",
+          "console": [],
+          "screenshot": "",
+          "duration_ms": 4920.069
+        }
+      ],
+      "stage_durations_ms": {
+        "render_1": 551.691,
+        "render_2": 506.992,
+        "render_3": 471.233
+      },
+      "duration_ms": 19758.162
     },
     {
       "records": 20000,
       "runs": 1,
+      "runs_completed": 1,
       "passed": true,
       "median_metrics": {
-        "dom_content_loaded_ms": 594.6,
-        "filter_ms": 0.0,
-        "heap_used_bytes": 32026578.0,
-        "html_bytes": 7125780.0,
+        "dom_content_loaded_ms": 583.0,
+        "filter_ms": 142.8,
+        "heap_used_bytes": 36902214.0,
+        "html_bytes": 7127256.0,
         "initial_elements": 2441.0,
-        "load_ms": 600.4,
-        "page_change_ms": 9.9,
-        "search_ms": 180.0,
-        "sort_ms": 0.0,
-        "validation_ms": 835.5
+        "load_ms": 588.5,
+        "page_change_ms": 8.2,
+        "search_ms": 239.3,
+        "sort_ms": 1962.6,
+        "validation_ms": 4218.2
       },
       "failures": [],
-      "console_messages": []
+      "console_messages": [],
+      "run_diagnostics": [
+        {
+          "driver_status": "closed",
+          "browser_status": "closed",
+          "process_status": "closed",
+          "page_status": "closed",
+          "stderr": "indisponível: processo gerenciado pelo Playwright",
+          "console": [],
+          "screenshot": "",
+          "duration_ms": 7412.801
+        }
+      ],
+      "stage_durations_ms": {
+        "render_1": 856.409
+      },
+      "duration_ms": 9806.188
     }
   ],
+  "diagnostics": {
+    "status": "completed",
+    "last_scenario_started": 20000,
+    "last_stage_completed": "all_scenarios",
+    "current_stage": "completed",
+    "error_type": "",
+    "error": ""
+  },
   "passed": true
 }

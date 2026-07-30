@@ -462,6 +462,8 @@ da `main`, além de permitir execução manual:
 
 - **Qualidade Python**: Ruff, Black, compilação e estrutura dos workflows;
 - **Testes**: suíte pytest limitada a `zabbix-report/tests`;
+- **Compatibilidade temporal**: conversões UTC e testes focais equivalentes em
+  Linux e Windows;
 - **Segurança**: segredos aparentes e whitespace;
 - **HTML no Navegador**: cenários fictícios da Sprint 6 no Edge do Windows;
 - **Regressão Visual**: comparação das 11 baselines sem atualização;
@@ -471,6 +473,10 @@ Os jobs de navegador só processam dados fictícios. Em falhas, evidências
 sanitizadas são mantidas por cinco dias; em sucesso, somente resumos compactos
 são mantidos por três dias. Consulte [POLITICA_BASELINES.md](POLITICA_BASELINES.md)
 e [ACESSIBILIDADE_MANUAL.md](ACESSIBILIDADE_MANUAL.md).
+
+Internamente, datas e durações usam UTC e conversões portáveis inclusive antes
+de 1970. A apresentação continua no formato `DD/MM/AAAA HH:MM`, com horário de
+Brasília explícito e independente do timezone configurado no computador.
 
 ## Classificação de Equipamentos
 

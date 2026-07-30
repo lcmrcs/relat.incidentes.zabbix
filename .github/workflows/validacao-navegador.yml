@@ -97,6 +97,7 @@ jobs:
           path: |
             VALIDACAO_NAVEGADOR_SPRINT_6.json
             VALIDACAO_NAVEGADOR_SPRINT_6.md
+            artifacts/html-browser/
           if-no-files-found: warn
           retention-days: 5
 
