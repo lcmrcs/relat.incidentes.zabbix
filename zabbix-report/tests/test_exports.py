@@ -10,6 +10,7 @@ from openpyxl import load_workbook
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_DIR))
 
+from executive_summary import build_executive_summary  # noqa: E402
 from observability import ExecutionDiagnostics  # noqa: E402
 from pdf_report import write_pdf_report  # noqa: E402
 from summary import build_report_summary  # noqa: E402
@@ -41,6 +42,76 @@ def sample_incident():
 
 
 class ExportTests(unittest.TestCase):
+    def test_canonical_executive_summary_is_shared_by_html_excel_and_pdf(self):
+        incidents = [sample_incident()]
+        summary = build_report_summary(incidents)
+        integrity = {
+            "received": 1,
+            "processed": 1,
+            "adjusted": 0,
+            "discarded": 0,
+            "warning_count": 0,
+            "level": "valid",
+            "issues": [],
+        }
+        executive = build_executive_summary(
+            summary,
+            None,
+            integrity,
+            "31/07/2026 12:00",
+            "últimas 24 horas",
+        )
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_dir = Path(temp_dir)
+            html_path = temp_dir / "executivo.html"
+            excel_path = temp_dir / "executivo.xlsx"
+            pdf_path = temp_dir / "executivo.pdf"
+            render_html(
+                html_path,
+                "31/07/2026 12:00",
+                "últimas 24 horas",
+                incidents,
+                summary,
+                [],
+                build_report_summary([]),
+                [],
+                build_report_summary([]),
+                "https://example.test",
+                integrity,
+                executive_summary=executive,
+            )
+            export_excel(
+                excel_path,
+                incidents,
+                incidents,
+                [],
+                [],
+                summary,
+                "31/07/2026 12:00",
+                "últimas 24 horas",
+                integrity,
+                executive_summary=executive,
+            )
+            write_pdf_report(
+                pdf_path,
+                incidents,
+                "31/07/2026 12:00",
+                summary,
+                "últimas 24 horas",
+                integrity,
+                executive_summary=executive,
+            )
+            html = html_path.read_text(encoding="utf-8")
+            workbook = load_workbook(excel_path, data_only=True)
+            pdf = pdf_path.read_bytes()
+
+        finding = executive["findings"][0]
+        excel_values = [cell.value for row in workbook["Resumo Executivo"] for cell in row]
+        self.assertIn(executive["situation"], html)
+        self.assertIn(finding["title"], html)
+        self.assertIn(finding["title"], excel_values)
+        self.assertIn(finding["title"].encode("cp1252"), pdf)
+
     def test_export_excel_creates_executive_sheets(self):
         incidents = [sample_incident()]
         summary = build_report_summary(incidents)

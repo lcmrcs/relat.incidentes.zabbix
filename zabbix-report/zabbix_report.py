@@ -27,6 +27,7 @@ from classifiers import (
 from comparison import build_comparison_windows, build_executive_comparison
 from data_integrity import validate_problem_records
 from dotenv import load_dotenv
+from executive_summary import build_executive_summary
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from observability import ExecutionDiagnostics, write_optional_diagnostic
 from openpyxl.chart import BarChart, DoughnutChart, Reference
@@ -637,14 +638,14 @@ def counter_to_excel_frame(items):
     )
 
 
-def build_excel_summary_rows(summary, generated, period_label):
+def build_excel_summary_rows(summary, generated, period_label, executive_summary=None):
     """
     Monta os blocos textuais da aba Resumo Executivo.
     """
 
     age = summary["age"]
 
-    return [
+    rows = [
         ("Relatório Executivo de Incidentes Zabbix", ""),
         ("Gerado em", generated),
         ("Período analisado", period_label),
@@ -670,6 +671,29 @@ def build_excel_summary_rows(summary, generated, period_label):
         ("Informação", summary["information"]),
         ("Desastre", summary["critical"]),
     ]
+    if executive_summary:
+        rows.extend(
+            [
+                ("", ""),
+                ("Síntese automática", ""),
+                ("Situação geral", executive_summary["situation"]),
+                ("Nível de confiança", executive_summary["confidence"]),
+                ("Critério de confiança", executive_summary["confidence_reason"]),
+                ("Conclusão", executive_summary["conclusion"]),
+                ("Base comparativa", executive_summary["comparison_note"]),
+            ]
+        )
+        for index, finding in enumerate(executive_summary["findings"], start=1):
+            rows.extend(
+                [
+                    (f"Constatação {index}", finding["title"]),
+                    (f"Evidência {index}", finding["evidence"]),
+                    (f"Nível {index}", finding["level"]),
+                    (f"Impacto {index}", finding["impact"]),
+                    (f"Recomendação {index}", finding["recommendation"]),
+                ]
+            )
+    return rows
 
 
 def build_excel_intelligence_frames(summary):
@@ -1248,6 +1272,7 @@ def export_excel(
     integrity_summary=None,
     diagnostics=None,
     comparison=None,
+    executive_summary=None,
 ):
     """
     Gera a planilha Excel com abas separadas por finalidade.
@@ -1267,7 +1292,7 @@ def export_excel(
 
     with measure("excel_dataframes"):
         summary_frame = pd.DataFrame(
-            build_excel_summary_rows(summary, generated, period_label),
+            build_excel_summary_rows(summary, generated, period_label, executive_summary),
             columns=["Indicador", "Valor"],
         )
         rankings_frames = [
@@ -1458,6 +1483,7 @@ def render_html(
     zabbix_web_url,
     integrity_summary=None,
     comparison=None,
+    executive_summary=None,
 ):
     """
     Renderiza o template HTML com os dados já processados.
@@ -1499,6 +1525,7 @@ def render_html(
         },
         incident_payload=build_html_incident_payload(main_incidents),
         comparison=comparison,
+        executive_summary=executive_summary,
     )
 
     with open(path, "w", encoding="utf-8") as file:
@@ -1783,6 +1810,13 @@ def main():
             summary = build_report_summary(main_incidents)
             zabbix_summary = build_report_summary(zabbix_incidents)
             confea_summary = build_report_summary(confea_incidents)
+            executive_summary = build_executive_summary(
+                summary,
+                comparison,
+                integrity_summary,
+                generated,
+                period_label,
+            )
         diagnostics.set_event_groups(
             summary["event_total"],
             zabbix_summary["event_total"],
@@ -1806,6 +1840,7 @@ def main():
                 integrity_summary,
                 diagnostics,
                 comparison,
+                executive_summary,
             ),
         )
         print(f"Excel gerado: {excel_name}")
@@ -1828,6 +1863,7 @@ def main():
                 zabbix_web_url,
                 integrity_summary,
                 comparison,
+                executive_summary,
             ),
         )
         print(f"HTML gerado: {html_name}")
@@ -1849,6 +1885,7 @@ def main():
                     "CONFEA VPN": confea_summary,
                 },
                 comparison,
+                executive_summary,
             ),
             with_pages=True,
         )

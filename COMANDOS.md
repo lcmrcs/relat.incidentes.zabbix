@@ -731,3 +731,15 @@ python zabbix-report/zabbix_report.py --periodo 24h --comparar
 O comando acrescenta uma segunda coleta, referente à janela adjacente anterior
 de mesma duração. Também pode ser ativado na tela inicial em **Comparar com o
 período anterior**. Não use com `--periodo historico`.
+
+## Resumo executivo automático
+
+O resumo é gerado automaticamente nos três formatos; não exige argumento
+adicional. Para incluir tendências canônicas, use:
+
+```bash
+python zabbix-report/zabbix_report.py --periodo 24h --comparar
+```
+
+Sem `--comparar`, a síntese permanece disponível, mas descreve apenas o recorte
+atual. Todo o texto é produzido localmente por regras determinísticas.

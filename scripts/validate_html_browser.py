@@ -25,6 +25,7 @@ ROOT = Path(__file__).resolve().parents[1]
 REPORT_DIR = ROOT / "zabbix-report"
 sys.path.insert(0, str(REPORT_DIR))
 
+from executive_summary import build_executive_summary  # noqa: E402
 from summary import build_report_summary  # noqa: E402
 from zabbix_report import render_html  # noqa: E402
 
@@ -164,20 +165,44 @@ def browser_version(browser: Path) -> str:
     return result.stdout.strip() or "não identificada"
 
 
-def render_fixture(path: Path, count: int) -> None:
+def render_fixture(path: Path, count: int, include_executive_summary: bool = False) -> None:
     incidents = [fake_incident(index) for index in range(count)]
     special = [fake_incident(80_000), fake_incident(80_001)]
+    summary = build_report_summary(incidents)
+    integrity = {
+        "received": count,
+        "processed": count,
+        "adjusted": 0,
+        "discarded": 0,
+        "warning_count": 0,
+        "level": "valid",
+        "label": "Dados validados",
+        "issues": [],
+    }
+    executive = (
+        build_executive_summary(
+            summary,
+            None,
+            integrity,
+            "27/07/2026 12:00",
+            "período fictício da Sprint 12",
+        )
+        if include_executive_summary
+        else None
+    )
     render_html(
         path,
         "27/07/2026 12:00",
         "período fictício da Sprint 6",
         incidents,
-        build_report_summary(incidents),
+        summary,
         special,
         build_report_summary(special),
         special[:1],
         build_report_summary(special[:1]),
         "https://example.invalid",
+        integrity,
+        executive_summary=executive,
     )
 
 
