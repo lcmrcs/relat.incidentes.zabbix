@@ -666,7 +666,15 @@ def _build_attention_points(summary, integrity):
     return points[:4]
 
 
-def build_conclusion_page(summary, generated, period_label, integrity, page_number, total_pages):
+def build_conclusion_page(
+    summary,
+    generated,
+    period_label,
+    integrity,
+    page_number,
+    total_pages,
+    executive_summary=None,
+):
     commands = []
     _page_header(
         commands,
@@ -674,13 +682,53 @@ def build_conclusion_page(summary, generated, period_label, integrity, page_numb
         "Conclusão executiva",
         "Pontos objetivos para acompanhamento e tomada de decisão.",
     )
-    points = _build_attention_points(summary, integrity)
-    y = 442
-    for index, point in enumerate(points, start=1):
-        add_rect(commands, 36, y - 62, 770, 72, fill=COLORS["surface"])
-        add_pdf_text(commands, 52, y - 20, f"{index:02d}", 10, "F2", COLORS["teal"])
-        add_wrapped_text(commands, 88, y - 13, point, 90, 10, 14, "F1", COLORS["text"], 3)
-        y -= 86
+    if executive_summary:
+        add_pdf_text(
+            commands,
+            36,
+            466,
+            f"Situação geral: {executive_summary['situation']}",
+            13,
+            "F2",
+            COLORS["navy"],
+        )
+        add_pdf_text(
+            commands,
+            580,
+            466,
+            f"Confiança: {executive_summary['confidence']}",
+            9,
+            "F2",
+            COLORS["teal"],
+        )
+        findings = executive_summary.get("findings", [])[:5]
+        y = 425
+        for index, finding in enumerate(findings, start=1):
+            add_rect(commands, 36, y - 47, 770, 56, fill=COLORS["surface"])
+            add_pdf_text(commands, 50, y - 12, f"{index:02d}", 8, "F2", COLORS["teal"])
+            add_pdf_text(commands, 78, y - 12, finding["title"], 8, "F2", COLORS["text"])
+            add_pdf_text(commands, 650, y - 12, finding["level"], 7, "F2", COLORS["muted"])
+            add_wrapped_text(
+                commands,
+                78,
+                y - 28,
+                f"{finding['evidence']} Recomendação: {finding['recommendation']}",
+                105,
+                7,
+                10,
+                "F1",
+                COLORS["muted"],
+                2,
+            )
+            y -= 62
+    else:
+        points = _build_attention_points(summary, integrity)
+        y = 442
+        for index, point in enumerate(points, start=1):
+            add_rect(commands, 36, y - 62, 770, 72, fill=COLORS["surface"])
+            add_pdf_text(commands, 52, y - 20, f"{index:02d}", 10, "F2", COLORS["teal"])
+            add_wrapped_text(commands, 88, y - 13, point, 90, 10, 14, "F1", COLORS["text"], 3)
+            y -= 86
 
     integrity = integrity or {}
     add_rect(commands, 36, 68, 770, 60, fill=COLORS["navy"])
@@ -866,6 +914,7 @@ def build_executive_pdf_pages(
     integrity_summary=None,
     special_summaries=None,
     comparison=None,
+    executive_summary=None,
 ):
     """Compõe as páginas executivas; rankings e eventos nunca crescem sem limite."""
 
@@ -907,7 +956,13 @@ def build_executive_pdf_pages(
         )
     builders.append(
         lambda number, total: build_conclusion_page(
-            summary, generated, period_label, integrity_summary, number, total
+            summary,
+            generated,
+            period_label,
+            integrity_summary,
+            number,
+            total,
+            executive_summary,
         )
     )
 
@@ -924,6 +979,7 @@ def write_pdf_report(
     integrity_summary=None,
     special_summaries=None,
     comparison=None,
+    executive_summary=None,
 ):
     """
     Gera somente o PDF executivo.
@@ -940,6 +996,7 @@ def write_pdf_report(
         integrity_summary,
         special_summaries,
         comparison,
+        executive_summary,
     )
     return _write_pdf(filename, pages)
 

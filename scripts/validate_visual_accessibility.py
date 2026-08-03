@@ -48,6 +48,15 @@ DOM_QUIET_MS = 120
 
 CAPTURES = (
     {
+        "name": "desktop_solar_resumo_executivo",
+        "size": (1600, 1000),
+        "theme": "solar",
+        "records": 40,
+        "section": ".automatic-executive-summary",
+        "modal": None,
+        "executive_summary": True,
+    },
+    {
         "name": "desktop_solar_cabecalho",
         "size": (1600, 1000),
         "theme": "solar",
@@ -916,7 +925,11 @@ def main() -> int:
                 current = current_dir / f"{capture['name']}.png"
                 baseline = BASELINE_DIR / current.name
                 diff = diff_dir / current.name
-                render_fixture(fixture, capture["records"])
+                render_fixture(
+                    fixture,
+                    capture["records"],
+                    include_executive_summary=capture.get("executive_summary", False),
+                )
                 inject_capture_state(
                     fixture,
                     theme=capture["theme"],
@@ -965,7 +978,7 @@ def main() -> int:
         if run_accessibility:
             for index, audit in enumerate(AUDITS):
                 fixture = temp_dir / f"a11y-{audit['name']}.html"
-                render_fixture(fixture, 40)
+                render_fixture(fixture, 40, include_executive_summary=True)
                 inject_accessibility(fixture, audit["theme"], audit["zoom"])
                 result = run_accessibility_audit(
                     browser,

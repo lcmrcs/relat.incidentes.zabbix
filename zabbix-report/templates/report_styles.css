@@ -5819,3 +5819,153 @@
         break-inside: avoid;
     }
 }
+        .automatic-executive-summary {
+            margin: 24px 0;
+            padding: 26px;
+            border: 1px solid var(--line);
+            background: var(--surface);
+            box-shadow: 0 18px 48px rgb(18 52 59 / 0.08);
+        }
+
+        .automatic-summary-heading,
+        .automatic-summary-confidence,
+        .automatic-summary-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+        }
+
+        .automatic-summary-heading h2 {
+            margin: 5px 0 0;
+            color: var(--text);
+            font-size: clamp(1.25rem, 2vw, 1.75rem);
+        }
+
+        .automatic-summary-status {
+            min-width: 150px;
+            padding-left: 18px;
+            border-left: 3px solid var(--accent);
+        }
+
+        .automatic-summary-status span,
+        .automatic-finding > div > span {
+            color: var(--muted);
+            font-size: .7rem;
+            font-weight: 800;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .automatic-summary-status strong {
+            display: block;
+            margin-top: 3px;
+            font-size: 1.2rem;
+        }
+
+        .automatic-summary-confidence {
+            margin: 20px 0 4px;
+            padding: 12px 0;
+            border-top: 1px solid var(--line-soft);
+            border-bottom: 1px solid var(--line-soft);
+            color: var(--muted);
+            font-size: .8rem;
+        }
+
+        .automatic-summary-confidence strong {
+            color: var(--text);
+        }
+
+        .automatic-summary-findings {
+            display: grid;
+            gap: 0;
+            margin: 8px 0 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .automatic-finding {
+            display: grid;
+            grid-template-columns: 34px 1fr;
+            gap: 14px;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--line-soft);
+        }
+
+        .automatic-finding-index {
+            color: var(--accent);
+            font-size: .78rem;
+            font-weight: 900;
+        }
+
+        .automatic-finding h3,
+        .automatic-finding p {
+            margin: 3px 0;
+        }
+
+        .automatic-finding h3 {
+            color: var(--text);
+            font-size: .95rem;
+        }
+
+        .automatic-finding p,
+        .automatic-finding small {
+            display: block;
+            color: var(--muted);
+            font-size: .78rem;
+            line-height: 1.5;
+        }
+
+        .automatic-finding strong {
+            display: block;
+            margin: 6px 0 3px;
+            color: var(--text);
+            font-size: .78rem;
+        }
+
+        .automatic-summary-footer {
+            align-items: flex-start;
+            padding-top: 16px;
+            color: var(--muted);
+            font-size: .76rem;
+        }
+
+        .automatic-summary-footer p {
+            max-width: 68ch;
+            margin: 0;
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        body.theme-dark .automatic-executive-summary {
+            background: var(--surface);
+            box-shadow: none;
+        }
+
+        @media (max-width: 760px) {
+            .automatic-executive-summary {
+                padding: 20px;
+            }
+
+            .automatic-summary-heading,
+            .automatic-summary-confidence,
+            .automatic-summary-footer {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .automatic-summary-status {
+                width: 100%;
+                padding: 10px 0 0;
+                border-top: 2px solid var(--accent);
+                border-left: 0;
+            }
+        }
+
+        @media print {
+            .automatic-executive-summary {
+                break-inside: avoid;
+                box-shadow: none;
+            }
+        }

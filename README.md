@@ -711,6 +711,18 @@ gráficos, rankings e separação operacional dos principais grupos de incidente
 
 Ele segue em evolução contínua, com foco em clareza, confiabilidade, segurança
 e utilidade para acompanhamento técnico e executivo.
+
+## Resumo executivo automático
+
+O relatório gera uma síntese determinística a partir dos indicadores já
+validados. Ela apresenta situação geral, nível de confiança e até cinco
+constatações priorizadas, sempre acompanhadas de evidência e recomendação
+operacional. O mesmo modelo alimenta HTML, Excel e PDF.
+
+Não há uso de inteligência artificial, serviços externos ou envio de dados.
+Quando `--comparar` está desativado, o texto descreve somente o cenário atual e
+não inventa tendências. Descartes ou limitações de integridade reduzem a
+confiança e impedem conclusões definitivas.
 # Comparativo executivo entre períodos
 
 O comparativo é opcional e depende tecnicamente dos utilitários temporais

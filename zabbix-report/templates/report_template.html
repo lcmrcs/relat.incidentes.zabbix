@@ -79,6 +79,43 @@
             <p>Indicadores essenciais para entender rapidamente o tamanho do passivo, a idade dos incidentes e os pontos de maior criticidade.</p>
         </section>
 
+        {% if executive_summary %}
+        <section class="automatic-executive-summary" aria-labelledby="automatic-summary-title">
+            <div class="automatic-summary-heading">
+                <div>
+                    <span class="chart-kicker">Resumo Executivo</span>
+                    <h2 id="automatic-summary-title">Leitura automática do cenário operacional</h2>
+                </div>
+                <div class="automatic-summary-status status-{{ executive_summary.situation | lower | replace('í', 'i') | replace('á', 'a') | replace(' ', '-') }}">
+                    <span>Situação geral</span>
+                    <strong>{{ executive_summary.situation }}</strong>
+                </div>
+            </div>
+            <div class="automatic-summary-confidence">
+                <strong>Confiança {{ executive_summary.confidence }}</strong>
+                <span>{{ executive_summary.confidence_reason }}</span>
+            </div>
+            <ol class="automatic-summary-findings">
+                {% for finding in executive_summary.findings[:5] %}
+                <li class="automatic-finding finding-{{ finding.level }}">
+                    <span class="automatic-finding-index">{{ "%02d" | format(loop.index) }}</span>
+                    <div>
+                        <span>{{ finding.category }}</span>
+                        <h3>{{ finding.title }}</h3>
+                        <p>{{ finding.explanation }}</p>
+                        <strong>{{ finding.evidence }}</strong>
+                        <small>{{ finding.recommendation }}</small>
+                    </div>
+                </li>
+                {% endfor %}
+            </ol>
+            <footer class="automatic-summary-footer">
+                <p>{{ executive_summary.conclusion }}</p>
+                <span>{{ executive_summary.comparison_note }}</span>
+            </footer>
+        </section>
+        {% endif %}
+
         <section class="summary kpi-strip" aria-label="Resumo executivo do relatorio">
             <div class="summary-item kpi-primary">
                 <p class="summary-label">Incidentes abertos</p>

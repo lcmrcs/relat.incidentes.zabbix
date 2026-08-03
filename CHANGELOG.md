@@ -1,5 +1,13 @@
 # Changelog
 
+## Sprint 12 — Resumo executivo automático
+
+- Criado modelo determinístico e sanitizado para situação geral, constatações,
+  prioridades, confiança e conclusão executiva.
+- Unificada a síntese consumida por HTML, Excel e PDF, com ou sem comparação.
+- Integridade, severidade, criticidade, recorrência e envelhecimento passaram a
+  influenciar explicitamente a força das conclusões.
+
 ## Sprint 11 — Comparativo executivo entre períodos
 
 - Adicionado comparativo opcional de fluxo entre janelas equivalentes,
