@@ -26,6 +26,24 @@ def sanitize_executive_text(value):
     return " ".join(text.split())
 
 
+def sanitize_executive_identifier(value, fallback):
+    """Mantém contexto útil quando a identificação inteira precisar ser omitida."""
+
+    sanitized = sanitize_executive_text(value)
+    without_placeholders = re.sub(r"\[(?:IP|URL) omitid[oa]\]", "", sanitized)
+    without_placeholders = re.sub(r"\b\w+=\[omitido\]", "", without_placeholders)
+    if not re.search(r"[A-Za-zÀ-ÿ0-9]", without_placeholders):
+        return fallback
+    return sanitized
+
+
+def _quantity(value, singular, plural=None):
+    """Aplica singular e plural de forma determinística."""
+
+    count = int(value or 0)
+    return f"{count} {singular if count == 1 else (plural or singular + 's')}"
+
+
 def _finding(category, title, explanation, evidence, level, impact, recommendation, priority):
     return {
         "category": category,
@@ -128,12 +146,27 @@ def build_executive_summary(summary, comparison, integrity, generated, period_la
         high_ratio = high_severity / event_total if event_total else 0
 
         if critical_count or intervention_units:
+            critical_evidence = []
+            if critical_count:
+                critical_evidence.append(
+                    "Foi identificada 1 prioridade crítica relacionada a hosts ou equipamentos."
+                    if critical_count == 1
+                    else f"Foram identificadas {critical_count} prioridades críticas relacionadas a hosts ou equipamentos."
+                )
+            if intervention_units:
+                critical_evidence.append(
+                    f"{_quantity(intervention_units, 'unidade atingiu', 'unidades atingiram')} o critério de intervenção imediata."
+                )
+            else:
+                critical_evidence.append(
+                    "Nenhuma unidade atingiu o critério de intervenção imediata."
+                )
             findings.append(
                 _finding(
                     "criticidade",
                     "Prioridade operacional elevada",
-                    "A combinação de severidade, permanência e impacto posicionou itens no nível máximo de atuação.",
-                    f"{critical_count} prioridades críticas e {intervention_units} unidades para intervenção imediata.",
+                    "As prioridades representam ocorrências em hosts ou equipamentos; a criticidade por unidade é avaliada separadamente.",
+                    " ".join(critical_evidence),
                     "crítico",
                     "Há risco de indisponibilidade prolongada ou impacto concentrado.",
                     "Atuar primeiro nas unidades e ocorrências com maior score de criticidade.",
@@ -146,7 +179,7 @@ def build_executive_summary(summary, comparison, integrity, generated, period_la
                     "criticidade",
                     "Fila com prioridade alta",
                     "O passivo contém ocorrências que exigem acompanhamento ativo do NOC.",
-                    f"{high_priority} prioridades altas entre {open_total} incidentes únicos abertos.",
+                    f"{_quantity(high_priority, 'prioridade alta', 'prioridades altas')} na fila. O passivo reúne {_quantity(open_total, 'incidente único aberto', 'incidentes únicos abertos')}.",
                     "atenção",
                     "A demora na atuação pode ampliar o tempo de indisponibilidade.",
                     "Ordenar a fila pelo score e validar primeiro as ocorrências de maior severidade.",
@@ -160,7 +193,7 @@ def build_executive_summary(summary, comparison, integrity, generated, period_la
                     "severidade",
                     "Concentração de severidades altas",
                     "Eventos classificados como Alta ou Desastre representam parte relevante do fluxo analisado.",
-                    f"{high_severity} de {event_total} eventos ({high_ratio * 100:.1f}%).",
+                    f"{_quantity(high_severity, 'evento', 'eventos')} de Alta ou Desastre entre {_quantity(event_total, 'evento registrado', 'eventos registrados')} ({high_ratio * 100:.1f}%).",
                     "crítico" if high_ratio >= 0.25 and high_severity >= 2 else "atenção",
                     "Severidades altas podem indicar maior impacto operacional.",
                     "Validar os eventos de Alta e Desastre e confirmar o impacto nos ativos afetados.",
@@ -175,11 +208,11 @@ def build_executive_summary(summary, comparison, integrity, generated, period_la
                 _finding(
                     "envelhecimento",
                     "Passivo aberto envelhecido",
-                    "Há incidentes abertos acima de sete dias, separados das durações históricas já encerradas.",
-                    f"{aged} incidentes acima de 7 dias; mais antigo: {age.get('oldest_label', '-')}.",
+                    "Há eventos abertos acima de sete dias, separados das durações históricas já encerradas.",
+                    f"{_quantity(aged, 'evento aberto', 'eventos abertos')} acima de 7 dias; evento mais antigo: {age.get('oldest_label', '-')}.",
                     "crítico" if open_total and aged / open_total >= 0.25 else "atenção",
                     "O passivo antigo aumenta o risco de normalização operacional da indisponibilidade.",
-                    "Revisar responsáveis, evidências e próximos passos dos incidentes mais antigos.",
+                    "Revisar responsáveis, evidências e próximos passos dos eventos abertos mais antigos.",
                     14,
                 )
             )
@@ -193,7 +226,7 @@ def build_executive_summary(summary, comparison, integrity, generated, period_la
                     "recorrência",
                     "Falhas reincidentes exigem causa raiz",
                     "Os mesmos hosts e sintomas reapareceram no período analisado.",
-                    f"{recurrent_hosts} hosts reincidentes e {recurrent_events} repetições além da ocorrência inicial.",
+                    f"{_quantity(recurrent_hosts, 'host reincidente', 'hosts reincidentes')} e {_quantity(recurrent_events, 'evento repetido', 'eventos repetidos')} além das ocorrências iniciais.",
                     "atenção",
                     "A repetição pode consumir capacidade do NOC sem eliminar a origem do problema.",
                     "Selecionar os hosts mais reincidentes e abrir análise de causa raiz.",
@@ -204,12 +237,15 @@ def build_executive_summary(summary, comparison, integrity, generated, period_la
         top_unit = (summary.get("top_units") or [{}])[0]
         unit_percent = float(top_unit.get("percent", 0) or 0)
         if top_unit.get("name") and unit_percent >= 30:
+            unit_name = sanitize_executive_identifier(
+                top_unit["name"], "Unidade com identificação protegida"
+            )
             findings.append(
                 _finding(
                     "concentração",
                     "Impacto concentrado em uma unidade",
                     "Uma única unidade concentra parcela expressiva dos eventos do recorte.",
-                    f"{sanitize_executive_text(top_unit['name'])}: {top_unit.get('total', 0)} eventos ({unit_percent:.1f}%).",
+                    f"{unit_name}: {_quantity(top_unit.get('total', 0), 'evento', 'eventos')} ({unit_percent:.1f}%).",
                     "atenção",
                     "A concentração permite atuação localizada, mas amplia o impacto naquela unidade.",
                     "Priorizar a unidade concentradora e validar seus equipamentos mais afetados.",
@@ -219,12 +255,15 @@ def build_executive_summary(summary, comparison, integrity, generated, period_la
 
         top_equipment = (summary.get("top_equipment") or [{}])[0]
         if top_equipment.get("name") and float(top_equipment.get("percent", 0) or 0) >= 35:
+            equipment_name = sanitize_executive_identifier(
+                top_equipment["name"], "Equipamento com identificação protegida"
+            )
             findings.append(
                 _finding(
                     "equipamento",
                     "Concentração por tipo de equipamento",
                     "Um tipo de equipamento responde por parcela relevante dos eventos analisados.",
-                    f"{sanitize_executive_text(top_equipment['name'])}: {top_equipment.get('total', 0)} eventos ({float(top_equipment.get('percent', 0) or 0):.1f}%).",
+                    f"{equipment_name}: {_quantity(top_equipment.get('total', 0), 'evento', 'eventos')} ({float(top_equipment.get('percent', 0) or 0):.1f}%).",
                     "atenção",
                     "Uma falha comum de tecnologia ou configuração pode ampliar o volume operacional.",
                     "Revisar o padrão técnico dos equipamentos concentradores e as ocorrências associadas.",
@@ -240,7 +279,7 @@ def build_executive_summary(summary, comparison, integrity, generated, period_la
                 "integridade",
                 "Leitura possivelmente incompleta",
                 "Registros sem confiabilidade suficiente foram descartados antes da construção dos indicadores.",
-                f"{integrity.get('discarded', 0)} descartados de {integrity.get('received', 0)} recebidos.",
+                f"{_quantity(integrity.get('discarded', 0), 'registro descartado', 'registros descartados')} entre {_quantity(integrity.get('received', 0), 'registro recebido', 'registros recebidos')}.",
                 "atenção",
                 "As conclusões não devem ser tratadas como definitivas.",
                 "Revisar as categorias de descarte antes de decisões executivas definitivas.",

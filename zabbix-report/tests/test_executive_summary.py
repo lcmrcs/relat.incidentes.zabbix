@@ -6,7 +6,11 @@ from pathlib import Path
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_DIR))
 
-from executive_summary import build_executive_summary, sanitize_executive_text  # noqa: E402
+from executive_summary import (  # noqa: E402
+    build_executive_summary,
+    sanitize_executive_identifier,
+    sanitize_executive_text,
+)
 from summary import build_report_summary  # noqa: E402
 
 VALID_INTEGRITY = {
@@ -66,6 +70,45 @@ def build(incidents, integrity=None, comparison=None):
 
 
 class ExecutiveSummaryTests(unittest.TestCase):
+    def test_critical_priorities_and_zero_units_are_explained_separately(self):
+        summary = build_report_summary([incident()])
+        summary["priority"].update({"critical": 5, "high": 0})
+        summary["unit_criticality"].update({"critical": 0})
+        result = build_executive_summary(
+            summary,
+            None,
+            {**VALID_INTEGRITY, "received": 1, "processed": 1},
+            "31/07/2026 12:00",
+            "últimas 24 horas",
+        )
+        critical = next(item for item in result["findings"] if item["category"] == "criticidade")
+        self.assertIn(
+            "5 prioridades críticas relacionadas a hosts ou equipamentos",
+            critical["evidence"],
+        )
+        self.assertIn(
+            "Nenhuma unidade atingiu o critério de intervenção imediata",
+            critical["evidence"],
+        )
+        self.assertNotIn("5 prioridades críticas e 0 unidades", critical["evidence"])
+
+    def test_singular_and_plural_are_correct_for_operational_entities(self):
+        summary = build_report_summary([incident()])
+        summary["priority"].update({"critical": 1, "high": 0})
+        summary["unit_criticality"].update({"critical": 1})
+        result = build_executive_summary(
+            summary,
+            None,
+            {**VALID_INTEGRITY, "received": 1, "processed": 1},
+            "31/07/2026 12:00",
+            "últimas 24 horas",
+        )
+        critical = next(item for item in result["findings"] if item["category"] == "criticidade")
+        self.assertIn("1 prioridade crítica relacionada", critical["evidence"])
+        self.assertIn("1 unidade atingiu o critério", critical["evidence"])
+        self.assertNotIn("1 prioridades", repr(result))
+        self.assertNotIn("1 unidades", repr(result))
+
     def test_empty_report_is_prudent_and_has_no_false_availability_claim(self):
         result = build([])
         self.assertEqual(result["situation"], "Estável")
@@ -190,6 +233,25 @@ class ExecutiveSummaryTests(unittest.TestCase):
             sanitize_executive_text(unsafe),
             "Unidade [IP omitido] [URL omitida] token=[omitido]",
         )
+
+    def test_fully_sanitized_identifier_uses_a_safe_descriptive_fallback(self):
+        self.assertEqual(
+            sanitize_executive_identifier("10.1.2.3", "Unidade com identificação protegida"),
+            "Unidade com identificação protegida",
+        )
+        summary = build_report_summary([incident(unit="10.1.2.3", equipment="https://x.test")])
+        result = build_executive_summary(
+            summary,
+            None,
+            {**VALID_INTEGRITY, "received": 1, "processed": 1},
+            "31/07/2026 12:00",
+            "últimas 24 horas",
+        )
+        evidence = " ".join(item["evidence"] for item in result["findings"])
+        self.assertIn("Unidade com identificação protegida", evidence)
+        self.assertIn("Equipamento com identificação protegida", evidence)
+        self.assertNotIn("[IP omitido]:", evidence)
+        self.assertNotIn("[URL omitida]:", evidence)
 
     def test_large_volume_is_bounded_and_repeatable(self):
         incidents = [
